@@ -14,16 +14,174 @@
 % Temp title and author
 \title{Requirements}
 \date{\today} % Somehow this isn't working..
-\author{Bret~Lorimore, Jacob~Fenger, George~Harder \\
+\author{Totality AweSun \\
+		Bret~Lorimore, Jacob~Fenger, George~Harder \\
 		\textit{October 28th, 2016 \\
 		CS 461 - Fall 2016}} 
 
 \begin{document}
 \maketitle
 
+\section{Eclipse Simulator Requirements}
+
+\begin{enumerate}
+	\item The simulator is a standalone JavaScript module that can 
+	easily be included on an existing webpage.
+
+	\item Users can select the location from which to simulate the 
+	eclipse. This can be entered at any point while using the 
+	simulator.
+	\begin{enumerate}
+		\item Location can be entered as: lat/long, address, zip
+		code, city name, state name.
+		\item Initial simulator location can be programmatically 
+		set as initialization parameter
+	\end{enumerate}
+
+	\item Users will be able to adjust the simulator time from 12 
+	before the eclipse to 12 hours after it.
+	\begin{enumerate}
+		\item Time can be advanced via a slider, or clickable 
+		buttons.
+	\end{enumerate}
+
+	\item All simulator resources will load in less than= 500ms given a 
+	1-10 Mbps internet connection. Once this is achieved file sizes
+	will be optimized to achieve the fastest load time possible.
+
+	\item Simulator will display the local time that is being 
+	displayed, e.g. there is a well defined time associated with 
+	the user selecting Corvallis, Oregon as their location and a 
+	simulator time of -3:13 (3 hours 13 minutes) before the 
+	eclipse. This time should be displayed on the simulator.
+
+	\item Solar/lunar placement will be scientifically accurate for
+	the given location and time. This accuracy will apply to edge 
+	cases as well, where the location is say, not in the path of 
+	totality, or on the opposite side of the world as the eclipse.
+	In the latter situation, the simulator would have to shift to
+	a night time display during the eclipse.
+\end{enumerate}
+
+\section{Image Pre-Processor Requirements}
+
+\begin{enumerate}
+	\item The image pre-processor will be compatible with Ubuntu 16.04 and will include a script that to install all dependencies/
+	build the binary.
+
+	\item The application will accept the following input as 
+	command line arguments:
+	\begin{enumerate}
+		\item Required: image\_list\_file
+		\begin{enumerate}
+			\item Absolute or relative (to the directory the binary 
+			was invoked from) path to file containing a list of image 
+			file names with no directory.
+		\end{enumerate}
+
+		\item Required: output\_dir
+		\begin{enumerate}
+			\item Directory to write output files to.
+		\end{enumerate}
+
+		\item Optional: image\_path\_prefix
+		\begin{enumerate}
+			\item Absolute or relative (to the directory the 
+			binary was invoked from) path to prepend to each image 
+			filename in image\_file\_list. Defaults to “./”.
+		\end{enumerate}
+	\end{enumerate}
+
+	\item The application will accept JPEG (.jpeg/.jpg) and PNG (.
+	png) image files.
+	\begin{enumerate}
+		\item Images of an invalid format will be disregarded and an error message will be written to stderr.
+	\end{enumerate}
+
+	\item Invalid JPEG and PNG files (e.g. cannot be opened by 
+	OpenCV, width/height equal to 0px, etc.) will be ignored and 
+	an error message will be written to stderr.
+
+	\item The application will classify the input images as being 
+	one of the following types:
+	\begin{enumerate}
+		\item FULL\_DISK
+		\begin{enumerate}
+			\item Image of an unobscured solar disk.
+		\end{enumerate}
+
+		\item TOTALITY
+		\begin{enumerate}
+			\item Image of a total solar eclipse.
+		\end{enumerate}
+
+		\item CRESCENT
+		\begin{enumerate}
+			\item Image of a partially eclipsed sun, creating a 
+			“crescent” shape.
+		\end{enumerate}
+
+		\item DIAMOND\_RING
+		\begin{enumerate}
+			\item Image of a nearly fully eclipsed sun where there
+			is one “hot spot” on the sun's perimeter. This hot 
+			spot along with the sun's perimeter have the shape of
+			a diamond ring.
+		\end{enumerate}
+	\end{enumerate}
+
+	\item The preprocessor will sort the images into five separate 
+	bins based on the relative delta of the position of the center 
+	of the sun and the moon. This delta will be a signed value 
+	based on the sun's position, i.e. if the moon is to the left 
+	of the sun (in the cropped/rotated image) the relative delta 
+	will be negative and conversely, if the moon is to the right 
+	of the sun the delta value will be positive.
+
+	\item The application will crop the images to a standard size 
+	with the sun centered in them.
+
+	\item The application will rotate DIAMOND\_RING and CRESCENT 
+	type images so that they are aligned horizontally, as 
+	described by Krista et al.
+
+	\item The application will write the following output to the output\_dir directory:
+	\begin{enumerate}
+		\item image\_transformation.txt
+		\begin{enumerate}
+			\item File containing one line per image processed 
+			with the following values (comma separated):
+			\begin{enumerate}
+				\item processed\_image
+				\item image\_type
+				\item rot\_angle
+				\item crop\_topl\_x
+				\item crop\_topl\_y
+				\item crop\_botr\_x
+				\item crop\_botr\_y
+				\item rel\_center\_offset - optional, only included for crescent type images
+			\end{enumerate}
+		\end{enumerate}
+
+		\item Pre-processed image files
+			\begin{enumerate}
+				\item images/*\_pp.[png|jpeg|jpg]
+			\end{enumerate}
+	\end{enumerate}
+
+	\item The application will format all log messages as follows:
+	\begin{enumerate}
+		\item img\_preproc:level:timestamp:”message”
+		\begin{enumerate}
+			\item Values of level: ERROR/WARNING/INFO/DEBUG
+			\item Value of timestamp: current timestamp
+			\item Value of message: specific logging message
+		\end{enumerate}
+	\end{enumerate}
+\end{enumerate}
+
 
 \vspace{20mm}
-
 \noindent \SignatureAndDate{David Konerding, Project Sponsor}
 \vspace{8mm}
 \noindent \SignatureAndDate{Bret Lorimore}
