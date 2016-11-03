@@ -14,7 +14,7 @@
 \contentsline {section}{\numberline {3}Specific requirements}{5}{section.3}
 \contentsline {subsection}{\numberline {3.1}External Interfaces}{5}{subsection.3.1}
 \contentsline {subsubsection}{\numberline {3.1.1}Eclipse Simulator}{5}{subsubsection.3.1.1}
-\contentsline {subsubsection}{\numberline {3.1.2}Eclipse Image Processor}{6}{subsubsection.3.1.2}
+\contentsline {subsubsection}{\numberline {3.1.2}Eclipse Image Processor}{5}{subsubsection.3.1.2}
 \contentsline {subsection}{\numberline {3.2}Functional Requirements}{7}{subsection.3.2}
 \contentsline {subsubsection}{\numberline {3.2.1}Eclipse Simulator}{7}{subsubsection.3.2.1}
 \contentsline {subsubsection}{\numberline {3.2.2}Eclipse Image Processor}{7}{subsubsection.3.2.2}
