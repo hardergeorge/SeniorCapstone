@@ -3,6 +3,9 @@
 \usepackage{cite}
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage{graphicx}
+
+\graphicspath{ {images/} }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Macro for the signatures at the end                %
@@ -54,6 +57,14 @@ they are stitched into a movie, and a location-based eclipse simulator.
 
 \end{abstract}
 
+\vspace{10mm}
+\noindent \SignatureAndDate{David Konerding, Project Sponsor}
+\vspace{8mm}
+\noindent \SignatureAndDate{Bret Lorimore}
+\vspace{8mm}
+\noindent \SignatureAndDate{George Harder}
+\vspace{8mm}
+\noindent \SignatureAndDate{Jacob Fenger}
 
 \newpage
 
@@ -131,6 +142,7 @@ The remainder of this SRS contains an overall description of the Eclipse Image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SECTION 2: OVERALL DESCRIPTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{Overall Description}
 \subsection{Product perspective}
 	\begin{enumerate}
@@ -170,9 +182,7 @@ The remainder of this SRS contains an overall description of the Eclipse Image
 
 \subsection{Product functions}
 	\begin{enumerate}
-		\item Eclipse Image Processor
-		\begin{enumerate}
-			\item The Eclipse Image Processor application will ingest 
+		\item The Eclipse Image Processor application will ingest 
 			photos of the eclipse, align them spatially, and categorize
 			them to help recover temporal ordering. These aligned and 
 			categorized images will be cropped so that the sun 
@@ -182,11 +192,7 @@ The remainder of this SRS contains an overall description of the Eclipse Image
 			data file. Additionally, select EXIF information will be 
 			extracted from the image files and included in this output
 			data file.
-		\end{enumerate}
-
-		\item Eclipse Simulator
-		\begin{enumerate}
-			\item The Eclipse Simulator will be a standalone JavaScript 
+		\item The Eclipse Simulator will be a standalone JavaScript 
 			module enabling users to preview the eclipse. It will be 
 			designed in a stylized, 2D manner. The simulator will 
 			incorporate a time slider that allows users to simulate the 
@@ -195,24 +201,17 @@ The remainder of this SRS contains an overall description of the Eclipse Image
 			slider, the eclipse will animate in the simulator window. 
 			The view of the eclipse which users are presented will be 
 			specific to the selected location.
-		\end{enumerate}
 	\end{enumerate}
 
 \subsection{User characteristics}
 	\begin{enumerate}
-		\item Eclipse Image Processor
-		\begin{enumerate}
-			\item The Eclipse Image Processor application will be used by 
+		\item The Eclipse Image Processor application will be used by 
 			Google Engineers.
-		\end{enumerate}
 
-		\item Eclipse Simulator
-		\begin{enumerate}
-			\item The Eclipse Simulator application will be used by the
-			general public. No unusual technical/scientific knowledge is
-			expected of these users. These users are presumed to be
-			familiar with the internet and web browsers.
-		\end{enumerate}
+		\item The Eclipse Simulator application will be used by the
+		general public. No unusual technical/scientific knowledge is
+		expected of these users. These users are presumed to be
+		familiar with the internet and web browsers.
 	\end{enumerate}
 
 \subsection{Constraints}
@@ -234,6 +233,7 @@ See Gantt Chart in Appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SECTION 3: REQUIREMENTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{Specific requirements}
 
 % SECTION 3.1
@@ -476,15 +476,20 @@ See Gantt Chart in Appendix
 		 machine.
 	\end{enumerate}
 
-\appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  SECTION 4: Supporting Information
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Supporting Information}
 
-\vspace{20mm}
-\noindent \SignatureAndDate{David Konerding, Project Sponsor}
-\vspace{8mm}
-\noindent \SignatureAndDate{Bret Lorimore}
-\vspace{8mm}
-\noindent \SignatureAndDate{George Harder}
-\vspace{8mm}
-\noindent \SignatureAndDate{Jacob Fenger}
+\subsection{Appendix}
+
+\begin{enumerate}
+	\item Figure 1. Project Gantt Chart 
+\end{enumerate}
+
+\begin{center}
+	\includegraphics[width=\textwidth]{gantt.eps}
+\end{center}
 
 \end{document}
