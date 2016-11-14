@@ -2,7 +2,7 @@
 
 \usepackage{cite}
 \usepackage{hyperref}
-\usepackage{enumitem}
+%usepackage{enumitem}
 \usepackage{graphicx}
 
 \graphicspath{ {images/} }
@@ -18,6 +18,8 @@
 
 \newcommand{\myindent}{\hspace{\oldparindent}}
 
+\usepackage{cite}
+
 % Temp title and author
 \title{Requirements}
 \date{\today} % Somehow this isn't working..
@@ -28,8 +30,15 @@
 
 \begin{document}
 
-\setlist[itemize]{topsep=1pt} % EDIT LISTS
+%\setlist[itemize]{topsep=1pt} % EDIT LISTS
 
 \maketitle
+
+\section{Image Classification and Manipulation}
+Here is some text about images \cite{OCV}. Here\cite{antsystem} is some more text.
+
+\bibliographystyle{IEEEtran}
+
+\bibliography{tech}
 
 \end{document}

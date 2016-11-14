@@ -1,5 +1,5 @@
 
-TARGET1=reqs
+TARGET1=tech
 HTML=main_html
 
 
@@ -7,7 +7,7 @@ dvi: ${TARGET1}.tex
 #	run latex twice to get references correct
 	latex ${TARGET1}.tex
 #	you can also have a bibtex line here
-#	bibtex $(TARGET)
+	bibtex $(TARGET1)
 	latex $(TARGET1).tex
 
 ps: dvi
