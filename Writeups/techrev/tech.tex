@@ -42,34 +42,32 @@ needs, and will thus be used in our implementation.
 \section{Introduction}
 
 This technology review proceeds in three similarly structured sections. First,
-George Harder discusses what technologies will be the most effective for the
+George Harder discusses which technologies will be the most effective for the
 implementation of the Eclipse Image Processor. This section is broken down into
 three subsections that correspond to the pieces he is responsible for in this
 project. The pieces are Image Classification and Manipulation, Runtime
 Environment, and Circle Detection. In the next section Bret Lorimore discusses
 his area of responsibility, the Image Processor Manager. The three pieces that
-Bret examines are Downloading/ Uploading from Google Cloud Storage, Storing
+Bret examines are Downloading/Uploading from Google Cloud Storage, Storing
 Photo Metadata, and Application Parallelization. Lastly, Jacob Fenger details
 the pieces and technologies that will comprise the Eclipse Simulator. The three
-pieces he will be responsible for are User Interface; Gathering User
-Latitude/Longitude Information; and Displaying Sun/Moon Based On Latitude,
+pieces he will be responsible for are User Interface, Gathering User
+Latitude/Longitude Information, and Displaying Sun/Moon Based On Latitude,
 Longitude, and Time Information. \\
 
 An important note with regard to some of the technologies being discussed is
 that Google is sponsoring this project and as such we have been asked to use
 Google products when possible. This is especially relevant to the sections on
-runtime environments and storing the photo metadata. Our sponsor's request that
-we use Google products if possible is by no means limiting, and in fact makes
-available to us extremely useful state of the art tools. \\
+runtime environments and storing the photo metadata. \\
 
 
 % George's Section
 \section{Eclipse Image Processor}
 
-The eclipse image processor is the piece of our project that whandles the spatial
+The eclipse image processor is the piece of our project that handles the spatial
 and temporal alignment of the eclipse images that are uploaded to the Eclipse
 Megamovie website. We have identified three pieces into which
-the image processor can be broken down. These are: image classification and
+the image processor can be broken down. These are image classification and
 manipulation, the runtime environment, and circle detection. In order for this
 element of our project to operate effectively it is critical that these three
 pieces utilize robust and functional technologies. This section of the
@@ -130,14 +128,14 @@ curve and its importance should not be overlooked. \\
 \hline  & Available & Installation & Speed & Support and Documentation & Ease of
 Use  \\ \hline
 
-OpenCV  & Yes & Easy & Fast (native C++) &  Excellent. Tutorial, docs, huge
+OpenCV  & Yes & Manageable & Fast (native C++) &  Excellent. Tutorial, docs, huge
 online community & Medium. May take some learning, offset by support/
 documentation  \\ \hline
 
-SimpleCV & Yes & Easy & Slow (native Python) & Good. Tutorial, docs, book
+SimpleCV & Yes & Manageable & Slow (native Python) & Good. Tutorial, docs, book
 available for purchase & Easy. Meant to be simple by design.  \\ \hline
 
-VXL & Yes & Easy & Fast (native C++) & Poor. Hard to read docs, not much support
+VXL & Yes & Manageable & Fast (native C++) & Poor. Hard to read docs, not much support
 online. & Difficult. Collection of libraries, poor docs, likely tough to learn.
 \\ \hline
 
@@ -149,7 +147,7 @@ online. & Difficult. Collection of libraries, poor docs, likely tough to learn.
 \ref{table:george1}]: OpenCV and SimpleCV are highly comparable in terms of ease
 of use and support/documentation. SimpleCV may be easier at first, but any
 advantage it has is offset by the robust online community willing to support
-each other and answer questions that OpenCV has. VXL falls flat when compared to
+each other and answer questions that may arise when using OpenCV. VXL falls flat when compared to
 OpenCV and SimpleCV in those two categories. With this in mind, and when
 considering that speed is of critical importance, OpenCV is the clear choice of
 computer vision API for this project. \\
@@ -162,7 +160,7 @@ environment that we can effectively scale to process hundreds of thousands or
 perhaps millions of images in a timeframe that meets the requirements of the
 larger system, the image processor's utility is near zero. We have identified
 three potential options to meet the needs for scaling this image processor:
-Docker containers, cloud based virtual machines (VMs), and Google Cloud
+Docker containers, raw cloud based virtual machines (VMs), and Google Cloud
 Functions (GCF).\\
 
 In order to determine which runtime environment will best allow us achieve the
@@ -189,10 +187,10 @@ the event would be a photo upload to the Eclipse Megamovie website. Rather than
 encapsulating our application GCF would spawn a child process, the eclipse image
 processor's executable, each time it was called. This results in a more complex
 deployment strategy because we would need to determine how to retrieve, store,
-and transmit data without dedicated virtual memory. \\
+and transmit data without access to a file system. \\
 
 Security is of paramount importance when deploying a web based application that
-will be handling a high volume of uploads, downloads, and user interactions.
+will be handling a high volume of uploads and downloads.
 User information being compromised as the result of a vulnerability in our
 application would inevitably harm participation in any future projects similar
 to this one. Fortunately, the Google Cloud Platform has a strong commitment to
@@ -216,7 +214,7 @@ infrastructure that would need to be maintained in order to support each option
 as it scales to meet the demands of a high volume of uploads. For Google Compute
 Engine VMs, the overhead is fairly high. Each VM requires its own guest
 operating system, virtual memory, and virtual hardware to run an instance of our
-application \cite{docker, gcf}. This is in contrast to Docker containers, which
+application \cite{docker, gcp}. This is in contrast to Docker containers, which
 can run multiple instances of an application on top of a single host
 \cite{docker}. Each instance of the application only needs its dependencies to
 run. This model requires less overhead in order to scale our application, which
@@ -265,12 +263,12 @@ position of the centers of the sun and the moon. To spatially align the images
 we will be rotating them so that the visible portion of the sun is at a fixed
 angle relative to the center of the image. For either of these processes to be
 successful we need a technique capable of locating circles and their centers. We
-have identified three possible algorithms: Hough transforms, Blob detection and
+have identified three possible algorithms, Hough transforms, Blob detection, and
 the Ant System Algorithm. \\
 
 
 In order to select an algorithm for circle detection, three primary criteria
-must be considered. They are: computational complexity, accuracy, and
+must be considered. These are computational complexity, accuracy, and
 implementation difficulty. Computational complexity is of high importance
 because a slow algorithm or one that uses a large amount of memory jeopardizes
 our chances of meeting performance requirements and places strain on our runtime
@@ -432,19 +430,19 @@ source code. \\
  & Integration with our app & Ease of installation/ integration & Secure? \\ \hline
 
 % Row 2
-gsutil & yes & apt-get, copy service account credentials file, setup service
-account as default auth method using gcloud & service accounts & invoke as
-sub-process & medium, medium & yes \\ \hline
+{\tt gsutil} & Yes & {\tt apt-get}, copy service account credentials file, setup service
+account as default auth method using gcloud & Service accounts & Invoke as
+sub-process & Medium, medium & Yes \\ \hline
 
 % Row 3
-Cloud Storage JSON API & yes & install Python HTTP library, copy service
-account credentials file & service accounts & make HTTP requests using
-some Python HTTP library & easy, hard & yes \\ \hline
+Cloud Storage JSON API & Yes & Install Python HTTP library, copy service
+account credentials file & Service accounts & Make HTTP requests using
+some Python HTTP library & Easy, hard & Yes \\ \hline
 
 % Row 4
-Google Cloud Client Library for Python & yes & pip, copy service account
-credentials file, set environment variable & service accounts & native
-integration into source code & medium, easy & yes \\ \hline
+Google Cloud Client Library for Python & Yes & {\tt pip}, copy service account
+credentials file, set environment variable & Service accounts & Native
+integration into source code & Medium, easy & Yes \\ \hline
 
 \end{tabular}
 \label{table:bret1}
@@ -524,20 +522,20 @@ targeted at applications that store/query much more data than ours does. \\
  & Integration with our app & Ease of setup & Secure? \\ \hline
 
 % Row 2
-Google Cloud Datastore & yes & enable Datastore in Google Cloud project
-& built in: service accounts & Google Cloud Client Library for Python
-& easy & yes \\ \hline
+Google Cloud Datastore & Yes & Enable Datastore in Google Cloud project
+& Built in: service accounts & Google Cloud Client Library for Python
+& Easy & Yes \\ \hline
 
 % Row 3
-Google Cloud Bigtable & not natively, no support for transactions &
-create Bigtable cluster, required tables & built in: service accounts
-& Google Cloud Client Library for Python & medium & yes \\ \hline
+Google Cloud Bigtable & Not natively, no support for transactions &
+Create Bigtable cluster, required tables & Built in: service accounts
+& Google Cloud Client Library for Python & Medium & Yes \\ \hline
 
 % Row 4
-custom MySQL servers & yes & create virtual machines, install MySQL,
+Custom MySQL servers & Yes & Create virtual machines, install MySQL,
 configure network access, configure access controls, setup backup/
-replication credentials file, set environment variable & requires custom setup
-& requires Python-MySQL connector & hard & yes, if done correctly \\ \hline
+replication credentials file, set environment variable & Requires custom setup
+& Requires Python-MySQL connector & Hard & Yes, if done correctly \\ \hline
 
 \end{tabular}
 \label{table:bret2}
@@ -615,17 +613,17 @@ of creating a single TCP connection for all the datastore queries. \\
  & Applicable to & Integration Overhead \\ \hline
 
 % Row 2
-{\tt threading} & image processor invocation, GCS/Datastore requests
-& medium: requires explicit thread creation/starting/joining,
+{\tt threading} & Image processor invocation, GCS/Datastore requests
+& Medium: requires explicit thread creation/starting/joining,
 requires consciousness of shared data \\ \hline
 
 % Row 3
-{\tt multiprocessing.Pool} & image processor invocation, GCS/Datastore requests
-& medium: simple to invoke, requires pickleable parameters, cannot rely
+{\tt multiprocessing.Pool} & Image processor invocation, GCS/Datastore requests
+& Medium: simple to invoke, requires pickleable parameters, cannot rely
 on shared data unless we use IPC \\ \hline
 
 % Row 4
-Batch requests & Datastore requests & low, requires coalescing multiple
+Batch requests & Datastore requests & Low, requires coalescing multiple
 requests into single request  \\ \hline
 
 \end{tabular}
@@ -741,7 +739,7 @@ result in the latitude and longitude. \\
 Overall, geocoding user entered addresses will provide the
 best functionality. The Google Maps Geocoding API can easily convert these
 addresses to latitude and longitude coordinates for computing the Sun and
-Moon's location. While dropping a pin on a map is simple, it requires more
+Moon's location. While dropping a pin on a map is simple, it requires
 another large space for user's to interact with and loading an entire
 map may degrade performance. \\
 
@@ -772,7 +770,7 @@ of the Sun and the Moon based on user entered location and time. The best metric
 for observing locations of celestial objects is altitude and azimuth. The
 altitude of an object is the distance it appears above the horizon, while the
 azimuth is angular distance along the horizon to the object \cite{ALTAZI}.
-It is also possible for the Sun and the Moon to different sizes. We may need
+It is also possible for the Sun and the Moon to be different sizes. We may need
 to alter the size of the Moon based on location and time while using the
 simulator. The first method would be to write a JavaScript implementation
 from scratch for computing the positions of the Sun and Moon based on
@@ -825,3 +823,4 @@ Ephemeris Library & Easy & Ephemeris & Easy \\ \hline
 
 \end{document}
 
+       
