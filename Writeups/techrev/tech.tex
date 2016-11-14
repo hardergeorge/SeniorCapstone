@@ -46,7 +46,7 @@ element of our project to operate effectively it is critical that these three
 pieces utilize robust and functional technologies. This section of the
 technology review details what options are available for implementing each of
 these three pieces, analyzes these options, and arrives at a determination as to
-which option is the best in the context of this project.
+which option is the best in the context of this project.\\
 
 \subsection{Image Classification and Manipulation}
 
@@ -95,7 +95,7 @@ curve and its importance should not be overlooked. \\
 \begin{table}[h]
 \centering
 \caption{Comparison of Possible Technologies for Image Classification and Manipulation}
-\begin{tabular}{|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|}
+\begin{tabular}{|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|}
 \cline{4-4}
 
 \hline  & Available & Installation & Speed & Support and Documentation & Ease of
@@ -123,7 +123,7 @@ advantage it has is offset by the robust online community willing to support
 each other and answer questions that OpenCV has. VXL falls flat when compared to
 OpenCV and SimpleCV in those two categories. With this in mind, and when
 considering that speed is of critical importance, OpenCV is the clear choice of
-computer vision API for this project.
+computer vision API for this project. \\
 
 \subsection{Runtime Environment}
 
@@ -199,11 +199,28 @@ transmit data. In addition to the challenges of data management, another
 disadvantage of the serverless model is that it takes away our control over how
 much compute power we can provide to the eclipse image processor. \\
 
-%Table Here
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Runtime Environments}
+\begin{tabular}{|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|}
+\cline{4-4}
 
-Taking all criteria into consideration, the best choice of runtime environment
+\hline  & Available & Cost & Integration & Security & Overhead  \\ \hline
+
+Virtual Machines  & Yes & Neglible & Good, can encapsulate app and dependencies easily &  Excellent & High, VM per instance has high cost  \\ \hline
+
+Docker Containers  & Yes & Neglible & Good, provides encapsulation &  Excellent & Medium, clusters deployed on top of VM’s  \\ \hline
+
+Google Cloud Functions  & Yes & Neglible & Okay, JS can call our executable but introduces unnecessary complexity & Excellent & Low, lightweight serverless Javascript function calls  \\ \hline
+
+\end{tabular}
+\label{table:george2}
+\end{table}
+
+\textit{Conclusion} [See summary of previous discussion in Table
+\ref{table:george2}]:Taking all criteria into consideration, the best choice of runtime environment
 for our application will be Docker containers. These retain the best elements of
-the other options while shedding their defects.
+the other options while shedding their defects. \\
 
 \subsection{Circle Detection}
 
@@ -277,11 +294,34 @@ implementation of the algorithm will work as well as the one the author’s of t
 paper used. This also requires potentially several extra weeks of development
 and testing. Having to implement our own version of the Ant System Algorithm
 essentially eliminates it from contention as a possible circle detection
-algorithm.
+algorithm. \\
 
-%Table Here
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Circle Detection}
+\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\cline{4-4}
 
-In conclusion, while the Hough transform may struggle in terms of computational
+\hline  & Available & Cost & Integration \\ \hline
+
+Hough Transform & High, uses a lot of memory and iterates over each pixel more
+than once and performs a computation each step & Excellent, known to have good
+accuracy and has been shown to work on eclipse images & Low, supported in OpenCV
+\\ \hline
+
+Blob Detection & Medium, iterates over each pixel once performing computations at each step & Good, known to be accurate at finding circles and centers but hasn’t been known to work with eclipses & Low, supported in OpenCV
+\\ \hline
+
+
+Ant System Algorithm & Low, has complexity O(edge pixels), could be compromised by our implementation & Okay, not shown to work on real world images, could be worsened by our implementation & Extreme, we would have to write our own implementation based on pseudocode
+\\ \hline
+
+\end{tabular}
+\label{table:george3}
+\end{table}
+
+\textit{Conclusion} [See summary of previous discussion in Table
+\ref{table:george3}]: While the Hough transform may struggle in terms of computational
 complexity, it emerges as a clear favorite when accuracy and ease of
 implementation are taken into account. It is the only algorithm known to
 successfully detect the sun and moon in eclipse images and is supported in
