@@ -23,9 +23,21 @@
 
 \begin{document}
 
-%\setlist[itemize]{topsep=1pt} % EDIT LISTS
-
 \maketitle
+
+\begin{abstract}
+
+This document compares various technologies for use in the North American Solar 
+Eclipse 2017 senior capstone project. Specifically, we look at three specific parts
+of the project, the Eclipse Image Processor, the Image Processor Manager, and the 
+Eclipse Simulator. For each of those high level components, we review applicable
+technologies for three of their sub-components. For each of the nine total sub-components,
+we make a conclusion about which of the considered technologies is best suited to our 
+needs, and will thus be used in our implementation.
+
+\end{abstract}
+
+\newpage
 
 \section{Introduction} 
 
@@ -379,7 +391,7 @@ using special authentication credentials instead of usernames/passwords. Configu
 service account authentication for gsutil requires enabling a particular service
 account with the entire Google Cloud SDK using the gcloud application and a service
 account credentials file. As gsutil is a command line utility, it would need to be
-integrated with our app as a subprocess, using the Python subprocess module. \\
+integrated with our app as a subprocess, using the Python {\tt subprocess} module. \\
 
 Google Cloud Storage is also accessible via a JSON Rest API. Like gsutil, this API 
 allows users to easily list the contents of a storage bucket, download files from 
@@ -538,13 +550,13 @@ image processor on a set of images are both relatively high latency operations.
 For that reason, it is desirable for this application to do multiple operations 
 concurrently. Here we consider various solutions for doing this in Python. In 
 this comparison, we consider invoking the image processor binary using the 
-builtin Python subprocess module. This module provides a nice Python wrapper 
-around standard fork/exec/waitpid/etc. C functions. \\
+builtin Python {\tt subprocess} module. This module provides a nice Python wrapper 
+around standard {\tt fork}/{\tt exec}/{\tt waitpid}/etc. C functions. \\
 
 The first solution we consider is standard multithreading using the builtin 
-Python threading module. This can be used to both invoke multiple image 
+Python {\tt threading} module. This can be used to both invoke multiple image 
 processor processes concurrently and to make concurrent requests to Google 
-Cloud Storage and Datastore. A common issue with use of the Python threading 
+Cloud Storage and Datastore. A common issue with use of the Python {\tt threading} 
 module is the Python Global Interpreter Lock (GIL)\cite{gilArticle}. The GIL 
 is a global lock in the CPython interpreter that allows only one thread to 
 execute code in the interpreter at a time\cite{gilArticle}. The GIL would 
@@ -557,10 +569,10 @@ it is done outside of the Python interpreter and the GIL is released\cite{gilArt
 The GIL is also released when making socket calls, so while setup and 
 pre/post-processing of Cloud Storage uploads/downloads would be 
 serialized, the socket calls themselves could be working in parallel\cite{gilArticle}. 
-Implementation using the threading module requires explicit 
-creation/starting/joining of Thread objects. \\
+Implementation using the {\tt threading} module requires explicit 
+creation/starting/joining of {\tt Thread} objects. \\
 
-An alternative solution is to use the builtin Python multiprocessing.Pool 
+An alternative solution is to use the builtin Python {\tt multiprocessing.Pool}
 class. This method sidesteps the GIL entirely by using processes for 
 parallelism instead of threads\cite{multiproc}. This method is also desirable 
 as the API is incredibly simple - a pool of n processes can be created in a 
@@ -584,12 +596,12 @@ pieces of data to Datastore, so the savings associated with establishing
 far fewer TCP connections is highly desirable. \\
 
 \textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret3}]:
-The multiprocessing.Pool class is the best solution for us 
+The {\tt multiprocessing.Pool} class is the best solution for us 
 for invoking the image processor and uploading/downloading from Google Cloud 
 Storage, as it is very simple to integrate and will almost certainly offer 
-higher performance than using the threading module. Using batch requests for 
+higher performance than using the {\tt threading} module. Using batch requests for 
 Datastore calls is preferable to creating concurrent requests using the 
-multiprocessing.Pool class as with batch requests we only have the overhead 
+{\tt multiprocessing.Pool} class as with batch requests we only have the overhead 
 of creating a single TCP connection for all the datastore queries. \\
 
 \begin{table}[h]
@@ -603,12 +615,12 @@ of creating a single TCP connection for all the datastore queries. \\
  & Applicable to & Integration Overhead \\ \hline
 
 % Row 2
-threading & image processor invocation, GCS/Datastore requests 
+{\tt threading} & image processor invocation, GCS/Datastore requests 
 & medium: requires explicit thread creation/starting/joining, 
 requires consciousness of shared data \\ \hline
 
 % Row 3
-multiprocessing.Pool & image processor invocation, GCS/Datastore requests
+{\tt multiprocessing.Pool} & image processor invocation, GCS/Datastore requests
 & medium: simple to invoke, requires pickleable parameters, cannot rely 
 on shared data unless we use IPC \\ \hline
 
@@ -636,4 +648,3 @@ positioning of the time slider.
 \bibliography{tech}
 
 \end{document}
-                                                                                                                                       
