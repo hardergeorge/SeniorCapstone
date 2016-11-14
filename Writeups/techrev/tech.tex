@@ -39,7 +39,7 @@
 
 The eclipse image processor is the piece of our project that handles the spatial
 and temporal alignment of the eclipse images that are uploaded to the Eclipse
-Megamovie website. We have identified three pieces\cite{imgKrista} into which
+Megamovie website. We have identified three pieces into which
 the image processor can be broken down. These are: image classification and
 manipulation, the runtime environment, and circle detection. In order for this
 element of our project to operate effectively it is critical that these three
@@ -47,6 +47,245 @@ pieces utilize robust and functional technologies. This section of the
 technology review details what options are available for implementing each of
 these three pieces, analyzes these options, and arrives at a determination as to
 which option is the best in the context of this project.
+
+\subsection{Image Classification and Manipulation}
+
+The image classification and manipulation portion of the eclipse image processor
+encapsulates a few key requirements for this project. For our project to be
+functionally complete it must determine temporal ordering of the images, align
+them spatially, and crop them such that the sun is the same size in all of the
+images. This process requires the use of a computer vision application
+programming interface (API). Three possible options of API's are: OpenCV,
+SimpleCV, and VXL. \\
+
+The relative strengths and weaknesses of these three options can be evaluated
+using several key criteria that emerge when considering the requirements for
+this element of the project. These criteria are: speed, support/documentation,
+availability, ease of installation, and ease of use. Fortunately, all three of
+these tools are available online and provide documentation on installation so
+these categories do not require much discussion \cite{OCV, VXL, SCV}. With these
+criteria met, and considering the performance requirements of our project, the
+next most important criteria to consider is speed. \\
+
+OpenCV and VXL both rank highly in the speed category because they are written
+natively in C++\cite{OCV, VXL}. SimpleCV on the other hand is written in Python
+and thus uses an interpreter \cite{SCV}, which causes speed penalties.
+SimpleCV’s use of Python is a significant drawback and it cannot be ignored.
+Because of the large volume of images this tool is expected to process, we are
+targeting a mean processing time of 1 second per image. This is not necessarily
+impossible with an interpreted language, but it introduces major difficulties in
+trying to meet this requirement. OpenCV and VXL are the clear winners when
+considering speed. \\
+
+While not as critical to meeting specific requirements as speed, it is important
+to consider the costs associated with learning a new API. While all three API's
+provide online documentation, these docs are by no means equal. OpenCV and
+Simple CV both provide easy to understand and what appear to be comprehensive
+tutorials \cite{OCV, SCV}. While OpenCV may be more complicated than the aptly
+named SimpleCV it has a massive number of contributors on question sites like
+Stack Overflow \cite{stkovrflw}. Having an online community as a resource is an
+invaluable asset when learning an API and this is one of the great strengths of
+OpenCV. VXL, unlike the other two possibilities provides relatively poor and
+hard to navigate documentation. The time required to learn how to use an API can
+significantly slow down the development process of an application like our image
+processor. Having high quality documentation and tutorials at our disposal, as
+is the case with OpenCV and SimpleCV, is critical to surmounting the learning
+curve and its importance should not be overlooked. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Image Classification and Manipulation}
+\begin{tabular}{|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|}
+\cline{4-4}
+
+\hline  & Available & Installation & Speed & Support and Documentation & Ease of
+Use  \\ \hline
+
+OpenCV  & Yes & Easy & Fast (native C++) &  Excellent. Tutorial, docs, huge
+online community & Medium. May take some learning, offset by support/
+documentation  \\ \hline
+
+SimpleCV & Yes & Easy & Slow (native Python) & Good. Tutorial, docs, book
+available for purchase & Easy. Meant to be simple by design.  \\ \hline
+
+VXL & Yes & Easy & Fast (native C++) & Poor. Hard to read docs, not much support
+online. & Difficult. Collection of libraries, poor docs, likely tough to learn.
+\\ \hline
+
+\end{tabular}
+\label{table:george1}
+\end{table}
+
+\textit{Conclusion} [See summary of previous discussion in Table
+\ref{table:george1}]: OpenCV and SimpleCV are highly comparable in terms of ease
+of use and support/documentation. SimpleCV may be easier at first, but any
+advantage it has is offset by the robust online community willing to support
+each other and answer questions that OpenCV has. VXL falls flat when compared to
+OpenCV and SimpleCV in those two categories. With this in mind, and when
+considering that speed is of critical importance, OpenCV is the clear choice of
+computer vision API for this project.
+
+\subsection{Runtime Environment}
+
+The high volume of images the Eclipse Megamovie project expects to collect
+necessitates some form of scalability for our image processor. Without a runtime
+environment that we can effectively scale to process hundreds of thousands or
+perhaps millions of images in a timeframe that meets the requirements of the
+larger system, the image processor's utility is near zero. We have identified
+three potential options to meet the needs for scaling this image processor:
+Docker containers, cloud based virtual machines (VM's), and Google Cloud
+Functions (GCF).\\
+
+In order to determine which runtime environment will best allow us achieve the
+scalability necessary for the eclipse image processor several criteria will be
+considered. In this case they are: availability, cost, integration with our
+application, security, and overhead. Our group's partnership with Google for
+this project produces a natural inclination toward using the Google Cloud
+Platform for whichever of these options we end up using. Thus, all of these
+products have equal availability and our sponsor has made it clear that any
+monetary costs associated with using Google products are negligible. Because all
+of the options rank equally in the availability and cost categories only the
+other criteria will be discussed below. \\
+
+As the Google Cloud Platform supports all three possible technologies we are
+considering, integration with our eclipse image processor would appear to be
+essentially equal across all three options. However, this is not the case. Using
+cloud based VM's or Docker Containers allows us to encapsulate our application
+in a manner that allows for rapid scaling in addition to easy retrieval and
+transmission of images and data \cite{docker, gcp}. GCF on the other hand uses
+an event based microservice approach to app deployment \cite{gcp}. Instead of
+containing our application, GCF is a Javascript function that would call our
+eclipse image processor whenever an event is triggered \cite{gcp}. In this case
+the event would be a photo upload to the Eclipse Megamovie website. Rather than
+encapsulating our application GCF would spawn a child process, the eclipse image
+processor's executable, each time it was called. This results in a more complex
+deployment strategy because we would need to determine how to retrieve, store,
+and transmit data without dedicated virtual memory. \\
+
+Security is of paramount importance when deploying a web based application that
+will be handling a high volume of uploads, downloads, and user interactions.
+User information being compromised as the result of a vulnerability in our
+application would inevitably harm participation in any future projects similar
+to this one. Fortunately, the Google Cloud Platform has a strong commitment to
+security \cite{gcp}. Google Compute Engine VM's encrypt all of their data as it
+is stored and transmitted \cite{gcp}. This is an enormous advantage in terms of
+security because it allows us to focus on developing our application's
+functionality rather than worrying about securing it. Docker containers are
+deployed on top of VM's, so they have all of the same security advantages as a
+Compute Engine VM. In addition to this, Docker containers are completely
+isolated from the rest of the VM they are running on \cite{docker}, so if one
+were compromised the issue could be handled in a manner that does not impact any
+other containers. GCF has its own advantages in terms of security. Each function
+runs in its own execution environment \cite{docker}. Like the Docker containers,
+this means that all of the instances of GCF are separate from one another. GCF
+is also running in what Google calls a ``serverless” environment \cite{docker},
+this means that GCF is not storing data or using hardware that could be
+compromised. All of the options receive high marks in the security category. \\
+
+In the context of evaluating these options, overhead refers to the amount of
+infrastructure that would need to be maintained in order to support each option
+as it scales to meet the demands of a high volume of uploads. For Google Compute
+Engine VM’s, the overhead is fairly high. Each VM requires its own guest
+operating system, virtual memory, and virtual hardware to run an instance of our
+application \cite{docker, gcf}. This is in contrast to Docker containers, which
+can run multiple instances of an application on top of a single host
+\cite{docker}. Each instance of the application only needs its dependencies to
+run. This model requires less overhead in order to scale our application, which
+in this case results in fewer places where things can go wrong. By far the most
+lightweight approach, GCF operates using a serverless model \cite{gcp}. This
+provides advantages to us as developers because it greatly simplifies
+deployment. However, it presents new challenges in terms of how we retrieve and
+transmit data. In addition to the challenges of data management, another
+disadvantage of the serverless model is that it takes away our control over how
+much compute power we can provide to the eclipse image processor. \\
+
+%Table Here
+
+Taking all criteria into consideration, the best choice of runtime environment
+for our application will be Docker containers. These retain the best elements of
+the other options while shedding their defects.
+
+\subsection{Circle Detection}
+
+Detecting circles is an area of ongoing research in computer science and is of
+particular interest to this project because it is necessary for the temporal
+ordering and spatial alignment of the eclipse images. In order to determine the
+temporal ordering of the images we plan to use the relative difference in
+position of the centers of the sun and the moon. To spatially align the images
+we will be rotating them so that the visible portion of the sun is at a fixed
+angle relative to the center of the image. For either of these processes to be
+successful we need a technique capable of locating circles and their centers. We
+have identified three possible algorithms: Hough transforms, Blob detection and
+the Ant System Algorithm. \\
+
+
+In order to select an algorithm for circle detection, three primary criteria
+must be considered. They are: computational complexity, accuracy, and
+implementation difficulty. Computational complexity is of high importance
+because a slow algorithm or one that uses a large amount of memory jeopardizes
+our chances of meeting performance requirements and places strain on our runtime
+environment. We need this algorithm to achieve high accuracy to ensure the
+seamless integration of the eclipse image processor with the Eclipse Megamovie
+project. If our algorithm cannot correctly identify circles, our processor could
+not be considered functional. Lastly, an important consideration is the level of
+difficulty required in integrating our algorithm of choice into the eclipse
+image processor’s codebase. \\
+
+
+The Hough transform is a common algorithm for circle and line detection that is
+known to have high computational complexity and memory usage \cite{hough,
+antsystem}. This is generally disadvantageous to the performance of our eclipse
+image processor. Blob detection has a lower computational complexity and memory
+usage than the Hough transform because it does not need to store an array of all
+of the possible circle centers like the Hough transform does \cite{hough,
+blobarticle, blobref}. The least computationally complex algorithm is the Ant
+System Algorithm described by Chattopadhyay et al. \cite{antsystem}. This
+algorithm’s complexity is determined solely by the number of pixels on the edge
+of shapes in the image. This is significantly lower than the complexity of other
+two algorithms which rely on the number of pixels in the whole image. \\
+
+
+Accuracy is of critical importance to the success of the eclipse image
+processor. As such, it is necessary that the circle detection algorithm
+consistently detects the sun and moon in the eclipse images. Hough transforms
+have been shown to be very successful in this regard \cite{imgKrista}. To this
+group’s knowledge, blob detection has not been shown to be effective at finding
+the sun and moon in eclipse images. OpenCV does include a blob detector that can
+filter blobs by their relative circularity and return their centers
+\cite{blobarticle, blobref}, which meets the needs of this processor. However,
+the accuracy of blob detection is likely to suffer in this application because
+the pixels corresponding to the moon are likely to blend with the background of
+the image since they are both black. This results in there being no distinct
+blob to be detected in the crescent images. The Ant System Algorithm, while
+shown to be accurate \cite{antsystem}, could fall victim to this same problem.
+The images that the Ant System Algorithm were tested on had white outlined
+shapes over a black background \cite{antsystem}, this is not how the real world
+eclipse images will appear. \\
+
+
+The final consideration in selecting a circle detection algorithm is the effort
+it will take to use it in the eclipse image processor. Both the Hough transform
+and blob detection score very highly in this category. OpenCV has
+implementations of these methods, documentation on how to use them, and even has
+code examples of their use \cite{houghocv, blobarticle}. This is extremely useful
+and makes the implementation of the circle detection portion of the image
+processor much simpler. The Ant System algorithm on the other hand would need to
+be implemented by our team and would be based on pseudocode in the Chattopadhyay
+et al. paper. This presents a major disadvantage because it jeopardizes both the
+accuracy and performance of the algorithm. There is no guarantee that our
+implementation of the algorithm will work as well as the one the author’s of the
+paper used. This also requires potentially several extra weeks of development
+and testing. Having to implement our own version of the Ant System Algorithm
+essentially eliminates it from contention as a possible circle detection
+algorithm.
+
+%Table Here
+
+In conclusion, while the Hough transform may struggle in terms of computational
+complexity, it emerges as a clear favorite when accuracy and ease of
+implementation are taken into account. It is the only algorithm known to
+successfully detect the sun and moon in eclipse images and is supported in
+OpenCV.
 
 % Bret's Section
 \section{Image Processor Manager}
