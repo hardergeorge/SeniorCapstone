@@ -37,7 +37,7 @@
 % George's Section
 \section{Eclipse Image Processor}
 
-The eclipse image processor is the piece of our project that handles the spatial
+The eclipse image processor is the piece of our project that whandles the spatial
 and temporal alignment of the eclipse images that are uploaded to the Eclipse
 Megamovie website. We have identified three pieces\cite{imgKrista} into which
 the image processor can be broken down. These are: image classification and
@@ -58,11 +58,58 @@ The eclipse simulator will be a standalone JavaScript module enabling users to
 The simulator will incorporate a time slider to allow users to simulate
 the eclipse in a time window spanning from 12 hours before the eclipse to 12
 hours after it. As users drag the time slider, the eclipse will animate in the
-simulator window. The view of the eclipse which users are presented will be 
+simulator window. The view of the eclipse which users are presented will be
 specific to a location that the user enters. Additionally, the time will be
 displayed in the simulator based on what location the user enters and the
 positioning of the time slider.
 
+\subsection{User Interface}
+
+The user interface for this web based simulator will use 2D animated depictions
+of the Sun and the Moon as they appear at a user specified time and location.
+Additionally, the user interface will contain background imagery such as a
+city or hillside landscape. There will also be a time slider, a location
+input, and a time display for user’s to interact with or view.
+
+For the first possible method, the most basic approach would be to utilize
+HTML, CSS, and JavaScript for output and input. Altering the locations of the
+sun and moon would be done by repositioning images of the sun and moon based on
+location data. While this approach can be simple, repositioning images and
+making the interface look appealing to the user can be difficult or
+inefficient.
+
+Another method would be to utilize HTML5’s Canvas graphics API. Canvas is
+capable of rendering graphics directly to the screen via JavaScript. This is
+otherwise known as “immediate mode” graphics, which means that the rendered
+graphics are not saved \cite{SVGvsC}. Additionally, Canvas draws individual
+pixels to the screen. For this simulator, the only image objects that we need
+display differently depending on user input are the Sun and Moon images.
+Since these are relatively small compared to rest of the simulator,
+re-rendering the Sun and Moon most likely will not result in poor performance.
+
+The last technology for displaying the simulator would be to use another HTML5
+component called Scalar Vector Graphics (SVG). This is a shape based method
+for describing 2D graphics via XML.  SVG utilizes objects to describe images.
+The browser is capable of re-rendering shapes automatically if attributes to
+an object are changed \cite{SVG}. Adding sliders or round buttons to the
+simulator can also be a straightforward approach with vector graphics.
+
+For the user interface, speed is the most important criteria. All graphics and
+other simulator resources will need to load in less than 500ms given a 1-10
+Mbps internet connection. Additionally the animation used in the simulator
+should be around 60 frames per second.
+
+\begin{table}[]
+\centering
+\caption{My caption}
+\label{my-label}
+\begin{tabular}{lllll}
+Method                 & Model        & Method                                                            & Difficulty of Implementation                                                  & Performance                                                                                                                       \\
+Implement from Scratch & Images       & \begin{tabular}[c]{@{}l@{}}HTML,\\ JavaScript,\\ CSS\end{tabular} & \begin{tabular}[c]{@{}l@{}}May take time to start from\\ scratch\end{tabular} & \begin{tabular}[c]{@{}l@{}}Dependent upon implementation, \\ requires a lot of bandwidth to\\ send large image files\end{tabular} \\
+Canvas                 & Pixel Based  & JavaScript                                                        & Built into HTML 5                                                             & \begin{tabular}[c]{@{}l@{}}Smaller surface, \\ larger number of items\end{tabular}                                                \\
+SVG                    & Vector Based & \begin{tabular}[c]{@{}l@{}}JavaScript,\\ CSS\end{tabular}         & Built into HTML 5                                                             & \begin{tabular}[c]{@{}l@{}}Larger surface,\\ smaller number of items\end{tabular}
+\end{tabular}
+\end{table}
 \bibliographystyle{IEEEtran}
 \bibliography{tech}
 

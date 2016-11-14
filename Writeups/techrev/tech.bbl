@@ -21,11 +21,17 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
-\bibitem{OCV}
-``Opencv,'' \url{opencv.org}, accessed: 2016-12-13.
+\bibitem{imgKrista}
+K.~Larisza and S.~McIntosh, ``The standardisation and sequencing of solar
+  eclipse images for the eclipse megamovie project.''
 
-\bibitem{antsystem}
-K.~C. et~al., ``An efficient circle detection scheme in digital images using
-  ant system algorithm.''
+\bibitem{SVGvsC}
+Microsoft, ``Svg vs canvas: how to choose,''
+  \url{msdn.microsoft.com/en-us/library/gg193983(v=vs.85).aspx}, accessed:
+  2016-11-09.
+
+\bibitem{SVG}
+w3schools, ``Html5 svg,'' \url{www.w3schools.com/html/html5_svg.asp}, accessed:
+  2016-11-09.
 
 \end{thebibliography}
