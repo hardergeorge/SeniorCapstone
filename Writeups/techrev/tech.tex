@@ -642,7 +642,7 @@ hours after it. As users drag the time slider, the eclipse will animate in the
 simulator window. The view of the eclipse which users are presented will be
 specific to a location that the user enters. Additionally, the time will be
 displayed in the simulator based on what location the user enters and the
-positioning of the time slider.
+positioning of the time slider. \\
 
 \subsection{User Interface}
 
@@ -650,14 +650,14 @@ The user interface for this web based simulator will use 2D animated depictions
 of the Sun and the Moon as they appear at a user specified time and location.
 Additionally, the user interface will contain background imagery such as a
 city or hillside landscape. There will also be a time slider, a location
-input, and a time display for user's to interact with or view.
+input, and a time display for user's to interact with or view. \\
 
 For the first possible method, the most basic approach would be to utilize
 HTML, CSS, and JavaScript for output and input. Altering the locations of the
 sun and moon would be done by repositioning images of the sun and moon based on
 location data. While this approach can be simple, repositioning images and
 making the interface look appealing to the user can be difficult or
-inefficient.
+inefficient. \\
 
 Another method would be to utilize HTML5's Canvas graphics API. Canvas is
 capable of rendering graphics directly to the screen via JavaScript. This is
@@ -666,19 +666,19 @@ graphics are not saved \cite{SVGvsC}. Additionally, Canvas draws individual
 pixels to the screen. For this simulator, the only image objects that we need
 display differently depending on user input are the Sun and Moon images.
 Since these are relatively small compared to rest of the simulator,
-re-rendering the Sun and Moon most likely will not result in poor performance.
+re-rendering the Sun and Moon most likely will not result in poor performance. \\
 
 The last technology for displaying the simulator would be to use another HTML5
 component called Scalar Vector Graphics (SVG). This is a shape based method
 for describing 2D graphics via XML.  SVG utilizes objects to describe images.
 The browser is capable of re-rendering shapes automatically if attributes to
 an object are changed \cite{SVG}. Adding sliders or round buttons to the
-simulator can also be a straightforward approach with vector graphics.
+simulator can also be a straightforward approach with vector graphics. \\
 
 For the user interface, speed is the most important criteria. All graphics and
 other simulator resources will need to load in less than 500ms given a 1-10
 Mbps internet connection. Additionally the animation used in the simulator
-should be around 60 frames per second.
+should be around 60 frames per second. \\
 
 \textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake1}]:
 SVG seems to be a better technology to use when creating
@@ -686,7 +686,7 @@ the user interface because of the interactivity that it has to offer for users.
 This is due to the fact SVG can process events for each sub-element separately
 while Canvas must process events for the entire canvas. Additionally, since
 our simulator requires a few number of objects, we will see better performance
-benefits than compared to the Canvas or scratch approach.
+benefits than compared to the Canvas or scratch approach. \\
 
 \begin{table}[h]
 \centering
@@ -718,7 +718,7 @@ consider when implementing this. The first of which is having the user only be
 allowed to enter a specific latitude and longitude when entering their
 location. While this would be easy to do, it provides a negative user
 interaction since people generally do not know the specific latitude and
-longitude of places they will be located for the solar eclipse.
+longitude of places they will be located for the solar eclipse. \\
 
 The second option would be to utilize the Google Maps API to display a map
 \cite{jsAPI}.
@@ -729,13 +729,13 @@ better form of input than the first method. Users don't need to know the
 latitude and longitude of certain locations, they just need to recognize
 them via a map. Implementing this would be done by adding a map to the
 simulator, and then adding a click event function to save the latitude and
-longitude for when a user clicks a location on the map.
+longitude for when a user clicks a location on the map. \\
 
 Lastly, we could utilize the Geocoding API which is built into the Google Maps
 API for converting addresses into geographic coordinates \cite{jsGEO}.
 The user could enter a wide range of input including specific addresses,
 roads, zip codes, or other options. This data would then be geocoded and will
-result in the latitude and longitude.
+result in the latitude and longitude. \\
 
 \textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake2}]:
 Overall, geocoding user entered addresses will provide the
@@ -743,7 +743,7 @@ best functionality. The Google Maps Geocoding API can easily convert these
 addresses to latitude and longitude coordinates for computing the Sun and
 Moon's location. While dropping a pin on a map is simple, it requires more
 another large space for user's to interact with and loading an entire
-map may degrade performance.
+map may degrade performance. \\
 
 \begin{table}[h]
 \centering
@@ -777,26 +777,26 @@ to alter the size of the Moon based on location and time while using the
 simulator. The first method would be to write a JavaScript implementation
 from scratch for computing the positions of the Sun and Moon based on
 location and time. This could take significant time to ensure that all
-equations are correct as well as confirming accurate results.
+equations are correct as well as confirming accurate results. \\
 
 Another method would utilize a JavaScript library called SunCalc. This can be
 used to compute sun position, sunlight phases, moon position, and lunar phases
 based off location and time \cite{SunCalc}. This backend library is based off
 of an article about positions of the Sun as seen from a planet \cite{AST}.
-The documentation is also well written, which makes it very easy to use.
+The documentation is also well written, which makes it very easy to use. \\
 
 For the last method, another JavaScript library exists called Ephemeris
 \cite{Ephem}. This is very similar to the previous method except that this
 can be used for ephemeris calculations for a wider range of celestial objects.
 Additionally, the documentation for this library is very lackluster compared
-to the SunCalc library.
+to the SunCalc library. \\
 
 \textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake3}]: 
 In conclusion, the SunCalc library seems to be the best
 choice. There are several examples for how to use this library located on
 the readme of the page \cite{SunCalc}. Additionally, utilizing this backend to
 compute the Sun or the Moon's altitude and azimuth at a certain location
-and time requires very few function calls.
+and time requires very few function calls. \\
 
 \begin{table}[h]
 \centering
