@@ -293,7 +293,7 @@ they will be stored, several technologies to manage our photo metadata, and
 different methods for incorporating parallelization into this application. We will
 be evaluating these various technologies on the following criteria as applicable:
 functionality, security, speed, ease of development, and ease of integration with
-the rest of the project.
+the rest of the project. \\
 
 \subsection{Downloading/Uploading from Google Cloud Storage}
 
@@ -308,7 +308,7 @@ using special authentication credentials instead of usernames/passwords. Configu
 service account authentication for gsutil requires enabling a particular service
 account with the entire Google Cloud SDK using the gcloud application and a service
 account credentials file. As gsutil is a command line utility, it would need to be
-integrated with our app as a subprocess, using the Python subprocess module.
+integrated with our app as a subprocess, using the Python subprocess module. \\
 
 Google Cloud Storage is also accessible via a JSON Rest API. Like gsutil, this API 
 allows users to easily list the contents of a storage bucket, download files from 
@@ -316,7 +316,7 @@ a bucket, upload files to a bucket, and more via HTTP requests\cite{cloudStorage
 Since our application has its own Cloud Storage buckets, authentication for the
 JSON API would be handled using service accounts\cite{cloudStorageJSON}. Integrating 
 the JSON API with our application would require use of a Python HTTP library and explicit creating
-of all the required API request URLs\cite{cloudStorageJSON}.
+of all the required API request URLs\cite{cloudStorageJSON}. \\
 
 The final method we consider for interacting with Google Cloud Storage is the
 Google Cloud Client Library for Python. This client library is easily
@@ -329,13 +329,13 @@ environment variable to hold the path to a credentials file, obtained from
 Google\cite{cloudStorageLib}. As this client library provides a native Python 
 API, integrating it with out application would simply require importing the 
 necessary modules and embedding API calls directly in the source code via 
-Python method calls\cite{cloudStorageLib}.
+Python method calls\cite{cloudStorageLib}. \\
 
 \textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret1}]:
 The Google Cloud Client Library for Python is the best
 option for our needs as it is easy to install, it is secure, it provides all the
 required functionality, and is very simple to integrate with our application 
-source code.
+source code. \\
 
 \begin{table}[h]
 \centering
@@ -374,7 +374,7 @@ including the filename, whether or not the photo has been processed, and if it
 has, output information from the image processor. The image processor manager
 will use these records to know which photos to request from Cloud Storage 
 (ones that have not been processed), and these records will be updated after 
-processing to include the output of the image processor.
+processing to include the output of the image processor. \\
 
 We will evaluate several potential technologies to facilitate this data 
 storage/manipulation. The first of these is Google Cloud Datastore. Datastore 
@@ -391,7 +391,7 @@ to Datastore transactions\cite{cloudDatastoreDocs}. This functionality is import
 our purposes, as we will need to request a list of image files and mark them as pending 
 processing before any other application can read a list containing any of these same files. 
 This behavior is necessary to ensure that multiple nodes do not pull down the same image 
-files to process.
+files to process. \\
 
 The second solution we consider is Google Cloud Bigtable. Bigtable is a managed NoSQL 
 database solution and is similar to Datastore in many ways\cite{cloudBigtable}. 
@@ -406,7 +406,7 @@ and handle authentication using service accounts\cite{cloudBigtableDocs}. Bigtab
 many of the same basic features as Datastore but offers users much more control 
 and access to much more powerful systems. Google does not recommend Bigtable if 
 you are working with less than 1TB of data\cite{cloudBigtable}. Additionally, 
-bigtable does not support transactions\cite{cloudBigtable}.
+bigtable does not support transactions\cite{cloudBigtable}. \\
 
 The last solution we investigate is running our own MySQL servers. This solution 
 would serve our needs as we would be able to store all our data and MySQL 
@@ -418,7 +418,7 @@ non-trivial to do securely. One upside of using MySQL is that it has a scheme
 and is typed, so this relieves some of the pressure from programmers to 
 validate data based on scheme/type. In order to connect our Python code to MySQL,
 we would need to incorporate an additional MySQL connector library into our 
-application\cite{mysql}.
+application\cite{mysql}. \\
 
 \textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret2}]:
 Datastore will serve the needs of our project best as it is 
@@ -427,7 +427,7 @@ and provides all the functionality we need. Despite not supporting transactions,
 Bigtable could likely be made to work, however this would just be adding more 
 overhead in both setup and creating a transactions workaround. On top of this, 
 Bigtable is fundamentally not the right solution for our needs. It is 
-targeted at applications that store/query much more data than ours does.
+targeted at applications that store/query much more data than ours does. \\
 
 \begin{table}[h]
 \centering
@@ -468,7 +468,7 @@ For that reason, it is desirable for this application to do multiple operations
 concurrently. Here we consider various solutions for doing this in Python. In 
 this comparison, we consider invoking the image processor binary using the 
 builtin Python subprocess module. This module provides a nice Python wrapper 
-around standard fork/exec/waitpid/etc. C functions.
+around standard fork/exec/waitpid/etc. C functions. \\
 
 The first solution we consider is standard multithreading using the builtin 
 Python threading module. This can be used to both invoke multiple image 
@@ -487,7 +487,7 @@ The GIL is also released when making socket calls, so while setup and
 pre/post-processing of Cloud Storage uploads/downloads would be 
 serialized, the socket calls themselves could be working in parallel\cite{gilArticle}. 
 Implementation using the threading module requires explicit 
-creation/starting/joining of Thread objects.
+creation/starting/joining of Thread objects. \\
 
 An alternative solution is to use the builtin Python multiprocessing.Pool 
 class. This method sidesteps the GIL entirely by using processes for 
@@ -500,7 +500,7 @@ This would not be an issue for us as our data will take the form of standard
 Python datatypes. This approach does require creating entire new processes, 
 however on Linux this can be done very very quickly. In practice, regardless 
 of the application, sidestepping the GIL and implementing concurrency using 
-processes instead of threads is almost always the faster solution in Python.
+processes instead of threads is almost always the faster solution in Python. \\
 
 The last parallelization solution we investigate is applicable only to calls to 
 Google Cloud Datastore. This is using batch requests instead of single requests. 
@@ -510,7 +510,7 @@ for all grouped the queries\cite{batches}. When possible, this is desirable over
 multiple concurrent requests as there is reduced overhead with establishing 
 TCP connections. This application will never be sending/receiving large 
 pieces of data to Datastore, so the savings associated with establishing 
-far fewer TCP connections is highly desirable.
+far fewer TCP connections is highly desirable. \\
 
 \textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret3}]:
 The multiprocessing.Pool class is the best solution for us 
@@ -519,7 +519,7 @@ Storage, as it is very simple to integrate and will almost certainly offer
 higher performance than using the threading module. Using batch requests for 
 Datastore calls is preferable to creating concurrent requests using the 
 multiprocessing.Pool class as with batch requests we only have the overhead 
-of creating a single TCP connection for all the datastore queries.
+of creating a single TCP connection for all the datastore queries. \\
 
 \begin{table}[h]
 \centering
@@ -564,4 +564,5 @@ positioning of the time slider.
 \bibliographystyle{IEEEtran}
 \bibliography{tech}
 
-\end{document}                                                                                                                                       
+\end{document}
+                                                                                                                                       
