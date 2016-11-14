@@ -4,15 +4,9 @@
 \usepackage{hyperref}
 %usepackage{enumitem}
 \usepackage{graphicx}
+\usepackage{longtable}
 
 \graphicspath{ {images/} }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Macro for the signatures at the end                %
-\newcommand*{\SignatureAndDate}[1]{%
-    \par\noindent\makebox[2.5in]{\hrulefill} \hfill\makebox[2.0in]{\hrulefill}%
-    \par\noindent\makebox[2.5in][l]{#1}      \hfill\makebox[2.0in][l]{Date}%
-}%
 
 \renewcommand*\contentsname{Table of Contents} % Rename ToC
 
@@ -20,36 +14,623 @@
 
 \usepackage{cite}
 
-% Temp title and author
-\title{Requirements}
+\title{Tech Review}
 \date{\today} % Somehow this isn't working..
 \author{Totality AweSun \\
 		Bret~Lorimore, Jacob~Fenger, George~Harder \\
-		\textit{November 4th, 2016 \\
+		\textit{November 14th, 2016 \\
 		CS 461 - Fall 2016}}
 
 \begin{document}
 
-%\setlist[itemize]{topsep=1pt} % EDIT LISTS
-
 \maketitle
+
+\begin{abstract}
+
+This document compares various technologies for use in the North American Solar
+Eclipse 2017 senior capstone project. Specifically, we look at three specific parts
+of the project, the Eclipse Image Processor, the Image Processor Manager, and the
+Eclipse Simulator. For each of those high level components, we review applicable
+technologies for three of their sub-components. For each of the nine total sub-components,
+we make a conclusion about which of the considered technologies is best suited to our
+needs, and will thus be used in our implementation.
+
+\end{abstract}
+
+\newpage
+
+\section{Introduction}
+
+This technology review proceeds in three similarly structured sections. First,
+George Harder discusses what technologies will be the most effective for the
+implementation of the Eclipse Image Processor. This section is broken down into
+three subsections that correspond to the pieces he is responsible for in this
+project. The pieces are Image Classification and Manipulation, Runtime
+Environment, and Circle Detection. In the next section Bret Lorimore discusses
+his area of responsibility, the Image Processor Manager. The three pieces that
+Bret examines are Downloading/ Uploading from Google Cloud Storage, Storing
+Photo Metadata, and Application Parallelization. Lastly, Jacob Fenger details
+the pieces and technologies that will comprise the Eclipse Simulator. The three
+pieces he will be responsible for are User Interface; Gathering User
+Latitude/Longitude Information; and Displaying Sun/Moon Based On Latitude,
+Longitude, and Time Information. \\
+
+An important note with regard to some of the technologies being discussed is
+that Google is sponsoring this project and as such we have been asked to use
+Google products when possible. This is especially relevant to the sections on
+runtime environments and storing the photo metadata. Our sponsor's request that
+we use Google products if possible is by no means limiting, and in fact makes
+available to us extremely useful state of the art tools. \\
+
 
 % George's Section
 \section{Eclipse Image Processor}
 
 The eclipse image processor is the piece of our project that whandles the spatial
 and temporal alignment of the eclipse images that are uploaded to the Eclipse
-Megamovie website. We have identified three pieces\cite{imgKrista} into which
+Megamovie website. We have identified three pieces into which
 the image processor can be broken down. These are: image classification and
 manipulation, the runtime environment, and circle detection. In order for this
 element of our project to operate effectively it is critical that these three
 pieces utilize robust and functional technologies. This section of the
 technology review details what options are available for implementing each of
 these three pieces, analyzes these options, and arrives at a determination as to
-which option is the best in the context of this project.
+which option is the best in the context of this project.\\
+
+\subsection{Image Classification and Manipulation}
+
+The image classification and manipulation portion of the eclipse image processor
+encapsulates a few key requirements for this project. For our project to be
+functionally complete it must determine temporal ordering of the images, align
+them spatially, and crop them such that the sun is the same size in all of the
+images. This process requires the use of a computer vision application
+programming interface (API). Three possible options of API's are: OpenCV,
+SimpleCV, and VXL. \\
+
+The relative strengths and weaknesses of these three options can be evaluated
+using several key criteria that emerge when considering the requirements for
+this element of the project. These criteria are: speed, support/documentation,
+availability, ease of installation, and ease of use. Fortunately, all three of
+these tools are available online and provide documentation on installation so
+these categories do not require much discussion \cite{OCV, VXL, SCV}. With these
+criteria met, and considering the performance requirements of our project, the
+next most important criteria to consider is speed. \\
+
+OpenCV and VXL both rank highly in the speed category because they are written
+natively in C++\cite{OCV, VXL}. SimpleCV on the other hand is written in Python
+and thus uses an interpreter \cite{SCV}, which causes speed penalties.
+SimpleCV’s use of Python is a significant drawback and it cannot be ignored.
+Because of the large volume of images this tool is expected to process, we are
+targeting a mean processing time of 1 second per image. This is not necessarily
+impossible with an interpreted language, but it introduces major difficulties in
+trying to meet this requirement. OpenCV and VXL are the clear winners when
+considering speed. \\
+
+While not as critical to meeting specific requirements as speed, it is important
+to consider the costs associated with learning a new API. While all three API's
+provide online documentation, these docs are by no means equal. OpenCV and
+Simple CV both provide easy to understand and what appear to be comprehensive
+tutorials \cite{OCV, SCV}. While OpenCV may be more complicated than the aptly
+named SimpleCV it has a massive number of contributors on question sites like
+Stack Overflow \cite{stkovrflw}. Having an online community as a resource is an
+invaluable asset when learning an API and this is one of the great strengths of
+OpenCV. VXL, unlike the other two possibilities provides relatively poor and
+hard to navigate documentation. The time required to learn how to use an API can
+significantly slow down the development process of an application like our image
+processor. Having high quality documentation and tutorials at our disposal, as
+is the case with OpenCV and SimpleCV, is critical to surmounting the learning
+curve and its importance should not be overlooked. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Image Classification and Manipulation}
+\begin{tabular}{|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|}
+\cline{4-4}
+
+\hline  & Available & Installation & Speed & Support and Documentation & Ease of
+Use  \\ \hline
+
+OpenCV  & Yes & Easy & Fast (native C++) &  Excellent. Tutorial, docs, huge
+online community & Medium. May take some learning, offset by support/
+documentation  \\ \hline
+
+SimpleCV & Yes & Easy & Slow (native Python) & Good. Tutorial, docs, book
+available for purchase & Easy. Meant to be simple by design.  \\ \hline
+
+VXL & Yes & Easy & Fast (native C++) & Poor. Hard to read docs, not much support
+online. & Difficult. Collection of libraries, poor docs, likely tough to learn.
+\\ \hline
+
+\end{tabular}
+\label{table:george1}
+\end{table}
+
+\textit{Conclusion} [See summary of previous discussion in Table
+\ref{table:george1}]: OpenCV and SimpleCV are highly comparable in terms of ease
+of use and support/documentation. SimpleCV may be easier at first, but any
+advantage it has is offset by the robust online community willing to support
+each other and answer questions that OpenCV has. VXL falls flat when compared to
+OpenCV and SimpleCV in those two categories. With this in mind, and when
+considering that speed is of critical importance, OpenCV is the clear choice of
+computer vision API for this project. \\
+
+\subsection{Runtime Environment}
+
+The high volume of images the Eclipse Megamovie project expects to collect
+necessitates some form of scalability for our image processor. Without a runtime
+environment that we can effectively scale to process hundreds of thousands or
+perhaps millions of images in a timeframe that meets the requirements of the
+larger system, the image processor's utility is near zero. We have identified
+three potential options to meet the needs for scaling this image processor:
+Docker containers, cloud based virtual machines (VM's), and Google Cloud
+Functions (GCF).\\
+
+In order to determine which runtime environment will best allow us achieve the
+scalability necessary for the eclipse image processor several criteria will be
+considered. In this case they are: availability, cost, integration with our
+application, security, and overhead. Our group's partnership with Google for
+this project produces a natural inclination toward using the Google Cloud
+Platform for whichever of these options we end up using. Thus, all of these
+products have equal availability and our sponsor has made it clear that any
+monetary costs associated with using Google products are negligible. Because all
+of the options rank equally in the availability and cost categories only the
+other criteria will be discussed below. \\
+
+As the Google Cloud Platform supports all three possible technologies we are
+considering, integration with our eclipse image processor would appear to be
+essentially equal across all three options. However, this is not the case. Using
+cloud based VM's or Docker Containers allows us to encapsulate our application
+in a manner that allows for rapid scaling in addition to easy retrieval and
+transmission of images and data \cite{docker, gcp}. GCF on the other hand uses
+an event based microservice approach to app deployment \cite{gcp}. Instead of
+containing our application, GCF is a Javascript function that would call our
+eclipse image processor whenever an event is triggered \cite{gcp}. In this case
+the event would be a photo upload to the Eclipse Megamovie website. Rather than
+encapsulating our application GCF would spawn a child process, the eclipse image
+processor's executable, each time it was called. This results in a more complex
+deployment strategy because we would need to determine how to retrieve, store,
+and transmit data without dedicated virtual memory. \\
+
+Security is of paramount importance when deploying a web based application that
+will be handling a high volume of uploads, downloads, and user interactions.
+User information being compromised as the result of a vulnerability in our
+application would inevitably harm participation in any future projects similar
+to this one. Fortunately, the Google Cloud Platform has a strong commitment to
+security \cite{gcp}. Google Compute Engine VM's encrypt all of their data as it
+is stored and transmitted \cite{gcp}. This is an enormous advantage in terms of
+security because it allows us to focus on developing our application's
+functionality rather than worrying about securing it. Docker containers are
+deployed on top of VM's, so they have all of the same security advantages as a
+Compute Engine VM. In addition to this, Docker containers are completely
+isolated from the rest of the VM they are running on \cite{docker}, so if one
+were compromised the issue could be handled in a manner that does not impact any
+other containers. GCF has its own advantages in terms of security. Each function
+runs in its own execution environment \cite{docker}. Like the Docker containers,
+this means that all of the instances of GCF are separate from one another. GCF
+is also running in what Google calls a ``serverless'' environment \cite{docker},
+this means that GCF is not storing data or using hardware that could be
+compromised. All of the options receive high marks in the security category. \\
+
+In the context of evaluating these options, overhead refers to the amount of
+infrastructure that would need to be maintained in order to support each option
+as it scales to meet the demands of a high volume of uploads. For Google Compute
+Engine VM’s, the overhead is fairly high. Each VM requires its own guest
+operating system, virtual memory, and virtual hardware to run an instance of our
+application \cite{docker, gcf}. This is in contrast to Docker containers, which
+can run multiple instances of an application on top of a single host
+\cite{docker}. Each instance of the application only needs its dependencies to
+run. This model requires less overhead in order to scale our application, which
+in this case results in fewer places where things can go wrong. By far the most
+lightweight approach, GCF operates using a serverless model \cite{gcp}. This
+provides advantages to us as developers because it greatly simplifies
+deployment. However, it presents new challenges in terms of how we retrieve and
+transmit data. In addition to the challenges of data management, another
+disadvantage of the serverless model is that it takes away our control over how
+much compute power we can provide to the eclipse image processor. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Runtime Environments}
+\begin{tabular}{|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|}
+\cline{4-4}
+
+\hline  & Available & Cost & Integration & Security & Overhead \\ \hline
+
+Virtual Machines & Yes & Neglible & Good, can encapsulate app and dependencies
+easily &  Excellent & High, VM per instance has high cost  \\ \hline
+
+Docker Containers  & Yes & Neglible & Good, provides encapsulation &  Excellent
+& Medium, clusters deployed on top of VM’s  \\ \hline
+
+Google Cloud Functions  & Yes & Neglible & Okay, JS can call our executable but
+introduces unnecessary complexity & Excellent & Low, lightweight serverless
+Javascript function calls  \\ \hline
+
+\end{tabular}
+\label{table:george2}
+\end{table}
+
+\textit{Conclusion} [See summary of previous discussion in Table
+\ref{table:george2}]:Taking all criteria into consideration, the best choice of runtime environment
+for our application will be Docker containers. These retain the best elements of
+the other options while shedding their defects. \\
+
+\subsection{Circle Detection}
+
+Detecting circles is an area of ongoing research in computer science and is of
+particular interest to this project because it is necessary for the temporal
+ordering and spatial alignment of the eclipse images. In order to determine the
+temporal ordering of the images we plan to use the relative difference in
+position of the centers of the sun and the moon. To spatially align the images
+we will be rotating them so that the visible portion of the sun is at a fixed
+angle relative to the center of the image. For either of these processes to be
+successful we need a technique capable of locating circles and their centers. We
+have identified three possible algorithms: Hough transforms, Blob detection and
+the Ant System Algorithm. \\
+
+
+In order to select an algorithm for circle detection, three primary criteria
+must be considered. They are: computational complexity, accuracy, and
+implementation difficulty. Computational complexity is of high importance
+because a slow algorithm or one that uses a large amount of memory jeopardizes
+our chances of meeting performance requirements and places strain on our runtime
+environment. We need this algorithm to achieve high accuracy to ensure the
+seamless integration of the eclipse image processor with the Eclipse Megamovie
+project. If our algorithm cannot correctly identify circles, our processor could
+not be considered functional. Lastly, an important consideration is the level of
+difficulty required in integrating our algorithm of choice into the eclipse
+image processor’s codebase. \\
+
+
+The Hough transform is a common algorithm for circle and line detection that is
+known to have high computational complexity and memory usage \cite{hough,
+antsystem}. This is generally disadvantageous to the performance of our eclipse
+image processor. Blob detection has a lower computational complexity and memory
+usage than the Hough transform because it does not need to store an array of all
+of the possible circle centers like the Hough transform does \cite{hough,
+blobarticle, blobref}. The least computationally complex algorithm is the Ant
+System Algorithm described by Chattopadhyay et al. \cite{antsystem}. This
+algorithm’s complexity is determined solely by the number of pixels on the edge
+of shapes in the image. This is significantly lower than the complexity of other
+two algorithms which rely on the number of pixels in the whole image. \\
+
+
+Accuracy is of critical importance to the success of the eclipse image
+processor. As such, it is necessary that the circle detection algorithm
+consistently detects the sun and moon in the eclipse images. Hough transforms
+have been shown to be very successful in this regard \cite{imgKrista}. To this
+group’s knowledge, blob detection has not been shown to be effective at finding
+the sun and moon in eclipse images. OpenCV does include a blob detector that can
+filter blobs by their relative circularity and return their centers
+\cite{blobarticle, blobref}, which meets the needs of this processor. However,
+the accuracy of blob detection is likely to suffer in this application because
+the pixels corresponding to the moon are likely to blend with the background of
+the image since they are both black. This results in there being no distinct
+blob to be detected in the crescent images. The Ant System Algorithm, while
+shown to be accurate \cite{antsystem}, could fall victim to this same problem.
+The images that the Ant System Algorithm were tested on had white outlined
+shapes over a black background \cite{antsystem}, this is not how the real world
+eclipse images will appear. \\
+
+
+The final consideration in selecting a circle detection algorithm is the effort
+it will take to use it in the eclipse image processor. Both the Hough transform
+and blob detection score very highly in this category. OpenCV has
+implementations of these methods, documentation on how to use them, and even has
+code examples of their use \cite{houghocv, blobarticle}. This is extremely useful
+and makes the implementation of the circle detection portion of the image
+processor much simpler. The Ant System algorithm on the other hand would need to
+be implemented by our team and would be based on pseudocode in the Chattopadhyay
+et al. paper. This presents a major disadvantage because it jeopardizes both the
+accuracy and performance of the algorithm. There is no guarantee that our
+implementation of the algorithm will work as well as the one the author’s of the
+paper used. This also requires potentially several extra weeks of development
+and testing. Having to implement our own version of the Ant System Algorithm
+essentially eliminates it from contention as a possible circle detection
+algorithm. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Circle Detection}
+\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\cline{4-4}
+
+\hline  & Available & Cost & Integration \\ \hline
+
+Hough Transform & High, uses a lot of memory and iterates over each pixel more
+than once and performs a computation each step & Excellent, known to have good
+accuracy and has been shown to work on eclipse images & Low, supported in OpenCV
+\\ \hline
+
+Blob Detection & Medium, iterates over each pixel once performing computations
+at each step & Good, known to be accurate at finding circles and centers but
+hasn’t been known to work with eclipses & Low, supported in OpenCV \\ \hline
+
+
+Ant System Algorithm & Low, has complexity O(edge pixels), could be compromised
+by our implementation & Okay, not shown to work on real world images, could be
+worsened by our implementation & Extreme, we would have to write our own
+implementation based on pseudocode \\ \hline
+
+\end{tabular}
+\label{table:george3}
+\end{table}
+
+\textit{Conclusion} [See summary of previous discussion in Table
+\ref{table:george3}]: While the Hough transform may struggle in terms of computational
+complexity, it emerges as a clear favorite when accuracy and ease of
+implementation are taken into account. It is the only algorithm known to
+successfully detect the sun and moon in eclipse images and is supported in
+OpenCV.
 
 % Bret's Section
 \section{Image Processor Manager}
+
+The image processor manager will be a Python application responsible for
+collecting/downloading user uploaded eclipse images to be processed by the image
+processor application, invoking the image processor with these images as input,
+and collecting the output of the image processor application and uploading it
+to Google Cloud. In this section of the technology review we consider various
+technologies for downloading/uploading photos from Google Cloud Storage where
+they will be stored, several technologies to manage our photo metadata, and
+different methods for incorporating parallelization into this application. We will
+be evaluating these various technologies on the following criteria as applicable:
+functionality, security, speed, ease of development, and ease of integration with
+the rest of the project. \\
+
+\subsection{Downloading/Uploading from Google Cloud Storage}
+
+There are several methods we could use to download/upload images from Google Cloud
+Storage. The first of these is the gsutil application. gsutil is part of the Google
+Cloud SDK and makes it easy to list the contents of a storage bucket, download files
+from a bucket, upload files to a bucket, and more from the command
+line\cite{gsutil, cloudStorage}. For our purposes, authentication using
+service accounts would be most suitable. Service accounts can be
+thought of as user accounts for applications where the applications "log in"
+using special authentication credentials instead of usernames/passwords. Configuring
+service account authentication for gsutil requires enabling a particular service
+account with the entire Google Cloud SDK using the gcloud application and a service
+account credentials file. As gsutil is a command line utility, it would need to be
+integrated with our app as a subprocess, using the Python {\tt subprocess} module. \\
+
+Google Cloud Storage is also accessible via a JSON Rest API. Like gsutil, this API
+allows users to easily list the contents of a storage bucket, download files from
+a bucket, upload files to a bucket, and more via HTTP requests\cite{cloudStorageJSON}.
+Since our application has its own Cloud Storage buckets, authentication for the
+JSON API would be handled using service accounts\cite{cloudStorageJSON}. Integrating
+the JSON API with our application would require use of a Python HTTP library and explicit creating
+of all the required API request URLs\cite{cloudStorageJSON}. \\
+
+The final method we consider for interacting with Google Cloud Storage is the
+Google Cloud Client Library for Python. This client library is easily
+installable using pip (the standard Python package manager) and once installed,
+it allows programmatic access to Google Cloud Storage via a simple Python
+API\cite{cloudStorageLib}. Authentication for this client library is, like with
+the JSON API and gsutil, handled using service accounts\cite{cloudStorageLib}.
+Setting up this authentication is simple and is done by setting a special
+environment variable to hold the path to a credentials file, obtained from
+Google\cite{cloudStorageLib}. As this client library provides a native Python
+API, integrating it with out application would simply require importing the
+necessary modules and embedding API calls directly in the source code via
+Python method calls\cite{cloudStorageLib}. \\
+
+\textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret1}]:
+The Google Cloud Client Library for Python is the best
+option for our needs as it is easy to install, it is secure, it provides all the
+required functionality, and is very simple to integrate with our application
+source code. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of technologies for downloading/uploading from Google Cloud Storage}
+\begin{tabular}{|p{1.8cm}|p{1.4cm}|p{3cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1cm}|}
+\cline{4-4}
+\hline
+
+% Row 1
+ & Provides needed functionality? & Installation procedure & Authentication
+ & Integration with our app & Ease of installation/ integration & Secure? \\ \hline
+
+% Row 2
+gsutil & yes & apt-get, copy service account credentials file, setup service
+account as default auth method using gcloud & service accounts & invoke as
+sub-process & medium, medium & yes \\ \hline
+
+% Row 3
+Cloud Storage JSON API & yes & install Python HTTP library, copy service
+account credentials file & service accounts & make HTTP requests using
+some Python HTTP library & easy, hard & yes \\ \hline
+
+% Row 4
+Google Cloud Client Library for Python & yes & pip, copy service account
+credentials file, set environment variable & service accounts & native
+integration into source code & medium, easy & yes \\ \hline
+
+\end{tabular}
+\label{table:bret1}
+\end{table}
+
+\subsection{Storing Photo Metadata}
+
+For each photo we will store a metadata record containing various information
+including the filename, whether or not the photo has been processed, and if it
+has, output information from the image processor. The image processor manager
+will use these records to know which photos to request from Cloud Storage
+(ones that have not been processed), and these records will be updated after
+processing to include the output of the image processor. \\
+
+We will evaluate several potential technologies to facilitate this data
+storage/manipulation. The first of these is Google Cloud Datastore. Datastore
+is a simple NoSQL database solution \cite{cloudDatastore}. This means that it is
+schemeless and typeless, so programmers must be careful to validate that the
+data being inserted conforms to both the desired scheme and type.
+Datastore is a fully managed solution so users do not need to worry about setting
+up virtual machines or managing any of the other infrastructure associated with
+running Datastore\cite{cloudDatastore}. Programmers can easily interact with Datastore
+via the Google Cloud Client Library for Python that is mentioned in the previous
+section\cite{cloudDatastoreDocs}. This library takes care of authenticating requests
+using service accounts\cite{cloudDatastoreDocs}. The API additionally provides access
+to Datastore transactions\cite{cloudDatastoreDocs}. This functionality is important for
+our purposes, as we will need to request a list of image files and mark them as pending
+processing before any other application can read a list containing any of these same files.
+This behavior is necessary to ensure that multiple nodes do not pull down the same image
+files to process. \\
+
+The second solution we consider is Google Cloud Bigtable. Bigtable is a managed NoSQL
+database solution and is similar to Datastore in many ways\cite{cloudBigtable}.
+Bigtable is tailored to applications that need to store massive amounts of data
+and query it very quickly\cite{cloudBigtable}. As such, it is a much more heavyweight
+solution than Datastore. It offers users much more control than Datastore does.
+Bigtable allows users to create their own clusters and specify the type of hardware on
+which they will run\cite{cloudBigtableDocs}. Users can also create multiple tables
+as necessary\cite{cloudBigtableDocs}. These are features that are not offered with
+Datastore. As part of Google Cloud, Bigtable offers a Python API to interact with it
+and handle authentication using service accounts\cite{cloudBigtableDocs}. Bigtable has
+many of the same basic features as Datastore but offers users much more control
+and access to much more powerful systems. Google does not recommend Bigtable if
+you are working with less than 1TB of data\cite{cloudBigtable}. Additionally,
+bigtable does not support transactions\cite{cloudBigtable}. \\
+
+The last solution we investigate is running our own MySQL servers. This solution
+would serve our needs as we would be able to store all our data and MySQL
+does support transactions. That being said, it would be a great deal of work to
+use our own MySQL servers. We would have to create/manage our own virtual machines,
+manage database replication/backups, setup some sort of load balancer to send
+request to the different MySQL nodes, and configure access controls which is
+non-trivial to do securely. One upside of using MySQL is that it has a scheme
+and is typed, so this relieves some of the pressure from programmers to
+validate data based on scheme/type. In order to connect our Python code to MySQL,
+we would need to incorporate an additional MySQL connector library into our
+application\cite{mysql}. \\
+
+\textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret2}]:
+Datastore will serve the needs of our project best as it is
+very simple to setup and manage, is simple to integrate with our application,
+and provides all the functionality we need. Despite not supporting transactions,
+Bigtable could likely be made to work, however this would just be adding more
+overhead in both setup and creating a transactions workaround. On top of this,
+Bigtable is fundamentally not the right solution for our needs. It is
+targeted at applications that store/query much more data than ours does. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of technologies for storing photo metadata}
+\begin{tabular}{|p{1.8cm}|p{1.4cm}|p{3cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1cm}|}
+\cline{4-4}
+\hline
+
+% Row 1
+ & Provides needed functionality? & Setup procedure & Authentication
+ & Integration with our app & Ease of setup & Secure? \\ \hline
+
+% Row 2
+Google Cloud Datastore & yes & enable Datastore in Google Cloud project
+& built in: service accounts & Google Cloud Client Library for Python
+& easy & yes \\ \hline
+
+% Row 3
+Google Cloud Bigtable & not natively, no support for transactions &
+create Bigtable cluster, required tables & built in: service accounts
+& Google Cloud Client Library for Python & medium & yes \\ \hline
+
+% Row 4
+custom MySQL servers & yes & create virtual machines, install MySQL,
+configure network access, configure access controls, setup backup/
+replication credentials file, set environment variable & requires custom setup
+& requires Python-MySQL connector & hard & yes, if done correctly \\ \hline
+
+\end{tabular}
+\label{table:bret2}
+\end{table}
+
+\subsection{Application Parallelization}
+
+Downloading/uploading images from Google Cloud Storage and running the
+image processor on a set of images are both relatively high latency operations.
+For that reason, it is desirable for this application to do multiple operations
+concurrently. Here we consider various solutions for doing this in Python. In
+this comparison, we consider invoking the image processor binary using the
+builtin Python {\tt subprocess} module. This module provides a nice Python wrapper
+around standard {\tt fork}/{\tt exec}/{\tt waitpid}/etc. C functions. \\
+
+The first solution we consider is standard multithreading using the builtin
+Python {\tt threading} module. This can be used to both invoke multiple image
+processor processes concurrently and to make concurrent requests to Google
+Cloud Storage and Datastore. A common issue with use of the Python {\tt threading}
+module is the Python Global Interpreter Lock (GIL)\cite{gilArticle}. The GIL
+is a global lock in the CPython interpreter that allows only one thread to
+execute code in the interpreter at a time\cite{gilArticle}. The GIL would
+not cause us many issues when invoking the image processor binary, as
+the Python subprocess implementation releases the GIL before calling
+waitpid on a particular sub-process. This means that the
+setting up/calling of a particular invocation of the image processor binary
+would be done serially, but the actual processing could be done currently as
+it is done outside of the Python interpreter and the GIL is released\cite{gilArticle}.
+The GIL is also released when making socket calls, so while setup and
+pre/post-processing of Cloud Storage uploads/downloads would be
+serialized, the socket calls themselves could be working in parallel\cite{gilArticle}.
+Implementation using the {\tt threading} module requires explicit
+creation/starting/joining of {\tt Thread} objects. \\
+
+An alternative solution is to use the builtin Python {\tt multiprocessing.Pool}
+class. This method sidesteps the GIL entirely by using processes for
+parallelism instead of threads\cite{multiproc}. This method is also desirable
+as the API is incredibly simple - a pool of n processes can be created in a
+single line and then these processes can be passed a target function and
+data in a single other line of code\cite{multiproc}. The only requirement
+here is that all parameters passed to the process pool must be picklable\cite{multiproc}.
+This would not be an issue for us as our data will take the form of standard
+Python datatypes. This approach does require creating entire new processes,
+however on Linux this can be done very very quickly. In practice, regardless
+of the application, sidestepping the GIL and implementing concurrency using
+processes instead of threads is almost always the faster solution in Python. \\
+
+The last parallelization solution we investigate is applicable only to calls to
+Google Cloud Datastore. This is using batch requests instead of single requests.
+The Datastore API has built in batch request functionality which allows multiple
+queries to made in a single API call, meaning only a single HTTP request is made
+for all grouped the queries\cite{batches}. When possible, this is desirable over
+multiple concurrent requests as there is reduced overhead with establishing
+TCP connections. This application will never be sending/receiving large
+pieces of data to Datastore, so the savings associated with establishing
+far fewer TCP connections is highly desirable. \\
+
+\textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret3}]:
+The {\tt multiprocessing.Pool} class is the best solution for us
+for invoking the image processor and uploading/downloading from Google Cloud
+Storage, as it is very simple to integrate and will almost certainly offer
+higher performance than using the {\tt threading} module. Using batch requests for
+Datastore calls is preferable to creating concurrent requests using the
+{\tt multiprocessing.Pool} class as with batch requests we only have the overhead
+of creating a single TCP connection for all the datastore queries. \\
+
+\begin{table}[h]
+\centering
+\caption{Comparison of technologies for application parallelism}
+\begin{tabular}{|p{4.2cm}|p{4.2cm}|p{4.2cm}|}
+\cline{3-3}
+\hline
+
+% Row 1
+ & Applicable to & Integration Overhead \\ \hline
+
+% Row 2
+{\tt threading} & image processor invocation, GCS/Datastore requests
+& medium: requires explicit thread creation/starting/joining,
+requires consciousness of shared data \\ \hline
+
+% Row 3
+{\tt multiprocessing.Pool} & image processor invocation, GCS/Datastore requests
+& medium: simple to invoke, requires pickleable parameters, cannot rely
+on shared data unless we use IPC \\ \hline
+
+% Row 4
+Batch requests & Datastore requests & low, requires coalescing multiple
+requests into single request  \\ \hline
+
+\end{tabular}
+\label{table:bret3}
+\end{table}
 
 % Jake's Section
 \section{Eclipse Simulator}
@@ -99,17 +680,143 @@ other simulator resources will need to load in less than 500ms given a 1-10
 Mbps internet connection. Additionally the animation used in the simulator
 should be around 60 frames per second.
 
-\begin{table}[]
+\begin{table}[h]
 \centering
-\caption{My caption}
-\label{my-label}
-\begin{tabular}{lllll}
-Method                 & Model        & Method                                                            & Difficulty of Implementation                                                  & Performance                                                                                                                       \\
-Implement from Scratch & Images       & \begin{tabular}[c]{@{}l@{}}HTML,\\ JavaScript,\\ CSS\end{tabular} & \begin{tabular}[c]{@{}l@{}}May take time to start from\\ scratch\end{tabular} & \begin{tabular}[c]{@{}l@{}}Dependent upon implementation, \\ requires a lot of bandwidth to\\ send large image files\end{tabular} \\
-Canvas                 & Pixel Based  & JavaScript                                                        & Built into HTML 5                                                             & \begin{tabular}[c]{@{}l@{}}Smaller surface, \\ larger number of items\end{tabular}                                                \\
-SVG                    & Vector Based & \begin{tabular}[c]{@{}l@{}}JavaScript,\\ CSS\end{tabular}         & Built into HTML 5                                                             & \begin{tabular}[c]{@{}l@{}}Larger surface,\\ smaller number of items\end{tabular}
+\caption{Comparison of Possible Technologies for User Interface}
+\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\cline{5-4}
+
+\hline  & Model & Method & Difficulty of Implementation & Performance\\ \hline
+
+Implement from Scratch & Images & HTML, JavaScript, CSS & May take time to
+start from scratch & Dependent upon implementation, requires a lot of
+bandwidth to send large files \\ \hline
+
+Canvas & Pixel Based & JavaScript & Built into HTML5 & Smaller surface,
+larger number of items \\ \hline
+
+SVG & Vector Based & JavaScript, CSS & Built into HTML5 & Larger surface,
+smaller number of items \\ \hline
+
 \end{tabular}
+\label{table:Jake1}
 \end{table}
+
+\textit{Conclusion:} SVG seems to be a better technology to use when creating
+the user interface because of the interactivity that it has to offer for users.
+This is due to the fact SVG can process events for each sub-element separately
+while Canvas must process events for the entire canvas. Additionally, since
+our simulator requires a few number of objects, we will see better performance
+benefits than compared to the Canvas or scratch approach.
+
+\subsection{Gathering User Latitude/Longitude Information}
+
+For the eclipse simulator to be as accurate as possible, we must gather user
+submitted location data for our computations. There are several options to
+consider when implementing this. The first of which is having the user only be
+allowed to enter a specific latitude and longitude when entering their
+location. While this would be easy to do, it provides a negative user
+interaction since people generally do not know the specific latitude and
+longitude of places they will be located for the solar eclipse.
+
+The second option would be to utilize the Google Maps API to display a map
+\cite{jsAPI}.
+The user would then place a pin at the location that they want the simulator
+to be based off of. This would require a combination of HTML, CSS, and
+JavaScript. Displaying a map for the user to interact act with is a much
+better form of input than the first method. Users don’t need to know the
+latitude and longitude of certain locations, they just need to recognize
+them via a map. Implementing this would be done by adding a map to the
+simulator, and then adding a click event function to save the latitude and
+longitude for when a user clicks a location on the map.
+
+Lastly, we could utilize the Geocoding API which is built into the Google Maps
+API for converting addresses into geographic coordinates \cite{jsGEO}.
+The user could enter a wide range of input including specific addresses,
+roads, zip codes, or other options. This data would then be geocoded and will
+result in the latitude and longitude.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Lat/Long Information}
+\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\cline{5-4}
+
+\hline  & Provides Needed Functionality? & User Friendly? & Ease of Setup
+ & API \\ \hline
+
+User Inputs Lat/Long & Yes & No & Very Easy & None \\ \hline
+
+Drop Pin on a Map & Yes & Yes & Medium & Google Maps API \\ \hline
+
+Geocoding & Yes & Yes & Medium & Google Maps Geocoding API \\ \hline
+
+\end{tabular}
+\label{table:Jake2}
+\end{table}
+
+\textit{Conclusion:} Overall, geocoding user entered addresses will provide the
+best functionality. The Google Maps Geocoding API can easily convert these
+addresses to latitude and longitude coordinates for computing the Sun and
+Moon's location. While dropping a pin on a map is simple, it requires more
+another large space for user’s to interact with and loading an entire
+map may degrade performance.
+
+\subsection{Displaying Sun/Moon Based on Latitude, Longitude, and Time
+ Information}
+
+One of the trickier aspects of the eclipse simulator is altering the positions
+of the Sun and the Moon based on user entered location and time. The best metric
+for observing locations of celestial objects is altitude and azimuth. The
+altitude of an object is the distance it appears above the horizon, while the
+azimuth is angular distance along the horizon to the object \cite{ALTAZI}.
+It is also possible for the Sun and the Moon to different sizes. We may need
+to alter the size of the Moon based on location and time while using the
+simulator. The first method would be to write a JavaScript implementation
+from scratch for computing the positions of the Sun and Moon based on
+location and time. This could take significant time to ensure that all
+equations are correct as well as confirming accurate results.
+
+Another method would utilize a JavaScript library called SunCalc. This can be
+used to compute sun position, sunlight phases, moon position, and lunar phases
+based off location and time \cite{SunCalc}. This backend library is based off
+of an article about positions of the Sun as seen from a planet \cite{AST}.
+The documentation is also well written, which makes it very easy to use.
+
+For the last method, another JavaScript library exists called Ephemeris
+\cite{Ephem}. This is very similar to the previous method except that this
+can be used for ephemeris calculations for a wider range of celestial objects.
+Additionally, the documentation for this library is very lackluster compared
+to the SunCalc library.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Possible Technologies for Sun/Moon Display}
+\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\cline{4-4}
+
+\hline  & Ease of Implementation & External Libaries? & Integration Difficulty
+ \\ \hline
+
+Backend from Scratch & Very Hard & None & Easy - this would be a tailored
+solution \\ \hline
+
+SunCalc Library & Easy & SunCalc & Easy \\ \hline
+
+Ephemeris Library & Easy & Ephemeris & Easy \\ \hline
+
+\end{tabular}
+\label{table:Jake2}
+\end{table}
+
+\textit{Conclusion:} In conclusion, the SunCalc library seems to be the best
+choice. There are several examples for how to use this library located on
+the readme of the page \cite{SunCalc}. Additionally, utilizing this backend to
+compute the Sun or the Moon's altitude and azimuth at a certain location
+and time requires very few function calls.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% END OF MAIN CONTENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \bibliographystyle{IEEEtran}
 \bibliography{tech}
 
