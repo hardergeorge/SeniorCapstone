@@ -597,10 +597,12 @@ far fewer TCP connections is highly desirable. \\
 The {\tt multiprocessing.Pool} class is the best solution for us
 for invoking the image processor and uploading/downloading from Google Cloud
 Storage, as it is very simple to integrate and will almost certainly offer
-higher performance than using the {\tt threading} module. Using batch requests for
-Datastore calls is preferable to creating concurrent requests using the
+higher performance than using the {\tt threading} module. However, for making calls
+to Datastore, batch requests are preferable to creating concurrent requests using the
 {\tt multiprocessing.Pool} class as with batch requests we only have the overhead
-of creating a single TCP connection for all the datastore queries. \\
+of creating a single TCP connection for all the datastore queries. So we will selectively
+use \textit{both} the {\tt multiprocessing.Pool} class and Datastore batch requests to
+achieve the best performance. \\
 
 \begin{table}[h]
 \centering
