@@ -680,10 +680,18 @@ other simulator resources will need to load in less than 500ms given a 1-10
 Mbps internet connection. Additionally the animation used in the simulator
 should be around 60 frames per second.
 
+\textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake1}]:
+SVG seems to be a better technology to use when creating
+the user interface because of the interactivity that it has to offer for users.
+This is due to the fact SVG can process events for each sub-element separately
+while Canvas must process events for the entire canvas. Additionally, since
+our simulator requires a few number of objects, we will see better performance
+benefits than compared to the Canvas or scratch approach.
+
 \begin{table}[h]
 \centering
 \caption{Comparison of Possible Technologies for User Interface}
-\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\begin{tabular}{|p{3.15cm}|p{2cm}|p{2cm}|p{3.15cm}|p{3.15cm}|}
 \cline{5-4}
 
 \hline  & Model & Method & Difficulty of Implementation & Performance\\ \hline
@@ -701,13 +709,6 @@ smaller number of items \\ \hline
 \end{tabular}
 \label{table:Jake1}
 \end{table}
-
-\textit{Conclusion:} SVG seems to be a better technology to use when creating
-the user interface because of the interactivity that it has to offer for users.
-This is due to the fact SVG can process events for each sub-element separately
-while Canvas must process events for the entire canvas. Additionally, since
-our simulator requires a few number of objects, we will see better performance
-benefits than compared to the Canvas or scratch approach.
 
 \subsection{Gathering User Latitude/Longitude Information}
 
@@ -736,10 +737,18 @@ The user could enter a wide range of input including specific addresses,
 roads, zip codes, or other options. This data would then be geocoded and will
 result in the latitude and longitude.
 
+\textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake2}]:
+Overall, geocoding user entered addresses will provide the
+best functionality. The Google Maps Geocoding API can easily convert these
+addresses to latitude and longitude coordinates for computing the Sun and
+Moon's location. While dropping a pin on a map is simple, it requires more
+another large space for user's to interact with and loading an entire
+map may degrade performance.
+
 \begin{table}[h]
 \centering
 \caption{Comparison of Possible Technologies for Lat/Long Information}
-\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\begin{tabular}{|p{3.15cm}|p{2cm}|p{2cm}|p{2cm}|p{3.15cm}|}
 \cline{5-4}
 
 \hline  & Provides Needed Functionality? & User Friendly? & Ease of Setup
@@ -754,13 +763,6 @@ Geocoding & Yes & Yes & Medium & Google Maps Geocoding API \\ \hline
 \end{tabular}
 \label{table:Jake2}
 \end{table}
-
-\textit{Conclusion:} Overall, geocoding user entered addresses will provide the
-best functionality. The Google Maps Geocoding API can easily convert these
-addresses to latitude and longitude coordinates for computing the Sun and
-Moon's location. While dropping a pin on a map is simple, it requires more
-another large space for user's to interact with and loading an entire
-map may degrade performance.
 
 \subsection{Displaying Sun/Moon Based on Latitude, Longitude, and Time
  Information}
@@ -789,10 +791,17 @@ can be used for ephemeris calculations for a wider range of celestial objects.
 Additionally, the documentation for this library is very lackluster compared
 to the SunCalc library.
 
+\textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake3}]: 
+In conclusion, the SunCalc library seems to be the best
+choice. There are several examples for how to use this library located on
+the readme of the page \cite{SunCalc}. Additionally, utilizing this backend to
+compute the Sun or the Moon's altitude and azimuth at a certain location
+and time requires very few function calls.
+
 \begin{table}[h]
 \centering
 \caption{Comparison of Possible Technologies for Sun/Moon Display}
-\begin{tabular}{|p{3.15cm}|p{3.15cm}|p{3.15cm}|p{3.15cm}|}
+\begin{tabular}{|p{3.15cm}|p{2cm}|p{2cm}|p{3.15cm}|}
 \cline{4-4}
 
 \hline  & Ease of Implementation & External Libaries? & Integration Difficulty
@@ -806,14 +815,8 @@ SunCalc Library & Easy & SunCalc & Easy \\ \hline
 Ephemeris Library & Easy & Ephemeris & Easy \\ \hline
 
 \end{tabular}
-\label{table:Jake2}
+\label{table:Jake3}
 \end{table}
-
-\textit{Conclusion:} In conclusion, the SunCalc library seems to be the best
-choice. There are several examples for how to use this library located on
-the readme of the page \cite{SunCalc}. Additionally, utilizing this backend to
-compute the Sun or the Moon's altitude and azimuth at a certain location
-and time requires very few function calls.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% END OF MAIN CONTENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
