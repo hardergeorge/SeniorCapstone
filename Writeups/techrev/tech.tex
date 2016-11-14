@@ -84,7 +84,7 @@ encapsulates a few key requirements for this project. For our project to be
 functionally complete it must determine temporal ordering of the images, align
 them spatially, and crop them such that the sun is the same size in all of the
 images. This process requires the use of a computer vision application
-programming interface (API). Three possible options of API's are: OpenCV,
+programming interface (API). Three possible options of APIs are: OpenCV,
 SimpleCV, and VXL. \\
 
 The relative strengths and weaknesses of these three options can be evaluated
@@ -99,7 +99,7 @@ next most important criteria to consider is speed. \\
 OpenCV and VXL both rank highly in the speed category because they are written
 natively in C++\cite{OCV, VXL}. SimpleCV on the other hand is written in Python
 and thus uses an interpreter \cite{SCV}, which causes speed penalties.
-SimpleCV’s use of Python is a significant drawback and it cannot be ignored.
+SimpleCV's use of Python is a significant drawback and it cannot be ignored.
 Because of the large volume of images this tool is expected to process, we are
 targeting a mean processing time of 1 second per image. This is not necessarily
 impossible with an interpreted language, but it introduces major difficulties in
@@ -107,7 +107,7 @@ trying to meet this requirement. OpenCV and VXL are the clear winners when
 considering speed. \\
 
 While not as critical to meeting specific requirements as speed, it is important
-to consider the costs associated with learning a new API. While all three API's
+to consider the costs associated with learning a new API. While all three APIs
 provide online documentation, these docs are by no means equal. OpenCV and
 Simple CV both provide easy to understand and what appear to be comprehensive
 tutorials \cite{OCV, SCV}. While OpenCV may be more complicated than the aptly
@@ -162,7 +162,7 @@ environment that we can effectively scale to process hundreds of thousands or
 perhaps millions of images in a timeframe that meets the requirements of the
 larger system, the image processor's utility is near zero. We have identified
 three potential options to meet the needs for scaling this image processor:
-Docker containers, cloud based virtual machines (VM's), and Google Cloud
+Docker containers, cloud based virtual machines (VMs), and Google Cloud
 Functions (GCF).\\
 
 In order to determine which runtime environment will best allow us achieve the
@@ -179,7 +179,7 @@ other criteria will be discussed below. \\
 As the Google Cloud Platform supports all three possible technologies we are
 considering, integration with our eclipse image processor would appear to be
 essentially equal across all three options. However, this is not the case. Using
-cloud based VM's or Docker Containers allows us to encapsulate our application
+cloud based VMs or Docker Containers allows us to encapsulate our application
 in a manner that allows for rapid scaling in addition to easy retrieval and
 transmission of images and data \cite{docker, gcp}. GCF on the other hand uses
 an event based microservice approach to app deployment \cite{gcp}. Instead of
@@ -196,26 +196,25 @@ will be handling a high volume of uploads, downloads, and user interactions.
 User information being compromised as the result of a vulnerability in our
 application would inevitably harm participation in any future projects similar
 to this one. Fortunately, the Google Cloud Platform has a strong commitment to
-security \cite{gcp}. Google Compute Engine VM's encrypt all of their data as it
+security \cite{gcp}. Google Compute Engine VMs encrypt all of their data as it
 is stored and transmitted \cite{gcp}. This is an enormous advantage in terms of
 security because it allows us to focus on developing our application's
 functionality rather than worrying about securing it. Docker containers are
-deployed on top of VM's, so they have all of the same security advantages as a
+deployed on top of VMs, so they have all of the same security advantages as a
 Compute Engine VM. In addition to this, Docker containers are completely
 isolated from the rest of the VM they are running on \cite{docker}, so if one
 were compromised the issue could be handled in a manner that does not impact any
 other containers. GCF has its own advantages in terms of security. Each function
 runs in its own execution environment \cite{docker}. Like the Docker containers,
 this means that all of the instances of GCF are separate from one another. GCF
-is also running in what Google calls a ``serverless” environment \cite{docker},
->>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
+is also running in what Google calls a "serverless" environment \cite{docker},
 this means that GCF is not storing data or using hardware that could be
 compromised. All of the options receive high marks in the security category. \\
 
 In the context of evaluating these options, overhead refers to the amount of
 infrastructure that would need to be maintained in order to support each option
 as it scales to meet the demands of a high volume of uploads. For Google Compute
-Engine VM’s, the overhead is fairly high. Each VM requires its own guest
+Engine VMs, the overhead is fairly high. Each VM requires its own guest
 operating system, virtual memory, and virtual hardware to run an instance of our
 application \cite{docker, gcf}. This is in contrast to Docker containers, which
 can run multiple instances of an application on top of a single host
@@ -241,7 +240,7 @@ Virtual Machines & Yes & Neglible & Good, can encapsulate app and dependencies
 easily &  Excellent & High, VM per instance has high cost  \\ \hline
 
 Docker Containers  & Yes & Neglible & Good, provides encapsulation &  Excellent
-& Medium, clusters deployed on top of VM’s  \\ \hline
+& Medium, clusters deployed on top of VMs  \\ \hline
 
 Google Cloud Functions  & Yes & Neglible & Okay, JS can call our executable but
 introduces unnecessary complexity & Excellent & Low, lightweight serverless
@@ -280,7 +279,7 @@ seamless integration of the eclipse image processor with the Eclipse Megamovie
 project. If our algorithm cannot correctly identify circles, our processor could
 not be considered functional. Lastly, an important consideration is the level of
 difficulty required in integrating our algorithm of choice into the eclipse
-image processor’s codebase. \\
+image processor's codebase. \\
 
 
 The Hough transform is a common algorithm for circle and line detection that is
@@ -291,7 +290,7 @@ usage than the Hough transform because it does not need to store an array of all
 of the possible circle centers like the Hough transform does \cite{hough,
 blobarticle, blobref}. The least computationally complex algorithm is the Ant
 System Algorithm described by Chattopadhyay et al. \cite{antsystem}. This
-algorithm’s complexity is determined solely by the number of pixels on the edge
+algorithm's complexity is determined solely by the number of pixels on the edge
 of shapes in the image. This is significantly lower than the complexity of other
 two algorithms which rely on the number of pixels in the whole image. \\
 
@@ -300,7 +299,7 @@ Accuracy is of critical importance to the success of the eclipse image
 processor. As such, it is necessary that the circle detection algorithm
 consistently detects the sun and moon in the eclipse images. Hough transforms
 have been shown to be very successful in this regard \cite{imgKrista}. To this
-group’s knowledge, blob detection has not been shown to be effective at finding
+group's knowledge, blob detection has not been shown to be effective at finding
 the sun and moon in eclipse images. OpenCV does include a blob detector that can
 filter blobs by their relative circularity and return their centers
 \cite{blobarticle, blobref}, which meets the needs of this processor. However,
@@ -324,7 +323,7 @@ processor much simpler. The Ant System algorithm on the other hand would need to
 be implemented by our team and would be based on pseudocode in the Chattopadhyay
 et al. paper. This presents a major disadvantage because it jeopardizes both the
 accuracy and performance of the algorithm. There is no guarantee that our
-implementation of the algorithm will work as well as the one the author’s of the
+implementation of the algorithm will work as well as the one the author's of the
 paper used. This also requires potentially several extra weeks of development
 and testing. Having to implement our own version of the Ant System Algorithm
 essentially eliminates it from contention as a possible circle detection
@@ -345,7 +344,7 @@ accuracy and has been shown to work on eclipse images & Low, supported in OpenCV
 
 Blob Detection & Medium, iterates over each pixel once performing computations
 at each step & Good, known to be accurate at finding circles and centers but
-hasn’t been known to work with eclipses & Low, supported in OpenCV \\ \hline
+hasn't been known to work with eclipses & Low, supported in OpenCV \\ \hline
 
 
 Ant System Algorithm & Low, has complexity O(edge pixels), could be compromised
@@ -636,7 +635,7 @@ requests into single request  \\ \hline
 % Jake's Section
 \section{Eclipse Simulator}
 The eclipse simulator will be a standalone JavaScript module enabling users to
-“preview” the eclipse. It will be designed in a stylized, 2D manner.
+"preview" the eclipse. It will be designed in a stylized, 2D manner.
 The simulator will incorporate a time slider to allow users to simulate
 the eclipse in a time window spanning from 12 hours before the eclipse to 12
 hours after it. As users drag the time slider, the eclipse will animate in the
@@ -651,7 +650,7 @@ The user interface for this web based simulator will use 2D animated depictions
 of the Sun and the Moon as they appear at a user specified time and location.
 Additionally, the user interface will contain background imagery such as a
 city or hillside landscape. There will also be a time slider, a location
-input, and a time display for user’s to interact with or view.
+input, and a time display for user's to interact with or view.
 
 For the first possible method, the most basic approach would be to utilize
 HTML, CSS, and JavaScript for output and input. Altering the locations of the
@@ -660,9 +659,9 @@ location data. While this approach can be simple, repositioning images and
 making the interface look appealing to the user can be difficult or
 inefficient.
 
-Another method would be to utilize HTML5’s Canvas graphics API. Canvas is
+Another method would be to utilize HTML5's Canvas graphics API. Canvas is
 capable of rendering graphics directly to the screen via JavaScript. This is
-otherwise known as “immediate mode” graphics, which means that the rendered
+otherwise known as "immediate mode" graphics, which means that the rendered
 graphics are not saved \cite{SVGvsC}. Additionally, Canvas draws individual
 pixels to the screen. For this simulator, the only image objects that we need
 display differently depending on user input are the Sun and Moon images.
@@ -725,7 +724,7 @@ The second option would be to utilize the Google Maps API to display a map
 The user would then place a pin at the location that they want the simulator
 to be based off of. This would require a combination of HTML, CSS, and
 JavaScript. Displaying a map for the user to interact act with is a much
-better form of input than the first method. Users don’t need to know the
+better form of input than the first method. Users don't need to know the
 latitude and longitude of certain locations, they just need to recognize
 them via a map. Implementing this would be done by adding a map to the
 simulator, and then adding a click event function to save the latitude and
@@ -760,7 +759,7 @@ Geocoding & Yes & Yes & Medium & Google Maps Geocoding API \\ \hline
 best functionality. The Google Maps Geocoding API can easily convert these
 addresses to latitude and longitude coordinates for computing the Sun and
 Moon's location. While dropping a pin on a map is simple, it requires more
-another large space for user’s to interact with and loading an entire
+another large space for user's to interact with and loading an entire
 map may degrade performance.
 
 \subsection{Displaying Sun/Moon Based on Latitude, Longitude, and Time
@@ -822,4 +821,4 @@ and time requires very few function calls.
 \bibliography{tech}
 
 \end{document}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
