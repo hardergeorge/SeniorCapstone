@@ -27,6 +27,30 @@
 
 \maketitle
 
+\section{Introduction} 
+
+This technology review proceeds in three similarly structured sections. First,
+George Harder discusses what technologies will be the most effective for the
+implementation of the Eclipse Image Processor. This section is broken down into
+three subsections that correspond to the pieces he is responsible for in this
+project. The pieces are Image Classification and Manipulation, Runtime
+Environment, and Circle Detection. In the next section Bret Lorimore discusses
+his area of responsibility, the Image Processor Manager. The three pieces that
+Bret examines are Downloading/ Uploading from Google Cloud Storage, Storing
+Photo Metadata, and Application Parallelization. Lastly, Jacob Fenger details
+the pieces and technologies that will comprise the Eclipse Simulator. The three
+pieces he will be responsible for are User Interface; Gathering User
+Latitude/Longitude Information; and Displaying Sun/Moon Based On Latitude,
+Longitude, and Time Information. \\
+
+An important note with regard to some of the technologies being discussed is
+that Google is sponsoring this project and as such we have been asked to use
+Google products when possible. This is especially relevant to the sections on
+runtime environments and storing the photo metadata. Our sponsor's request that
+we use Google products if possible is by no means limiting, and in fact makes
+available to us extremely useful state of the art tools. \\
+
+
 % George's Section
 \section{Eclipse Image Processor}
 
@@ -198,13 +222,17 @@ much compute power we can provide to the eclipse image processor. \\
 \begin{tabular}{|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|p{2.1cm}|}
 \cline{4-4}
 
-\hline  & Available & Cost & Integration & Security & Overhead  \\ \hline
+\hline  & Available & Cost & Integration & Security & Overhead \\ \hline
 
-Virtual Machines  & Yes & Neglible & Good, can encapsulate app and dependencies easily &  Excellent & High, VM per instance has high cost  \\ \hline
+Virtual Machines & Yes & Neglible & Good, can encapsulate app and dependencies
+easily &  Excellent & High, VM per instance has high cost  \\ \hline
 
-Docker Containers  & Yes & Neglible & Good, provides encapsulation &  Excellent & Medium, clusters deployed on top of VM’s  \\ \hline
+Docker Containers  & Yes & Neglible & Good, provides encapsulation &  Excellent
+& Medium, clusters deployed on top of VM’s  \\ \hline
 
-Google Cloud Functions  & Yes & Neglible & Okay, JS can call our executable but introduces unnecessary complexity & Excellent & Low, lightweight serverless Javascript function calls  \\ \hline
+Google Cloud Functions  & Yes & Neglible & Okay, JS can call our executable but
+introduces unnecessary complexity & Excellent & Low, lightweight serverless
+Javascript function calls  \\ \hline
 
 \end{tabular}
 \label{table:george2}
@@ -302,12 +330,15 @@ than once and performs a computation each step & Excellent, known to have good
 accuracy and has been shown to work on eclipse images & Low, supported in OpenCV
 \\ \hline
 
-Blob Detection & Medium, iterates over each pixel once performing computations at each step & Good, known to be accurate at finding circles and centers but hasn’t been known to work with eclipses & Low, supported in OpenCV
-\\ \hline
+Blob Detection & Medium, iterates over each pixel once performing computations
+at each step & Good, known to be accurate at finding circles and centers but
+hasn’t been known to work with eclipses & Low, supported in OpenCV \\ \hline
 
 
-Ant System Algorithm & Low, has complexity O(edge pixels), could be compromised by our implementation & Okay, not shown to work on real world images, could be worsened by our implementation & Extreme, we would have to write our own implementation based on pseudocode
-\\ \hline
+Ant System Algorithm & Low, has complexity O(edge pixels), could be compromised
+by our implementation & Okay, not shown to work on real world images, could be
+worsened by our implementation & Extreme, we would have to write our own
+implementation based on pseudocode \\ \hline
 
 \end{tabular}
 \label{table:george3}
