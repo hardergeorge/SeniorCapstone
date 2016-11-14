@@ -27,19 +27,32 @@
 
 \begin{abstract}
 
+<<<<<<< HEAD
 This document compares various technologies for use in the North American Solar
 Eclipse 2017 senior capstone project. Specifically, we look at three specific parts
 of the project, the Eclipse Image Processor, the Image Processor Manager, and the
 Eclipse Simulator. For each of those high level components, we review applicable
 technologies for three of their sub-components. For each of the nine total sub-components,
 we make a conclusion about which of the considered technologies is best suited to our
+=======
+This document compares various technologies for use in the North American Solar
+Eclipse 2017 senior capstone project. Specifically, we look at three specific parts
+of the project, the Eclipse Image Processor, the Image Processor Manager, and the
+Eclipse Simulator. For each of those high level components, we review applicable
+technologies for three of their sub-components. For each of the nine total sub-components,
+we make a conclusion about which of the considered technologies is best suited to our
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 needs, and will thus be used in our implementation.
 
 \end{abstract}
 
 \newpage
 
+<<<<<<< HEAD
 \section{Introduction}
+=======
+\section{Introduction}
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 
 This technology review proceeds in three similarly structured sections. First,
 George Harder discusses what technologies will be the most effective for the
@@ -207,7 +220,8 @@ were compromised the issue could be handled in a manner that does not impact any
 other containers. GCF has its own advantages in terms of security. Each function
 runs in its own execution environment \cite{docker}. Like the Docker containers,
 this means that all of the instances of GCF are separate from one another. GCF
-is also running in what Google calls a ``serverless'' environment \cite{docker},
+is also running in what Google calls a ``serverless” environment \cite{docker},
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 this means that GCF is not storing data or using hardware that could be
 compromised. All of the options receive high marks in the security category. \\
 
@@ -366,7 +380,11 @@ OpenCV.
 % Bret's Section
 \section{Image Processor Manager}
 
+<<<<<<< HEAD
 The image processor manager will be a Python application responsible for
+=======
+The image processor manager will be a Python application responsible for
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 collecting/downloading user uploaded eclipse images to be processed by the image
 processor application, invoking the image processor with these images as input,
 and collecting the output of the image processor application and uploading it
@@ -383,7 +401,11 @@ the rest of the project. \\
 There are several methods we could use to download/upload images from Google Cloud
 Storage. The first of these is the gsutil application. gsutil is part of the Google
 Cloud SDK and makes it easy to list the contents of a storage bucket, download files
+<<<<<<< HEAD
 from a bucket, upload files to a bucket, and more from the command
+=======
+from a bucket, upload files to a bucket, and more from the command
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 line\cite{gsutil, cloudStorage}. For our purposes, authentication using
 service accounts would be most suitable. Service accounts can be
 thought of as user accounts for applications where the applications "log in"
@@ -393,11 +415,19 @@ account with the entire Google Cloud SDK using the gcloud application and a serv
 account credentials file. As gsutil is a command line utility, it would need to be
 integrated with our app as a subprocess, using the Python {\tt subprocess} module. \\
 
+<<<<<<< HEAD
 Google Cloud Storage is also accessible via a JSON Rest API. Like gsutil, this API
 allows users to easily list the contents of a storage bucket, download files from
 a bucket, upload files to a bucket, and more via HTTP requests\cite{cloudStorageJSON}.
 Since our application has its own Cloud Storage buckets, authentication for the
 JSON API would be handled using service accounts\cite{cloudStorageJSON}. Integrating
+=======
+Google Cloud Storage is also accessible via a JSON Rest API. Like gsutil, this API
+allows users to easily list the contents of a storage bucket, download files from
+a bucket, upload files to a bucket, and more via HTTP requests\cite{cloudStorageJSON}.
+Since our application has its own Cloud Storage buckets, authentication for the
+JSON API would be handled using service accounts\cite{cloudStorageJSON}. Integrating
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 the JSON API with our application would require use of a Python HTTP library and explicit creating
 of all the required API request URLs\cite{cloudStorageJSON}. \\
 
@@ -405,6 +435,7 @@ The final method we consider for interacting with Google Cloud Storage is the
 Google Cloud Client Library for Python. This client library is easily
 installable using pip (the standard Python package manager) and once installed,
 it allows programmatic access to Google Cloud Storage via a simple Python
+<<<<<<< HEAD
 API\cite{cloudStorageLib}. Authentication for this client library is, like with
 the JSON API and gsutil, handled using service accounts\cite{cloudStorageLib}.
 Setting up this authentication is simple and is done by setting a special
@@ -412,12 +443,25 @@ environment variable to hold the path to a credentials file, obtained from
 Google\cite{cloudStorageLib}. As this client library provides a native Python
 API, integrating it with out application would simply require importing the
 necessary modules and embedding API calls directly in the source code via
+=======
+API\cite{cloudStorageLib}. Authentication for this client library is, like with
+the JSON API and gsutil, handled using service accounts\cite{cloudStorageLib}.
+Setting up this authentication is simple and is done by setting a special
+environment variable to hold the path to a credentials file, obtained from
+Google\cite{cloudStorageLib}. As this client library provides a native Python
+API, integrating it with out application would simply require importing the
+necessary modules and embedding API calls directly in the source code via
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 Python method calls\cite{cloudStorageLib}. \\
 
 \textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret1}]:
 The Google Cloud Client Library for Python is the best
 option for our needs as it is easy to install, it is secure, it provides all the
+<<<<<<< HEAD
 required functionality, and is very simple to integrate with our application
+=======
+required functionality, and is very simple to integrate with our application
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 source code. \\
 
 \begin{table}[h]
@@ -428,6 +472,7 @@ source code. \\
 \hline
 
 % Row 1
+<<<<<<< HEAD
  & Provides needed functionality? & Installation procedure & Authentication
  & Integration with our app & Ease of installation/ integration & Secure? \\ \hline
 
@@ -444,6 +489,24 @@ some Python HTTP library & easy, hard & yes \\ \hline
 % Row 4
 Google Cloud Client Library for Python & yes & pip, copy service account
 credentials file, set environment variable & service accounts & native
+=======
+ & Provides needed functionality? & Installation procedure & Authentication
+ & Integration with our app & Ease of installation/ integration & Secure? \\ \hline
+
+% Row 2
+gsutil & yes & apt-get, copy service account credentials file, setup service
+account as default auth method using gcloud & service accounts & invoke as
+sub-process & medium, medium & yes \\ \hline
+
+% Row 3
+Cloud Storage JSON API & yes & install Python HTTP library, copy service
+account credentials file & service accounts & make HTTP requests using
+some Python HTTP library & easy, hard & yes \\ \hline
+
+% Row 4
+Google Cloud Client Library for Python & yes & pip, copy service account
+credentials file, set environment variable & service accounts & native
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 integration into source code & medium, easy & yes \\ \hline
 
 \end{tabular}
@@ -452,6 +515,7 @@ integration into source code & medium, easy & yes \\ \hline
 
 \subsection{Storing Photo Metadata}
 
+<<<<<<< HEAD
 For each photo we will store a metadata record containing various information
 including the filename, whether or not the photo has been processed, and if it
 has, output information from the image processor. The image processor manager
@@ -510,6 +574,66 @@ and provides all the functionality we need. Despite not supporting transactions,
 Bigtable could likely be made to work, however this would just be adding more
 overhead in both setup and creating a transactions workaround. On top of this,
 Bigtable is fundamentally not the right solution for our needs. It is
+=======
+For each photo we will store a metadata record containing various information
+including the filename, whether or not the photo has been processed, and if it
+has, output information from the image processor. The image processor manager
+will use these records to know which photos to request from Cloud Storage
+(ones that have not been processed), and these records will be updated after
+processing to include the output of the image processor. \\
+
+We will evaluate several potential technologies to facilitate this data
+storage/manipulation. The first of these is Google Cloud Datastore. Datastore
+is a simple NoSQL database solution \cite{cloudDatastore}. This means that it is
+schemeless and typeless, so programmers must be careful to validate that the
+data being inserted conforms to both the desired scheme and type.
+Datastore is a fully managed solution so users do not need to worry about setting
+up virtual machines or managing any of the other infrastructure associated with
+running Datastore\cite{cloudDatastore}. Programmers can easily interact with Datastore
+via the Google Cloud Client Library for Python that is mentioned in the previous
+section\cite{cloudDatastoreDocs}. This library takes care of authenticating requests
+using service accounts\cite{cloudDatastoreDocs}. The API additionally provides access
+to Datastore transactions\cite{cloudDatastoreDocs}. This functionality is important for
+our purposes, as we will need to request a list of image files and mark them as pending
+processing before any other application can read a list containing any of these same files.
+This behavior is necessary to ensure that multiple nodes do not pull down the same image
+files to process. \\
+
+The second solution we consider is Google Cloud Bigtable. Bigtable is a managed NoSQL
+database solution and is similar to Datastore in many ways\cite{cloudBigtable}.
+Bigtable is tailored to applications that need to store massive amounts of data
+and query it very quickly\cite{cloudBigtable}. As such, it is a much more heavyweight
+solution than Datastore. It offers users much more control than Datastore does.
+Bigtable allows users to create their own clusters and specify the type of hardware on
+which they will run\cite{cloudBigtableDocs}. Users can also create multiple tables
+as necessary\cite{cloudBigtableDocs}. These are features that are not offered with
+Datastore. As part of Google Cloud, Bigtable offers a Python API to interact with it
+and handle authentication using service accounts\cite{cloudBigtableDocs}. Bigtable has
+many of the same basic features as Datastore but offers users much more control
+and access to much more powerful systems. Google does not recommend Bigtable if
+you are working with less than 1TB of data\cite{cloudBigtable}. Additionally,
+bigtable does not support transactions\cite{cloudBigtable}. \\
+
+The last solution we investigate is running our own MySQL servers. This solution
+would serve our needs as we would be able to store all our data and MySQL
+does support transactions. That being said, it would be a great deal of work to
+use our own MySQL servers. We would have to create/manage our own virtual machines,
+manage database replication/backups, setup some sort of load balancer to send
+request to the different MySQL nodes, and configure access controls which is
+non-trivial to do securely. One upside of using MySQL is that it has a scheme
+and is typed, so this relieves some of the pressure from programmers to
+validate data based on scheme/type. In order to connect our Python code to MySQL,
+we would need to incorporate an additional MySQL connector library into our
+application\cite{mysql}. \\
+
+\textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret2}]:
+Datastore will serve the needs of our project best as it is
+very simple to setup and manage, is simple to integrate with our application,
+and provides all the functionality we need. Despite not supporting transactions,
+Bigtable could likely be made to work, however this would just be adding more
+overhead in both setup and creating a transactions workaround. On top of this,
+Bigtable is fundamentally not the right solution for our needs. It is
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 targeted at applications that store/query much more data than ours does. \\
 
 \begin{table}[h]
@@ -520,7 +644,11 @@ targeted at applications that store/query much more data than ours does. \\
 \hline
 
 % Row 1
+<<<<<<< HEAD
  & Provides needed functionality? & Setup procedure & Authentication
+=======
+ & Provides needed functionality? & Setup procedure & Authentication
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
  & Integration with our app & Ease of setup & Secure? \\ \hline
 
 % Row 2
@@ -530,6 +658,7 @@ Google Cloud Datastore & yes & enable Datastore in Google Cloud project
 
 % Row 3
 Google Cloud Bigtable & not natively, no support for transactions &
+<<<<<<< HEAD
 create Bigtable cluster, required tables & built in: service accounts
 & Google Cloud Client Library for Python & medium & yes \\ \hline
 
@@ -537,6 +666,15 @@ create Bigtable cluster, required tables & built in: service accounts
 custom MySQL servers & yes & create virtual machines, install MySQL,
 configure network access, configure access controls, setup backup/
 replication credentials file, set environment variable & requires custom setup
+=======
+create Bigtable cluster, required tables & built in: service accounts
+& Google Cloud Client Library for Python & medium & yes \\ \hline
+
+% Row 4
+custom MySQL servers & yes & create virtual machines, install MySQL,
+configure network access, configure access controls, setup backup/
+replication credentials file, set environment variable & requires custom setup
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 & requires Python-MySQL connector & hard & yes, if done correctly \\ \hline
 
 \end{tabular}
@@ -545,6 +683,7 @@ replication credentials file, set environment variable & requires custom setup
 
 \subsection{Application Parallelization}
 
+<<<<<<< HEAD
 Downloading/uploading images from Google Cloud Storage and running the
 image processor on a set of images are both relatively high latency operations.
 For that reason, it is desirable for this application to do multiple operations
@@ -602,6 +741,65 @@ Storage, as it is very simple to integrate and will almost certainly offer
 higher performance than using the {\tt threading} module. Using batch requests for
 Datastore calls is preferable to creating concurrent requests using the
 {\tt multiprocessing.Pool} class as with batch requests we only have the overhead
+=======
+Downloading/uploading images from Google Cloud Storage and running the
+image processor on a set of images are both relatively high latency operations.
+For that reason, it is desirable for this application to do multiple operations
+concurrently. Here we consider various solutions for doing this in Python. In
+this comparison, we consider invoking the image processor binary using the
+builtin Python {\tt subprocess} module. This module provides a nice Python wrapper
+around standard {\tt fork}/{\tt exec}/{\tt waitpid}/etc. C functions. \\
+
+The first solution we consider is standard multithreading using the builtin
+Python {\tt threading} module. This can be used to both invoke multiple image
+processor processes concurrently and to make concurrent requests to Google
+Cloud Storage and Datastore. A common issue with use of the Python {\tt threading}
+module is the Python Global Interpreter Lock (GIL)\cite{gilArticle}. The GIL
+is a global lock in the CPython interpreter that allows only one thread to
+execute code in the interpreter at a time\cite{gilArticle}. The GIL would
+not cause us many issues when invoking the image processor binary, as
+the Python subprocess implementation releases the GIL before calling
+waitpid on a particular sub-process. This means that the
+setting up/calling of a particular invocation of the image processor binary
+would be done serially, but the actual processing could be done currently as
+it is done outside of the Python interpreter and the GIL is released\cite{gilArticle}.
+The GIL is also released when making socket calls, so while setup and
+pre/post-processing of Cloud Storage uploads/downloads would be
+serialized, the socket calls themselves could be working in parallel\cite{gilArticle}.
+Implementation using the {\tt threading} module requires explicit
+creation/starting/joining of {\tt Thread} objects. \\
+
+An alternative solution is to use the builtin Python {\tt multiprocessing.Pool}
+class. This method sidesteps the GIL entirely by using processes for
+parallelism instead of threads\cite{multiproc}. This method is also desirable
+as the API is incredibly simple - a pool of n processes can be created in a
+single line and then these processes can be passed a target function and
+data in a single other line of code\cite{multiproc}. The only requirement
+here is that all parameters passed to the process pool must be picklable\cite{multiproc}.
+This would not be an issue for us as our data will take the form of standard
+Python datatypes. This approach does require creating entire new processes,
+however on Linux this can be done very very quickly. In practice, regardless
+of the application, sidestepping the GIL and implementing concurrency using
+processes instead of threads is almost always the faster solution in Python. \\
+
+The last parallelization solution we investigate is applicable only to calls to
+Google Cloud Datastore. This is using batch requests instead of single requests.
+The Datastore API has built in batch request functionality which allows multiple
+queries to made in a single API call, meaning only a single HTTP request is made
+for all grouped the queries\cite{batches}. When possible, this is desirable over
+multiple concurrent requests as there is reduced overhead with establishing
+TCP connections. This application will never be sending/receiving large
+pieces of data to Datastore, so the savings associated with establishing
+far fewer TCP connections is highly desirable. \\
+
+\textit{Conclusion} [See summary of the above comparison in Table \ref{table:bret3}]:
+The {\tt multiprocessing.Pool} class is the best solution for us
+for invoking the image processor and uploading/downloading from Google Cloud
+Storage, as it is very simple to integrate and will almost certainly offer
+higher performance than using the {\tt threading} module. Using batch requests for
+Datastore calls is preferable to creating concurrent requests using the
+{\tt multiprocessing.Pool} class as with batch requests we only have the overhead
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 of creating a single TCP connection for all the datastore queries. \\
 
 \begin{table}[h]
@@ -615,17 +813,30 @@ of creating a single TCP connection for all the datastore queries. \\
  & Applicable to & Integration Overhead \\ \hline
 
 % Row 2
+<<<<<<< HEAD
 {\tt threading} & image processor invocation, GCS/Datastore requests
 & medium: requires explicit thread creation/starting/joining,
+=======
+{\tt threading} & image processor invocation, GCS/Datastore requests
+& medium: requires explicit thread creation/starting/joining,
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 requires consciousness of shared data \\ \hline
 
 % Row 3
 {\tt multiprocessing.Pool} & image processor invocation, GCS/Datastore requests
+<<<<<<< HEAD
 & medium: simple to invoke, requires pickleable parameters, cannot rely
 on shared data unless we use IPC \\ \hline
 
 % Row 4
 Batch requests & Datastore requests & low, requires coalescing multiple
+=======
+& medium: simple to invoke, requires pickleable parameters, cannot rely
+on shared data unless we use IPC \\ \hline
+
+% Row 4
+Batch requests & Datastore requests & low, requires coalescing multiple
+>>>>>>> 4e3c607c93ff5823426ffb951241f65fe124641a
 requests into single request  \\ \hline
 
 \end{tabular}
