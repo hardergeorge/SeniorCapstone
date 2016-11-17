@@ -4,10 +4,8 @@ HTML=main_html
 
 
 dvi: ${TARGET1}.tex 
-#	run latex twice to get references correct
-	latex ${TARGET1}.tex
-#	you can also have a bibtex line here
-#	bibtex $(TARGET)
+	latex $(TARGET1).tex
+	bibtex $(TARGET1)
 	latex $(TARGET1).tex
 
 ps: dvi
@@ -27,6 +25,9 @@ clean-dvi:
 	rm -f ${TARGET1}.log
 	rm -f ${TARGET1}.dvi
 	rm -f ${TARGET1}.out
+	rm -f ${TARGET1}.toc
+	rm -f ${TARGET1}.blg
+	rm -f ${TARGET1}.bbl
 
 clean-ps: clean-dvi
 	rm -f ${TARGET1}.ps
