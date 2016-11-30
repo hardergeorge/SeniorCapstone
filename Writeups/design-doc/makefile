@@ -2,6 +2,7 @@
 TARGET1=des-doc
 HTML=main_html
 
+all: pdf
 
 dvi: ${TARGET1}.tex 
 	latex $(TARGET1).tex
