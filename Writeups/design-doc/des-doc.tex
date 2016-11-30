@@ -19,7 +19,7 @@
 \author{Totality AweSun \\
 		Bret~Lorimore, Jacob~Fenger, George~Harder \\
 		\textit{December 4th, 2016 \\
-		CS 461 - Fall 2016}} 
+		CS 461 - Fall 2016}}
 
 \begin{document}
 
@@ -56,7 +56,18 @@ More to come...\cite{OCV}.
 \subsection{Image Processor Manager}
 
 \subsection{Eclipse Simulator}
-
+    \subsubsection{}
+    The solar eclipse must be accurately simulated based on
+    user entered location information.
+    \subsubsection{}
+    Users will be able to adjust simulator time via a
+    draggable slider or clickable buttons.
+    \subsubsection{}
+    Simulator will only support locations within continental
+    United States.
+    \subsubsection{}
+    The simulator must load in less than 500ms given a 1-10
+    Mbps internet connection.
 
 %% Section 2
 \section{Design Viewpoints}
@@ -66,6 +77,32 @@ More to come...\cite{OCV}.
 \subsection{Image Processor Manager}
 
 \subsection{Eclipse Simulator}
+  \subsubsection{Interface}
+  \textbf{Concerns:} 1.3.1, 1.3.2 \\
+  \textbf{Elements:} 4.3.1, 4.3.2, 4.3.4, 4.3.7 \\
+  \textbf{Analytical Methods:} Interface should be appealing
+  to the user as well as being responsive and fast. \\
+  \textbf{Viewpoint source:} Jacob Fenger
+
+  \subsubsection{Loading Performance}
+  \textbf{Concerns:} 1.3.4\\
+  \textbf{Elements:} 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7 \\
+  \textbf{Analytical Methods:} The initial loading time
+  of the simulator should be fast. Additionally, the
+  interactions that the user has with the simulator should
+  be responsive and should not show any significant slow
+  downs. \\
+  \textbf{Viewpoint source:} Jacob Fenger
+
+  \subsubsection{Simulation Accuracy}
+  \textbf{Concerns:} 1.3.1, 1.3.3 \\
+  \textbf{Elements:} 4.3.3, 4.3.5 \\
+  \textbf{Analytical Methods:} In the simulator, the Sun and
+  Moon display should reflect scientific accuracy when it
+  comes to relative position and sizes. Additionally, the
+  view of the Sun and Moon above the horizon shall be
+  accurate.\\
+  \textbf{Viewpoint source:} Jacob Fenger
 
 
 %% Section 3
@@ -77,6 +114,26 @@ More to come...\cite{OCV}.
 
 \subsection{Eclipse Simulator}
 
+  \subsubsection{User Interface View [Governed by Viewpoint 2.3.1 ]}
+  The user interface shall utilize 2D animated depictions of
+  the Sun and the Moon as they appear at a user specified
+  time and location. In addition, the user interface will
+  contain background imagery such as a city or hillside
+  landscape. There will also be a time slider, a location
+  input, and a time display for users to interact with or
+  view.
+
+  \subsubsection{Operating Performance View [Governed by Viewpoint 2.3.2]}
+  The simulator will have low loading times to ensure fast
+  performance for most users. Additionally, the simulator
+  will need to respond in a timely matter when users are
+  interacting with the module.
+
+  \subsubsection{Eclipse Accuracy View [Governed by Viewpoint 2.3.3]}
+  The simulator shall be accurate enough for any location in
+  the continental United States. This accuracy includes
+  accurate relative Moon and Sun sizes, positions in the
+  rendered scene, and positions relative to one another.
 
 %% Section 4
 \section{Design Elements}
@@ -87,6 +144,45 @@ More to come...\cite{OCV}.
 
 \subsection{Eclipse Simulator}
 
+  \subsubsection{Scalar Vector Graphics (SVG)}
+  \textbf{Type:} System \\
+  \textbf{Purpose:} This element shall be used for the
+  front-end display of the eclipse simulator.
+  Two-dimensional images of the Sun and Moon will be altered
+  based on how the user interacts with the module.
+
+
+  \subsubsection{Cascading Style Sheets (CSS)}
+  \textbf{Type:} System \\
+  \textbf{Purpose:} CSS helps with the front-end display of
+  the simulator by helping produce better looking output.
+
+  \subsubsection{Ephemeris JavaScript Library}
+  \textbf{Type:} Library \\
+  \textbf{Purpose:} This library is used to compute eclipse
+  information to be used for displaying the Sun and Moon.
+
+  \subsubsection{View}
+  \textbf{Type:} Component \\
+  \textbf{Purpose:} Combined the HTML, SVG, and CSS elements
+  for simulator display and interaction for the user.
+
+  \subsubsection{Model}
+  \textbf{Type:} Component \\
+  \textbf{Purpose:} Backend library in JavaScript used for
+  computing eclipse information which will be passed to the
+  controller. This entity utilized the Ephemeris JavaScript
+  library for support.
+
+  \subsubsection{Controller}
+  \textbf{Type:} Component \\
+  \textbf{Purpose:}  Controls the interaction between the
+  model and view. Information will be passed between these
+  entities.
+
+  \subsubsection{Model-View-Controller Architecture}
+  \textbf{Type:} Relationship \\
+  \textbf{Purpose:} This architecture is defined by the interactions of the model, view, and controller entities.
 
 %% Section 5
 \section{Design Overlays}
@@ -106,6 +202,29 @@ More to come...\cite{OCV}.
 \subsection{Image Processor Manager}
 
 \subsection{Eclipse Simulator}
+
+
+The goals for the simulator were to provide a fast and
+responsive experience to the user while providing
+scientifically accurate results. One main concern with this
+is that the time to compute information regarding the Sun
+and Moon must be quick enough to not pose any significant
+delay for the rest of the simulator.
+
+We decided to utilize the MVC architecture since model and
+view components can be exchanged without compromising the
+whole system. System designer only need to account how the
+components interact with each other to update the system.
+In the technology review, we compared two libraries: Suncalc
+and Ephemeris. Initially, we chose SunCalc as the better
+library due to better documentation and ease of use. After
+further testing, the results that Ephemeris was providing
+were much better which spurred the change to utilizing
+Ephemeris as our support in ephemeris computations. 
+
+Additionally, we chose to utilize a scalar vector graphics
+format due to sub-element event processing and being easily
+to move the Sun and Moon around as animations.
 
 %% Section 7
 \section{Design Languages}
