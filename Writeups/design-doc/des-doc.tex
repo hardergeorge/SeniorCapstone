@@ -1,8 +1,10 @@
 \documentclass[10pt, onecolumn, draftclsnofoot, letterpaper, compsoc]{IEEEtran}
 
 \usepackage{cite}
+\usepackage{float}
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage{graphicx}
 
 % Macro for the signatures
 \newcommand*{\SignatureAndDate}[1]{%
@@ -88,19 +90,19 @@ this Senior Capstone project. David Konerding's concerns are listed below.
     \subsubsection{}
     The solar eclipse must be accurately simulated based on
     user entered location information. \\
-    
+
     \subsubsection{}
     Users will be able to adjust simulator time via a
     draggable slider or clickable buttons. \\
-    
+
     \subsubsection{}
     Simulator will only support locations within continental
     United States. \\
-    
+
     \subsubsection{}
     The simulator must load in less than 500ms given a 1-10
     Mbps internet connection. \\
-    
+
 
 %% Section 2
 \section{Design Viewpoints}
@@ -329,9 +331,27 @@ this Senior Capstone project. David Konerding's concerns are listed below.
 
 \subsection{Image Processor}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{george_fig.eps}
+    \caption{Image processor basic dataflow}
+\end{figure}
+
 \subsection{Image Processor Manager}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{bret_fig.eps}
+    \caption{Image processor manager system diagram [Associated with Viewpoint 2.2.1]}
+\end{figure}
+
 \subsection{Eclipse Simulator}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{jake_fig.eps}
+    \caption{Eclipse simulator MVC architecture}
+\end{figure}
 
 
 %% Section 6
@@ -397,10 +417,13 @@ to move the Sun and Moon around as animations. \\
 %% Section 7
 \section{Design Languages}
 
+\begin{enumerate}
+    \item \href{http://www.omg.org/spec/UML/2.5}{UML Version 2.5}
+\end{enumerate}
 
 \newpage
 
 \bibliographystyle{IEEEtran}
 \bibliography{des-doc}
 
-\end{document}
+\end{document}         
