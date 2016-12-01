@@ -1,9 +1,6 @@
 function initSim() {
-  var view = new View();
-
-  view.init();
-
-
+    var view = new View();
+    view.init();
 }
 
 // Jake, this fixes the issue you were seeing where when width was set to 100%
@@ -57,9 +54,10 @@ View.prototype.get_window_size = function()
     }
 }
 
-View.prototype.position_body_at_percent_coords = function(body, x_percent, y_percent)
+View.prototype.position_body_at_percent_coords = function(target, x_percent, y_percent)
 {
-    // Jake please implement
-    body.style.cx = this.get_window_size().width*(x_percent/100);
-    body.style.cy = this.get_window_size().height*(y_percent/100);
+    var window_size = this.get_window_size();
+
+    target.style.cx = window_size.width * (x_percent / 100);
+    target.style.cy = window_size.height * (y_percent / 100);
 }
