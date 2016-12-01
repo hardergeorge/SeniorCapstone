@@ -3,7 +3,7 @@
 \usepackage{cite}
 \usepackage{float}
 \usepackage{hyperref}
-\usepackage{enumitem}
+%\usepackage{enumitem}
 \usepackage{graphicx}
 
 % Macro for the signatures
@@ -609,6 +609,74 @@ to move the Sun and Moon around as animations. \\
 \begin{enumerate}
     \item \href{http://www.omg.org/spec/UML/2.5}{UML Version 2.5}
 \end{enumerate}
+
+%% Supporting Info
+
+\newpage
+\section{Appendices}
+
+\subsection{Appendix I- Change History}
+
+\begin{enumerate}
+\item November 30th, 2016- Document Created \\
+\end{enumerate}
+
+\subsection{Appendix II- Glossary of Terms}
+
+\textbf{Eclipse Megamovie Project:}
+The Eclipse Megamovie Project is a collaboration between Google 
+and scientists from Berkeley and several other institutions with the 
+aim of collecting large quantities of observations of the solar eclipse
+that will pass over the United States on August 21, 2017. The project
+will crowdsource photos of the eclipse from photographers at various 
+points along the path of totality. \\
+
+\noindent \textbf{Metadata:} In this document when we refer to metadata we are
+referring to any data associated with a file that is not that file itself -
+e.g. for a photo, the GPS coordinates at which that photo was taken are
+considered metadata.\\
+
+\noindent \textbf{Image processor instance/process:} a single image processor
+process. \\
+
+\noindent \textbf{VM:}  A virtual machine - a hosted virtual server. In this
+document, when we refer to a VM we are specifically referring to a VM hosted in
+Google Cloud - this could be either a bare VM or a single node in a VM cluster.\\
+
+\noindent \textbf{Google Cloud Datastore:} A fully managed, scheme-less NoSQL
+database solution offered from Google.\\
+
+\noindent \textbf{Google Cloud Storage:}  A fully managed file storage solution
+offered from Google, optimized for storing/accessing large files.\\
+
+\noindent \textbf{Mbps:} Megabits per second. This is referring to download and
+upload speeds.\\
+
+\noindent \textbf{Ephemeris:} An ephemeris is used to give positional information
+about astronomical objects\\
+
+\noindent \textbf{Machine:} The term machine is used throughout this document in
+reference to a particular VM instance.\\
+
+\noindent \textbf{JPEG/JPG:}
+JPEG is a lossy compression technique for images. When we refer
+to JPEG/JPG files in this document we are referring to image files 
+compressed in this method with the .jpeg or .jpg file extension. \\
+
+\noindent \textbf{PNG:}
+PNG refers to the Portable Network Graphics image file format. 
+Images in the PNG format are frequently referred to as "PNGs" and are 
+saved with the .png file extension. \\
+
+\noindent \textbf{EXIF:} EXIF refers to the Exchangeable Image File Format, a
+standard  media file format. Within the scope of this document EXIF generally
+refers to metadata associated with images processed by the image processor. \\
+
+\noindent \textbf{SEISS:} Solar Eclipse Image Standardisation and Sequencing.
+This refers to an algorithm developed by Krista et al. \cite{imgKrista} that
+seeks to identify eclipse images and classify them by the phase that the
+eclipse is in. We will be using and modifying this algorithm to suit the needs
+of this project. \\
 
 \bibliographystyle{IEEEtran}
 \bibliography{des-doc}
