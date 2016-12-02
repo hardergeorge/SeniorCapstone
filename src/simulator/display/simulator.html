@@ -1,0 +1,22 @@
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type='text/javascript' src='pos.js'></script>
+
+<!--
+  NOTES:
+  JS, position of sun and moon at given x%, y%
+  e.g. x = 50%, halfway across screen
+-->
+
+<!DOCTYPE html>
+<html>
+<body style="margin: 0px;">
+    <svg id="container" style="background-color: #72bcd4; display: none">
+        <circle id="sun" cx="50" cy="50" r="40" stroke="red" stroke-width="3" fill="yellow" style="display: none"/>
+        <circle id="moon" cx="150" cy="50" r="40" stroke="black" stroke-width="3" fill="grey" style="display: none"/>
+    </svg>
+    <div id="controls" style="height: 100px">
+        <button id="time_down">Time Down</button>
+        <button id="time_up">Time Up</button>
+    </div>
+</body>
+</html>
