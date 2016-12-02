@@ -3,7 +3,7 @@
 \usepackage{cite}
 \usepackage{float}
 \usepackage{hyperref}
-\usepackage{enumitem}
+%\usepackage{enumitem}
 \usepackage{graphicx}
 
 % Macro for the signatures
@@ -21,7 +21,7 @@
 \author{Totality AweSun \\
 		Bret~Lorimore, Jacob~Fenger, George~Harder \\
 		\textit{\today \\
-		CS 461 - Fall 2016}} 
+		CS 461 - Fall 2016}}
 
 \begin{document}
 
@@ -29,11 +29,11 @@
 
 \begin{abstract}
 
-This document describes in detail the design for the various components of the 
-North American Solar Eclipse 2017 senior capstone project. These components are 
-described according to the IEEE 1016-2009 standard. There are three high level 
-components detailed in this document, the Eclipse Image Processor, Eclipse Image 
-Processor Manager, and Eclipse Simulator. The sections of this document are broken 
+This document describes in detail the design for the various components of the
+North American Solar Eclipse 2017 senior capstone project. These components are
+described according to the IEEE 1016-2009 standard. There are three high level
+components detailed in this document, the Eclipse Image Processor, Eclipse Image
+Processor Manager, and Eclipse Simulator. The sections of this document are broken
 into subsections corresponding to these components as applicable.
 
 \end{abstract}
@@ -56,27 +56,27 @@ into subsections corresponding to these components as applicable.
 %% Section 1
 \section{Design Stakeholders and Their Concerns}
 
-The primary stakeholder in this project is David Konerding of Google. 
-He is one of the managers of the Eclipse Megamovie project that is sponsoring 
+The primary stakeholder in this project is David Konerding of Google.
+He is one of the managers of the Eclipse Megamovie project that is sponsoring
 this Senior Capstone project. David Konerding's concerns are listed below.
 
 \subsection{Image Processor}
 
-\subsubsection{} 
+\subsubsection{}
 
 The image process needs to take in an image, identify if the image has a total
 solar eclipse, and if it does further process it so that it can be stitched into
 a timelapse movie by Eclipse Megamovie engineers. \\
 
-\subsubsection{} 
+\subsubsection{}
 
 The mean processing time for an image must be one second. \\
 
-\subsubsection{} 
+\subsubsection{}
 
 Images must be processed in no longer than five seconds.\\
 
-\subsubsection{} 
+\subsubsection{}
 
 Images must be filtered so that the processed images are only images of the
 eclipse at totality.\\
@@ -87,46 +87,46 @@ Only high quality images, defined as having a 50 pixel solar disk size and
 padding around the disk of 100 pixels, should be accepted by the image
 processor.\\
 
-\subsubsection{} 
+\subsubsection{}
 
 Once images have been filtered, they need to have metadata attached in a way
 that allows easy stitching of eclipse images. \\
 
-\subsubsection{} 
+\subsubsection{}
 
 The image processor needs to be able to be called by the image processor manager
 with appropriate input data. \\
 
-\subsubsection{} 
+\subsubsection{}
 
 Image processor needs to be able to use GPS EXIF information associated with
 images.\\
 
 \subsection{Image Processor Manager}
 
-    \subsubsection{} 
-    Image processor manager should download images needing processing 
+    \subsubsection{}
+    Image processor manager should download images needing processing
     from Google Cloud Storage. \\
 
-    \subsubsection{} 
+    \subsubsection{}
     Image processor manager should invoke image processor with downloaded images. \\
 
-    \subsubsection{} 
-    Image processor manager should upload processed images and corresponding metadata 
+    \subsubsection{}
+    Image processor manager should upload processed images and corresponding metadata
     - the output from the image processor - to Google Cloud Storage and Datastore, respectively. \\
 
-    \subsubsection{} 
-    Image processor should download/upload images at the same time the image processor 
+    \subsubsection{}
+    Image processor should download/upload images at the same time the image processor
     is processing other images. \\
 
-    \subsubsection{} 
-    Image processor manager should invoke multiple image processor instances concurrently 
-    with different input images. The number of image processor instances launched should be 
+    \subsubsection{}
+    Image processor manager should invoke multiple image processor instances concurrently
+    with different input images. The number of image processor instances launched should be
     determined by the number of cores on the host VM. \\
 
-    \subsubsection{} 
-    Image processor manager instances should be able to run alongside other image processor 
-    manager instances running on (potentially) different machines. These discrete instances should 
+    \subsubsection{}
+    Image processor manager instances should be able to run alongside other image processor
+    manager instances running on (potentially) different machines. These discrete instances should
     not attempt to process the same images. \\
 
 \subsection{Eclipse Simulator}
@@ -184,7 +184,7 @@ design document. \\
     \subsubsection{Intra-instance Concurrency}
     \textbf{Concerns:} 1.2.4, 1.2.5 \\
     \textbf{Elements:} 4.2.1, 4.2.2, 4.2.3, 4.2.4, 4.2.5, 4.2.6, 4.2.7 \\
-    \textbf{Analytical Methods:} Overall VM CPU utilization, overall VM network interface utilization. 
+    \textbf{Analytical Methods:} Overall VM CPU utilization, overall VM network interface utilization.
     Both these values should be maximized as much as possible. \\
     \textbf{Viewpoint Source:} Bret Lorimore \\
 
@@ -198,7 +198,7 @@ design document. \\
     \subsubsection{Invocation}
     \textbf{Concerns:} 1.2.2 \\
     \textbf{Elements:} 4.2.6 \\
-    \textbf{Analytical Methods:} Multiple image processor processes should be able to be easily launched 
+    \textbf{Analytical Methods:} Multiple image processor processes should be able to be easily launched
     concurrently with different input data. \\
     \textbf{Viewpoint Source:} Bret Lorimore \\
 
@@ -291,39 +291,39 @@ processed images and their metadata in a specific format to an output file.\\
 \subsection{Image Processor Manager}
 
     \subsubsection{Maximal Utilization [Governed by viewpoint 2.2.1]}
-    It is the goal of the image processor manager to maximize hardware utilization on the VMs on which it is 
-    running. This means that ideally, the VMs where the image processor manager and therefore the image 
-    processor are running will have an average of 100\% CPU utilization on all cores at all times.The image 
-    processor application will be single threaded and thus by invoking multiple instances of this application, 
+    It is the goal of the image processor manager to maximize hardware utilization on the VMs on which it is
+    running. This means that ideally, the VMs where the image processor manager and therefore the image
+    processor are running will have an average of 100\% CPU utilization on all cores at all times.The image
+    processor application will be single threaded and thus by invoking multiple instances of this application,
     the image processor manager can increase utilization on multiple CPU cores. \\
 
-    The downloading of images to process and uploading of processed images are both very high latency 
-    operations. Therefore, instead of waiting for these downloads/uploads to complete with virtually zero CPU 
-    utilization in the meantime, the image processor manager can achieve greater average CPU utilization by 
+    The downloading of images to process and uploading of processed images are both very high latency
+    operations. Therefore, instead of waiting for these downloads/uploads to complete with virtually zero CPU
+    utilization in the meantime, the image processor manager can achieve greater average CPU utilization by
     completing these high latency tasks concurrently to processing other images. \\
 
     \subsubsection{Image Processing [Governed by viewpoint 2.2.2]}
-    The ultimate goal of the image processor manager is to facilitate the processing of eclipse images by the 
-    image processor component of this project. This can be achieved by downloading images to process from the 
-    cloud, assembling them into a form that can be consumed by the image processor and then invoking that 
+    The ultimate goal of the image processor manager is to facilitate the processing of eclipse images by the
+    image processor component of this project. This can be achieved by downloading images to process from the
+    cloud, assembling them into a form that can be consumed by the image processor and then invoking that
     application with the downloaded images as input data. \\
 
     \subsubsection{Synchronization [Governed by viewpoint 2.2.3]}
-    The image processor must process the images that are uploaded by users. These images are uploaded by the 
-    eclipsemega.movie website to Google Cloud Storage and metadata entries are also created for them in Google 
-    Cloud Datastore. In order for the image processor manager to invoke the image processor with these images, 
+    The image processor must process the images that are uploaded by users. These images are uploaded by the
+    eclipsemega.movie website to Google Cloud Storage and metadata entries are also created for them in Google
+    Cloud Datastore. In order for the image processor manager to invoke the image processor with these images,
     it must download them from Google Cloud. \\
 
-    The application to stitch processed images into movies, being developed by Google, expects to find 
-    processed eclipse images in Google Cloud Storage with corresponding metadata in Google Cloud Datastore. In 
-    order to meet this expectation, the image processor manager must upload the results of running the image 
+    The application to stitch processed images into movies, being developed by Google, expects to find
+    processed eclipse images in Google Cloud Storage with corresponding metadata in Google Cloud Datastore. In
+    order to meet this expectation, the image processor manager must upload the results of running the image
     processor to Google Cloud Storage and Google Cloud Datastore when ready. \\
 
-    To enable scalable image processing performance, it is desirable to enable many VMs to run image processor 
-    applications at once. In order to do this efficiently without redundancy, it is necessary to ensure that 
-    multiple VMs do not try to process the same images. For that reason, image processor manager instances must 
-    mark image files as pending processing before another instances of the image processor manager can queue 
-    them for processing. Without implementing this functionality, little to no performance improvements can be 
+    To enable scalable image processing performance, it is desirable to enable many VMs to run image processor
+    applications at once. In order to do this efficiently without redundancy, it is necessary to ensure that
+    multiple VMs do not try to process the same images. For that reason, image processor manager instances must
+    mark image files as pending processing before another instances of the image processor manager can queue
+    them for processing. Without implementing this functionality, little to no performance improvements can be
     expected by deploying multiple image processor manager nodes. \\
 
 \subsection{Eclipse Simulator}
@@ -416,51 +416,51 @@ will be basing part of the image processor off of this algorithm. \\
 
     \subsubsection{Image List Downloader}
     \textbf{Type:} Subsystem \\
-    \textbf{Purpose:} The purpose of this subsystem is to download and return a list of images from Datastore 
-    to be processed by the image processor application. It will use Datastore transactions to ensure that each 
-    image in this list is marked as pending processing before it can be retrieved by another image processor 
-    manager instance. The max number of image files retrieved will be determined by the number of image 
-    processor processes that are going to be launched. This value will be a parameter of the image list 
+    \textbf{Purpose:} The purpose of this subsystem is to download and return a list of images from Datastore
+    to be processed by the image processor application. It will use Datastore transactions to ensure that each
+    image in this list is marked as pending processing before it can be retrieved by another image processor
+    manager instance. The max number of image files retrieved will be determined by the number of image
+    processor processes that are going to be launched. This value will be a parameter of the image list
     downloader subsystem. \\
 
     \subsubsection{Image Downloader}
     \textbf{Type:} Subsystem \\
-    \textbf{Purpose:} The purpose of this subsystem is to download and save individual image files. It will 
-    accept the name of an image file to retrieve from Cloud Storage and a place to store this file, and will 
+    \textbf{Purpose:} The purpose of this subsystem is to download and save individual image files. It will
+    accept the name of an image file to retrieve from Cloud Storage and a place to store this file, and will
     then download the file and save it to the desired location. \\
 
     \subsubsection{Image Download Manager}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to coordinate design elements 4.2.1 and 4.2.2, the 
-    \textit{Image List Downloader} and \textit{Image Downloader}, respectively. It will use the 
-    \textit{Image List Downloader} to retrieve a list of images to download and then will use the Python 
-    multiprocessing module to launch multiple instances of the \textit{Image Downloader} subsystem 
+    \textbf{Purpose:} The purpose of this system is to coordinate design elements 4.2.1 and 4.2.2, the
+    \textit{Image List Downloader} and \textit{Image Downloader}, respectively. It will use the
+    \textit{Image List Downloader} to retrieve a list of images to download and then will use the Python
+    multiprocessing module to launch multiple instances of the \textit{Image Downloader} subsystem
     concurrently to download the images in the list. \\
 
     \subsubsection{Result Uploader}
     \textbf{Type:} Subsystem \\
-    \textbf{Purpose:} The purpose of this subsystem is to upload an individual processed image to Google Cloud 
+    \textbf{Purpose:} The purpose of this subsystem is to upload an individual processed image to Google Cloud
     Storage and upload its metadata to Google Cloud Datastore. \\
 
     \subsubsection{Result Uploader Manager}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to coordinate element 4.2.4, the \textit{Results Uploader}. 
-    It will use the Python multiprocessing module to launch multiple instances of the \textit{Results Uploader} 
+    \textbf{Purpose:} The purpose of this system is to coordinate element 4.2.4, the \textit{Results Uploader}.
+    It will use the Python multiprocessing module to launch multiple instances of the \textit{Results Uploader}
     concurrently to upload the output of the image processor. \\
 
     \subsubsection{Image Processor Invoker}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to invoke multiple instances of the image processor 
-    application concurrently using the Python subprocess module. It will distribute images to process over 
-    multiple image processor processes to increase throughput. The number of image processor processes will be 
+    \textbf{Purpose:} The purpose of this system is to invoke multiple instances of the image processor
+    application concurrently using the Python subprocess module. It will distribute images to process over
+    multiple image processor processes to increase throughput. The number of image processor processes will be
     determined by the number of cores on the host VM. \\
 
     \subsubsection{Controller}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to coordinate the three other systems that are part of the 
-    image processor manager, design elements 4.2.3, 4.2.5, and 4.2.6, the \textit{Image Download Manager}, 
+    \textbf{Purpose:} The purpose of this system is to coordinate the three other systems that are part of the
+    image processor manager, design elements 4.2.3, 4.2.5, and 4.2.6, the \textit{Image Download Manager},
     the \textit{Result Uploader Manager}, and the \textit{Image Processor Invoker}. It will run these systems
-    in parallel so that images are downloaded/uploaded at the same time that other images are being 
+    in parallel so that images are downloaded/uploaded at the same time that other images are being
     processed. \\
 
 
@@ -545,37 +545,37 @@ in the technology review, we made certain decisions about what tools and
 algorithms to use based on the specific requirements of our system. The use of
 these tools has necessarily shaped the design of this application.\\
 
-Additional information regarding design rationale can be found in the `Purpose'\\
+Additional information regarding design rationale can be found in the 'Purpose'
 section of the design elements.
 
 \subsection{Image Processor Manager}
 
     \subsubsection{High Level System Design}
-    From a high level the system is designed to be highly parallel with the aim of achieving as close to 
-    100\% CPU utilization on all cores as possible. In order to achieve this it is necessary to ensure that 
-    images to process are downloaded ahead of the time they're needed, this way the latency of their download 
-    time is hidden by processing other images. It is also necessary to ensure that processed images do not back 
-    up. The design elements outlined above fit together to form a system that naturally supports a very high 
-    level of concurrency. Subsystems to handle individual tasks are built and then multiple instances of these 
-    subsystems can be launched concurrently with different parameters. These subsystems are called by their 
+    From a high level the system is designed to be highly parallel with the aim of achieving as close to
+    100\% CPU utilization on all cores as possible. In order to achieve this it is necessary to ensure that
+    images to process are downloaded ahead of the time they're needed, this way the latency of their download
+    time is hidden by processing other images. It is also necessary to ensure that processed images do not back
+    up. The design elements outlined above fit together to form a system that naturally supports a very high
+    level of concurrency. Subsystems to handle individual tasks are built and then multiple instances of these
+    subsystems can be launched concurrently with different parameters. These subsystems are called by their
     parent systems. \\
 
     \subsubsection{Process Based Concurrency}
-    As outlined in detail in our technology review, to achieve true multi-core concurrency in Python, use of 
-    process based concurrency such as that used in the built-in multiprocessing module is necessary. This is 
-    because multi-thread execution in Python is severely throttled by the Global Interpreter Lock (GIL) which 
+    As outlined in detail in our technology review, to achieve true multi-core concurrency in Python, use of
+    process based concurrency such as that used in the built-in multiprocessing module is necessary. This is
+    because multi-thread execution in Python is severely throttled by the Global Interpreter Lock (GIL) which
     essentially forces serialization of the execution of concurrent threads. \\
 
     \subsubsection{Motivation for separation of Image List Downloader and Image Downloader}
-    Design element 4.2.1, the \textit{Image List Downloader} is separated from design element 4.2.2, the 
-    \textit{Image Downloader} as lists of all the images that need to be downloaded at a given time form 
-    relatively small collections of data. Therefore, it is more efficient to make a single Datastore query to 
-    retrieve all the images that need to be downloaded, rather than retrieving these one at a time using 
-    separate queries. As the image files themselves are quite large, these still need to be retrieved 
-    individually. In fact, the Google Cloud Client Library for Python does not support the download of multiple 
-    files from Cloud Storage using a single API call. On top of this constraint, downloading the actual image 
-    files individually ensures that we are able to establish a large number of concurrent connections to Cloud 
-    Storage to saturate the VM network interface as much as possible and achieve very high overall download 
+    Design element 4.2.1, the \textit{Image List Downloader} is separated from design element 4.2.2, the
+    \textit{Image Downloader} as lists of all the images that need to be downloaded at a given time form
+    relatively small collections of data. Therefore, it is more efficient to make a single Datastore query to
+    retrieve all the images that need to be downloaded, rather than retrieving these one at a time using
+    separate queries. As the image files themselves are quite large, these still need to be retrieved
+    individually. In fact, the Google Cloud Client Library for Python does not support the download of multiple
+    files from Cloud Storage using a single API call. On top of this constraint, downloading the actual image
+    files individually ensures that we are able to establish a large number of concurrent connections to Cloud
+    Storage to saturate the VM network interface as much as possible and achieve very high overall download
     speeds. \\
 
 \subsection{Eclipse Simulator}
@@ -609,6 +609,74 @@ to move the Sun and Moon around as animations. \\
 \begin{enumerate}
     \item \href{http://www.omg.org/spec/UML/2.5}{UML Version 2.5}
 \end{enumerate}
+
+%% Supporting Info
+
+\newpage
+\section{Appendices}
+
+\subsection{Appendix I- Change History}
+
+\begin{enumerate}
+\item November 30th, 2016- Document Created \\
+\end{enumerate}
+
+\subsection{Appendix II- Glossary of Terms}
+
+\textbf{Eclipse Megamovie Project:}
+The Eclipse Megamovie Project is a collaboration between Google
+and scientists from Berkeley and several other institutions with the
+aim of collecting large quantities of observations of the solar eclipse
+that will pass over the United States on August 21, 2017. The project
+will crowdsource photos of the eclipse from photographers at various
+points along the path of totality. \\
+
+\noindent \textbf{Metadata:} In this document when we refer to metadata we are
+referring to any data associated with a file that is not that file itself -
+e.g. for a photo, the GPS coordinates at which that photo was taken are
+considered metadata.\\
+
+\noindent \textbf{Image processor instance/process:} a single image processor
+process. \\
+
+\noindent \textbf{VM:}  A virtual machine - a hosted virtual server. In this
+document, when we refer to a VM we are specifically referring to a VM hosted in
+Google Cloud - this could be either a bare VM or a single node in a VM cluster.\\
+
+\noindent \textbf{Google Cloud Datastore:} A fully managed, scheme-less NoSQL
+database solution offered from Google.\\
+
+\noindent \textbf{Google Cloud Storage:}  A fully managed file storage solution
+offered from Google, optimized for storing/accessing large files.\\
+
+\noindent \textbf{Mbps:} Megabits per second. This is referring to download and
+upload speeds.\\
+
+\noindent \textbf{Ephemeris:} An ephemeris is used to give positional information
+about astronomical objects\\
+
+\noindent \textbf{Machine:} The term machine is used throughout this document in
+reference to a particular VM instance.\\
+
+\noindent \textbf{JPEG/JPG:}
+JPEG is a lossy compression technique for images. When we refer
+to JPEG/JPG files in this document we are referring to image files
+compressed in this method with the .jpeg or .jpg file extension. \\
+
+\noindent \textbf{PNG:}
+PNG refers to the Portable Network Graphics image file format.
+Images in the PNG format are frequently referred to as "PNGs" and are
+saved with the .png file extension. \\
+
+\noindent \textbf{EXIF:} EXIF refers to the Exchangeable Image File Format, a
+standard  media file format. Within the scope of this document EXIF generally
+refers to metadata associated with images processed by the image processor. \\
+
+\noindent \textbf{SEISS:} Solar Eclipse Image Standardisation and Sequencing.
+This refers to an algorithm developed by Krista et al. \cite{imgKrista} that
+seeks to identify eclipse images and classify them by the phase that the
+eclipse is in. We will be using and modifying this algorithm to suit the needs
+of this project. \\
 
 \bibliographystyle{IEEEtran}
 \bibliography{des-doc}
