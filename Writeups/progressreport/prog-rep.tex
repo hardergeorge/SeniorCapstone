@@ -24,9 +24,12 @@
 \maketitle
 
 \begin{abstract}
-
-Text
-
+This document describes the current state of the \textit{North American Solar Eclipse 2017}
+senior capstone project. The document gives a brief overview of the project and its components,
+describes the current state of the project, describes problems that have been
+encountered throughout the term, shows some of the code that has been produced thus far, gives
+a week-by-week outline of progress throughout the term, and reflects over the term in the 
+retrospectives section at the end.
 \end{abstract}
 
 \newpage
@@ -160,7 +163,7 @@ library calculations and eclipse predictions we found elsewhere. We brought
 this issue up with our client, and he said to continue progress on the
 simulator as the variance we were seeing was not very significant for the
 simulator. Once further progress has been made on the simulator, it may be
-necessary to dig into the Ephemeris code base to determine any problems.
+necessary to dig into the Ephemeris codebase to determine any problems.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Code               %
@@ -244,7 +247,6 @@ var EclipseSimulator = {
 };
 
 // [...]
-
 
 EclipseSimulator.View.prototype.get_x_percent_from_az = function(az, radius)
 {
@@ -448,4 +450,4 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 \end{table}
 
 \end{document}
-         
+                             
