@@ -6,15 +6,7 @@
 %\usepackage{enumitem}
 \usepackage{graphicx}
 
-% Macro for the signatures
-\newcommand*{\SignatureAndDate}[1]{%
-    \par\noindent\makebox[2.5in]{\hrulefill} \hfill\makebox[2.0in]{\hrulefill}%
-    \par\noindent\makebox[2.5in][l]{#1}      \hfill\makebox[2.0in][l]{Date}%
-}
-
 \renewcommand*\contentsname{Table of Contents} % Rename ToC
-
-\newcommand{\myindent}{\hspace{\oldparindent}}
 
 % Temp title and author
 \title{Progress Report}
@@ -52,7 +44,20 @@ Text
 
 \subsection{Image Processor Manager}
 
-Text
+The image processor manager will be a Python application responsible for managing the image processor
+application. This includes collecting images from Google Cloud for the image processor to process, 
+invoking the image processor with these images as input, and collecting the output of the image 
+processor and uploading it to Google Cloud. The image processor and image processor manager will be 
+deployed together in a single docker container to Google Container Engine Clusters (of VMs). \\
+
+An important role of the image processor manager is that it will be responsible for ensuring that 
+the compute resources on the host VMs are as saturated as possible. This means invoking multiple 
+image processor processes concurrently, while at the same time downloading the next images to be 
+processed and uploading the already processed images. The image processor manager will achieve 
+this parallelism through process based concurrency in Python, as in Python, thread based concurrency 
+is throttled by the global interpreter lock (GIL). We chose to use Python for this application as it 
+will be much simpler to write in Python and we can sidestep any concurrency issues by using process 
+based parallelism as mentioned above. \\
 
 \subsection{Eclipse Simulator}
 
@@ -72,7 +77,9 @@ Text
 
 \subsection{Image Processor Manager}
 
-Text
+Development has yet to start on the image processor manager, but we have a very good idea of how we 
+are going to build it. Additionally, we will have access to code that Bret wrote during his internship 
+this summer that we will be able to repurpose to handle large parts of the interactions with Google Cloud.
 
 \subsection{Eclipse Simulator}
 
@@ -177,6 +184,19 @@ Code
 
 \end{itemize}
 
+\section{Retrospectives}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|p{.3\linewidth}|p{.3\linewidth}|p{.3\linewidth}|}
+
+    \cline{3-3}
+
+    \hline \textbf{Positives} & \textbf{Deltas} & \textbf{Actions} \\ \hline
+
+    Lorem & Lorem & Lorem \\ \hline
+
+    \end{tabular}
+\end{table}
 
 \end{document}
-
