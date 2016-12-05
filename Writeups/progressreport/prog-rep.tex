@@ -101,6 +101,10 @@ Text
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Interesting Code}
 
+Below are some interesting sections of the Eclipse Simulator view code that we have so far. 
+The code shown below focuses on rendering the Sun and Moon on the screen given their
+altitude and azimuth. \\
+
 \begin{minted}{javascript}
 // EclipseSimulator namespace
 var EclipseSimulator = {
@@ -236,84 +240,120 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
 \subsection{Week 1}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Go to class
 
-\end{itemize}
+    \end{itemize}
 
 \subsection{Week 2}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Worked on initial draft of problem statement.
 
-\end{itemize}
+    \item Established a LaTeX workflow.
+
+    \end{itemize}
 
 \subsection{Week 3}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Got feedback from sponsor and Kirstin on initial problem statement 
+    draft. Our sponsor was happy with our initial draft. Kirstin informed us that 
+    our problem statement was actually a bit too verbose and covered a lot of 
+    material that was more relevant to the technology review.
 
-\end{itemize}
+    \end{itemize}
 
 \subsection{Week 4}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Had an initial meeting with Vee, our TA.
 
-\end{itemize}
+    \item Researched rotation matrices and quaternions at the suggestion of our 
+    sponsor. He pointed us to this material as being relevant to our rotating 
+    images, but likely more involved than actually necessary. He still encouraged 
+    us to research the material as he thought it was interesting and good to 
+    know. It was!
+
+    \end{itemize}
 
 \subsection{Week 5}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Created initial requirements document draft.
 
-\end{itemize}
+    \end{itemize}
 
 \subsection{Week 6}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Reviewed requirements document with project sponsor.
 
-\end{itemize}
+    \item Followed up on new information we received from our client in week 5, 
+    specifically that we would have access to GPS/timestamp EXIF info in the 
+    image processor. We considered this and proposed a scheme to incorporate it 
+    into the image processor that our client was very happy with.
+
+    \end{itemize}
 
 \subsection{Week 7}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Our sponsor added an additional component to the project, the image 
+    processor manager. Previously this had been outside the scope of the project. 
+    We were initially hesitant about taking this on, but realized that there was 
+    some relevant code from Bret’s internship over the summer that we can 
+    repurpose for this component of the project.
 
-\end{itemize}
+    \end{itemize}
 
 \subsection{Week 8}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Began work on the eclipse simulator. We ran into some issues computing 
+    accurate sun/moon positions using JavaScript. The first library we were 
+    using, SunCalc was not producing accurate results. After switching to the 
+    Ephemeris library, we started seeing better results.
 
-\end{itemize}
+    \end{itemize}
 
 \subsection{Week 9}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Met as a group and ironed out a high level design for the various 
+    components of the project. 
 
-\end{itemize}
+    \item Individually began working on our respective design document pieces.
+
+    \item Continued to see accuracy issues with eclipse calculations in 
+    JavaScript, even after switching to Ephemeris. We spoke to our sponsor about 
+    this and he recommended moving on for the time being, as he did not think 
+    these computations were off enough to warrant concern, or even render them 
+    unusable.
+
+    \end{itemize}
 
 \subsection{Week 10}
 
-\begin{itemize}
+    \begin{itemize}
 
-\item Text
+    \item Completed and turned in design document, we struggled a bit 
+    interpreting the IEEE 1016 standard for the design document.
 
-\end{itemize}
+    \item Began work on the view code for the eclipse simulator.
 
+    \end{itemize}
+
+\newpage
 \section{Retrospectives}
 
 \begin{table}[h]
