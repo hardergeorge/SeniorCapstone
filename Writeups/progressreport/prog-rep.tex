@@ -40,32 +40,69 @@ Text
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Project Overview}
 
-Text
+The North American Solar Eclipse 2017 Senior Capstone project is partnership
+with Google to build a set of applications that will assist the development of
+the Eclipse Megamovie Project. The overall project has been broken down into
+three components: the eclipse image processor, the image processor manager, and
+the solar eclipse simulator. Each will be individually outlined in the sections
+below.
 
 \subsection{Image Processor}
 
-Text
+The image processor’s primary activity is to quickly and consistently identify
+images of an eclipse at totality. The Eclipse Megamovie project will be
+collecting thousands of images from photographers around the country, and the
+image processor needs to identify the images of the eclipse at totality so that
+these can then be stitched into a timelapse movie. In order to make the
+stitching as easy as possible for the Eclipse Megamovie team, the image
+processor will add metadata to each processed image that includes spatial
+information about where the image was taken along the path of totality and
+temporal information about how far into totality the eclipse is.
+
+
+The purpose of the Image Processor is not to process many images as quickly as
+possible. Instead, our goal is to be able to consistently and accurately process
+a single image at a time. As such, the image processor will fit into the larger
+project as an executable file that is called by the Image Processor Manager.
+This allows us to focus the image processor solely on a single goal, and leave
+parallelization and deployment to a different piece of the project.
 
 \subsection{Image Processor Manager}
 
 The image processor manager will be a Python application responsible for managing the image processor
-application. This includes collecting images from Google Cloud for the image processor to process, 
-invoking the image processor with these images as input, and collecting the output of the image 
-processor and uploading it to Google Cloud. The image processor and image processor manager will be 
+application. This includes collecting images from Google Cloud for the image processor to process,
+invoking the image processor with these images as input, and collecting the output of the image
+processor and uploading it to Google Cloud. The image processor and image processor manager will be
 deployed together in a single docker container to Google Container Engine Clusters (of VMs). \\
 
-An important role of the image processor manager is that it will be responsible for ensuring that 
-the compute resources on the host VMs are as saturated as possible. This means invoking multiple 
-image processor processes concurrently, while at the same time downloading the next images to be 
-processed and uploading the already processed images. The image processor manager will achieve 
-this parallelism through process based concurrency in Python, as in Python, thread based concurrency 
-is throttled by the global interpreter lock (GIL). We chose to use Python for this application as it 
-will be much simpler to write in Python and we can sidestep any concurrency issues by using process 
+An important role of the image processor manager is that it will be responsible for ensuring that
+the compute resources on the host VMs are as saturated as possible. This means invoking multiple
+image processor processes concurrently, while at the same time downloading the next images to be
+processed and uploading the already processed images. The image processor manager will achieve
+this parallelism through process based concurrency in Python, as in Python, thread based concurrency
+is throttled by the global interpreter lock (GIL). We chose to use Python for this application as it
+will be much simpler to write in Python and we can sidestep any concurrency issues by using process
 based parallelism as mentioned above. \\
 
 \subsection{Eclipse Simulator}
 
-Text
+The eclipse simulator will be an independent JavaScript module that can easily
+be added to the existing Eclipse Megamovie webpage. This simulator will allow
+users to “preview” the eclipse. It will be a 2D depiction of what the solar
+eclipse in 2017 could look like given a certain location. Users will be able
+to interact with a time slider that will simulate the eclipse in a time
+window spanning from 12 hours before the eclipse to 12 hours after it.
+
+To help with the eclipse ephemeris computations, we will be using an external
+JavaScript library called Ephemeris. For the front end view for the simulator,
+we will be utilizing HTML5 SVG. We plan to implement a model-view-controller
+architecture for controlling the states of each component as well as handling
+the interactions. This architecture was chosen due to the ability to easily
+exchange a component without altering the whole design of the system. For
+example, if one wanted to create a whole new front end for the simulator,
+they would not need to rewrite the model or controller component of the system.
+They would simply need to ensure that the new view component can handle the
+interactions with the controller module.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,28 +110,57 @@ Text
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Current Status of the Project}
 
-Text
+As a whole this project has moved from the pre-planning stages into the earliest
+development phase. The image processor and the image processor manager are both
+fully designed, while the eclipse simulator is farther along and has some existing proof of
+concept code.
 
 \subsection{Image Processor}
 
-Text
+This part of the project is still in the design and planning phase, development
+work has not begun. However, we have a clear design plan and have identified
+several tools and technologies that we will use to build the image processor.
+
+The image processor will use OpenCV and its built in Hough Transform as well as
+an existing algorithm that we plan to modify and improve upon in order to
+identify eclipses in images. We have chosen to use C++ to build the image
+processor because it gives us better control over the speed at which this
+application runs while still providing us with the ability to leverage the
+OpenCV API. We have also clearly defined the inputs and outputs of the in order
+to allow the parts of the system that interact with the image processor to
+proceed independently with their development.
 
 \subsection{Image Processor Manager}
 
-Development has yet to start on the image processor manager, but we have a very good idea of how we 
-are going to build it. Additionally, we will have access to code that Bret wrote during his internship 
+Development has yet to start on the image processor manager, but we have a very good idea of how we
+are going to build it. Additionally, we will have access to code that Bret wrote during his internship
 this summer that we will be able to repurpose to handle large parts of the interactions with Google Cloud.
 
 \subsection{Eclipse Simulator}
 
-Text
+As it currently stands, progress has been made to create an initial working
+demo of the simulator. We have worked with the Ephemeris library to see how
+accurate its computations are. There was some variance when comparing the
+values it returned to other 2017 solar eclipse predictions, but we have
+decided that the variance is not large enough to warrant worry. Work has
+been done to create a front end view for the simulator. Eventually Google
+will be providing the sprites that the simulator will use, but we are currently
+just using simple SVG circles to simulate the Sun and Moon. We also have the
+code to render these Sun and Moon SVGs on the eclipse simulator window given
+their altitude and azimuth (vertical/horizontal angular coordinates). We will
+continue working on the eclipse simulator over winter break.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Problems           %
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems and Possible Solutions}
 
-Text
+Around week 8 of the term, we found that some results differed in the Ephemeris
+library calculations and eclipse predictions we found elsewhere. We brought
+this issue up with our client, and he said to continue progress on the
+simulator as the variance we were seeing was not very significant for the
+simulator. Once further progress has been made on the simulator, it may be
+necessary to dig into the Ephemeris code base to determine any problems.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Code               %
@@ -162,7 +228,7 @@ var EclipseSimulator = {
     },
 
     // Determine if angle a is greater than angle b
-    // That is, if b < a <= (b + pi) 
+    // That is, if b < a <= (b + pi)
     rad_gt: function(a, b)
     {
         a = EclipseSimulator.normalize_rad(a);
@@ -196,7 +262,7 @@ EclipseSimulator.View.prototype.get_x_percent_from_az = function(az, radius)
 
 // This may need some re-visiting... the current computations imply a field of
 // view of 2*fov.y
-// Compute y coordinate in simulator window as a percentage of the window 
+// Compute y coordinate in simulator window as a percentage of the window
 // height
 // Assumes altitude is <= (pi/2)
 EclipseSimulator.View.prototype.get_y_percent_from_alt = function(alt)
@@ -218,15 +284,15 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
     }
 
     bound = this.az_center - (this.fov.x / 2);
-    
+
     dist  = EclipseSimulator.rad_diff(bound, az);
-    
+
     // Body off screen to the left
     if (EclipseSimulator.rad_gt(bound, az) && dist > radius)
     {
         return true;
     }
-    
+
     return false;
 }
 
