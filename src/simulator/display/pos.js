@@ -198,6 +198,27 @@ EclipseSimulator.Controller.prototype.init = function()
 {
     this.view.init();
     // this.model.init();
+
+    // Demo
+    // playFunc(this.view, 0, 0);
+}
+
+
+function playFunc(view, sundegx, moondegx)
+{
+    view.position_sun_moon(
+        {az: EclipseSimulator.deg2rad(sundegx),  alt: view.sunpos.alt,  r: view.sunpos.r},
+        {az: EclipseSimulator.deg2rad(moondegx), alt: view.moonpos.alt, r: view.moonpos.r}
+    );
+
+    if (sundegx >= 360)
+    {
+        return;
+    }
+
+    setTimeout(function() {
+        playFunc(view, sundegx + 1, moondegx - 1);
+    }, 10);
 }
 
 
