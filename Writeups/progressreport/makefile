@@ -5,9 +5,9 @@ HTML=main_html
 all: pdf
 
 dvi: ${TARGET1}.tex 
-	latex $(TARGET1).tex
+	/usr/local/apps/tex_live/current/bin/x86_64-linux/latex --shell-escape $(TARGET1).tex
 	#bibtex $(TARGET1)
-	latex $(TARGET1).tex
+	/usr/local/apps/tex_live/current/bin/x86_64-linux/latex --shell-escape $(TARGET1).tex
 
 ps: dvi
 	dvips -R -Poutline -t letter ${TARGET1}.dvi -o ${TARGET1}.ps
