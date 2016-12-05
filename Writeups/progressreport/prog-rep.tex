@@ -6,6 +6,16 @@
 %\usepackage{enumitem}
 \usepackage{graphicx}
 
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{alltt}
+%\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{listings}
+
 % Macro for the signatures
 \newcommand*{\SignatureAndDate}[1]{%
     \par\noindent\makebox[2.5in]{\hrulefill} \hfill\makebox[2.0in]{\hrulefill}%
@@ -91,6 +101,26 @@ Text
 \section{Interesting Code}
 
 Code
+
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+
+\begin{lstlisting}
+       #include <encrypto.API>
+
+struct crypto_cipher * crypto_alloc_cipher(const char * alg_name, u32 type, u32 mask);
+
+int crypto_cipher_setkey(struct crypto_cipher * tfm, const u8 * key, unsigned int keylen);
+
+void crypto_cipher_encrypt_one(struct crypto_cipher * tfm, u8 * dst, const u8 * src);
+
+void crypto_free_cipher(struct crypto_cipher * tfm);
+\end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Weekly Summary     %
