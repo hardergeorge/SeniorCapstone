@@ -14,7 +14,16 @@ var EclipseSimulator = {
         this.moonpos = {x: 25, y: 25, r: 2 * Math.PI / 180};  // temp radius values
 
         // Field of view in radians
-        this.fov = {x: 80 * Math.PI / 180, y: 80 * Math.PI / 180};
+        this.fov = {
+            
+            // Max x fov is 140 degrees
+            x: 140 * Math.PI / 180, 
+
+            // Max y fov is 90 degrees
+            y: 80 * Math.PI / 180
+        };
+
+        this.x_fov_buffer = 15 * Math.PI / 180;
 
         // Center of frame in radians
         this.az_center = 0 * Math.PI / 180;
@@ -164,13 +173,21 @@ EclipseSimulator.View.prototype.get_y_percent_from_alt = function(alt)
     var height     = Math.sin(alt);
     var fov_height = Math.sin(this.fov.y);
 
-    return 100 * height / fov_height;
+    // Body out of view. Shoot it way off screen
+    if (EclipseSimulator.normalize_rad(alt) > (0.5 * Math.PI))
+    {
+        return 200;
+    }
+
+    return 100 * height / fov_height;;
 }
 
 EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 {
     var bound = this.az_center + (this.fov.x / 2);
     var dist  = EclipseSimulator.rad_diff(bound, az);
+
+    bound += this.x_fov_buffer;
 
     // Body off screen to the right
     if (EclipseSimulator.rad_gt(az, bound) && dist > radius)
@@ -180,6 +197,8 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     bound = this.az_center - (this.fov.x / 2);
     dist  = EclipseSimulator.rad_diff(bound, az);
+
+    bound -= this.x_fov_buffer;
 
     // Body off screen to the left
     if (EclipseSimulator.rad_gt(bound, az) && dist > radius)
