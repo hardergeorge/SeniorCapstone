@@ -28,19 +28,25 @@ var EclipseSimulator = {
         this.x_fov_buffer = 15 * Math.PI / 180;
 
         // Center of frame in radians
-        this.az_center = 0 * Math.PI / 180;
+        this.az_center = 110 * Math.PI / 180;
     },
 
     Controller: function(coords)
     {
         this.view  = new EclipseSimulator.View();
-        this.model = new EclipseSimulator.Model();
-
-        this.coords = coords !== undefined ? coords : EclipseSimulator.CORVALLIS_COORDS;
+        this.model = new EclipseSimulator.Model(coords);
     },
 
-    Model: function() 
+    Model: function(coords) 
     {
+        // Current simulator coordinates
+        this.coords = coords !== undefined ? coords : EclipseSimulator.CORVALLIS_COORDS;
+        
+        // Current simulator time
+        this.date = EclipseSimulator.ECLIPSE_DAY;
+
+        // Date object to be passed to ephemeris
+        this._ephemeris_date = {};
     },
 
     // Convert degrees to radians
@@ -90,6 +96,9 @@ var EclipseSimulator = {
         lat: 44.567353,
         lng: -123.278622,
     },
+
+    ECLIPSE_DAY: new Date('08/21/2017'),
+
 };
 
 
@@ -227,9 +236,6 @@ EclipseSimulator.Controller.prototype.init = function()
 {
     this.view.init();
     this.model.init();
-
-    // Demo
-    playFunc(this.view, 0, 0);
 };
 
 
@@ -241,6 +247,46 @@ EclipseSimulator.Controller.prototype.init = function()
 
 EclipseSimulator.Model.prototype.init = function()
 {
+    $processor.init();
+};
+
+EclipseSimulator.Model.prototype.get_sun_moon_position = function()
+{
+    // Set date and position
+    this._update_ephemeris();
+
+    var sun  = $moshier.body.sun;
+    var moon = $moshier.body.moon;
+
+    $processor.calc(this._ephemeris_date, sun);
+    $processor.calc(this._ephemeris_date, moon);
+
+    var sunpos  = sun.position.altaz.topocentric;
+    var moonpos = moon.position.altaz.topocentric;
+
+    return {
+        sun:  {az:  EclipseSimulator.deg2rad(sunpos.azimuth),  
+               alt: EclipseSimulator.deg2rad(sunpos.altitude)
+        },
+        moon: {az:  EclipseSimulator.deg2rad(moonpos.azimuth),  
+               alt: EclipseSimulator.deg2rad(moonpos.altitude)
+        },
+    };
+}
+
+EclipseSimulator.Model.prototype._update_ephemeris = function()
+{
+    $const.glat  = this.coords.lat;
+    $const.tlong = this.coords.lng;
+
+    this._ephemeris_date = {
+        year:    this.date.getFullYear(), 
+        month:   this.date.getMonth() + 1, // Date object months are zero indexed
+        day:     this.date.getDate(), 
+        hours:   this.date.getUTCHours(), 
+        minutes: this.date.getMinutes(), 
+        seconds: this.date.getSeconds()
+    };
 };
 
 
@@ -250,27 +296,49 @@ EclipseSimulator.Model.prototype.init = function()
 //
 // ====================================
 
-function playFunc(view, sundegx, moondegx)
+function demo(controller)
 {
-    view.position_sun_moon(
-        {az: EclipseSimulator.deg2rad(sundegx),  alt: view.sunpos.alt,  r: view.sunpos.r},
-        {az: EclipseSimulator.deg2rad(moondegx), alt: view.moonpos.alt, r: view.moonpos.r}
-    );
-
-    if (sundegx >= 360)
-    {
-        return;
-    }
-
-    setTimeout(function() {
-        playFunc(view, sundegx + 1, moondegx - 1);
-    }, 10);
+    controller.model.date.setUTCHours(13);
+    _demo(controller, 0);
 }
 
+function _demo(controller, i)
+{
+    if (i >= 250)
+    {
+        return;
+    }    
+
+    var positions = controller.model.get_sun_moon_position();
+
+    var sun  = positions.sun;
+    var moon = positions.moon;
+
+    sun.r    = controller.view.sunpos.r;
+    moon.r   = controller.view.moonpos.r;
+
+    controller.view.position_sun_moon(sun, moon);
+    
+    controller.model.date.setTime(controller.model.date.getTime() + (1000 * 60 * 2));
+
+    setTimeout(function() {
+        _demo(controller, i + 1);
+    }, 25);
+}
+
+
+// ========================
+//
+// Simulator Initialization
+//
+// ========================
 
 function initSim() {
     var controller = new EclipseSimulator.Controller();
     controller.init();
+
+    // TEMP
+    demo(controller);
 }
 
 
