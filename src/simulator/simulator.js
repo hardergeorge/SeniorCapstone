@@ -351,7 +351,11 @@ function _demo(controller, i)
         return;
     }    
 
+    // Compute sun and moon positions and log the amount of time it takes
+    var t = performance.now();
     var positions = controller.model.get_sun_moon_position();
+    t = performance.now() - t;
+    console.log('Ephemeris computations took: ', t.toFixed(4), ' milliseconds');
 
     var sun  = positions.sun;
     var moon = positions.moon;
@@ -380,7 +384,7 @@ function initSim() {
     controller.init();
 
     // DEMO
-    // demo(controller);
+    demo(controller);
 }
 
 

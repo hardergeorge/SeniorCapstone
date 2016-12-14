@@ -24,7 +24,8 @@
 
         <!-- Time slider -->
         <div style="width: calc(100% - 230px); float: left;">
-            <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="0" max="100" value="50">
+            <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
+            <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-720" max="720" value="0" step="2">
         </div>
 
         <!-- Time up button -->
