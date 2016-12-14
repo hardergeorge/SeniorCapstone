@@ -28,7 +28,7 @@ var EclipseSimulator = {
         this.x_fov_buffer = 15 * Math.PI / 180;
 
         // Center of frame in radians
-        this.az_center = 110 * Math.PI / 180;
+        this.az_center = 0;
     },
 
     Controller: function(coords)
@@ -298,7 +298,10 @@ EclipseSimulator.Model.prototype._update_ephemeris = function()
 
 function demo(controller)
 {
+    // Simulator hard coded initialization params
     controller.model.date.setUTCHours(13);
+    controller.view.az_center = 110 * Math.PI / 180;
+
     _demo(controller, 0);
 }
 
