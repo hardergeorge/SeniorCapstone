@@ -1,3 +1,5 @@
+'use strict';
+
 // EclipseSimulator namespace
 var EclipseSimulator = {
 
@@ -37,7 +39,9 @@ var EclipseSimulator = {
         this.coords = coords !== undefined ? coords : EclipseSimulator.CORVALLIS_COORDS;
     },
 
-    Model: function() {},
+    Model: function() 
+    {
+    },
 
     // Convert degrees to radians
     deg2rad: function(v)
@@ -89,9 +93,12 @@ var EclipseSimulator = {
 };
 
 
+// =============================
 //
 // EclipseSimulator.View methods
 //
+// =============================
+
 EclipseSimulator.View.prototype.init = function()
 {
     this.refresh();
@@ -149,7 +156,7 @@ EclipseSimulator.View.prototype.position_sun_moon = function(sunpos, moonpos)
     this.moonpos.y = this.get_y_percent_from_alt(moonpos.alt);
 
     this.refresh();
-}
+};
 
 EclipseSimulator.View.prototype.get_x_percent_from_az = function(az, radius)
 {
@@ -163,7 +170,7 @@ EclipseSimulator.View.prototype.get_x_percent_from_az = function(az, radius)
     }
 
     return 50 + (50 * dist_from_center / half_fov_width);
-}
+};
 
 // This may need some re-visiting... the current computations imply a field of view of 2*fov.y
 // Compute y coordinate in simulator window as a percentage of the window height
@@ -180,7 +187,7 @@ EclipseSimulator.View.prototype.get_y_percent_from_alt = function(alt)
     }
 
     return 100 * height / fov_height;;
-}
+};
 
 EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 {
@@ -207,21 +214,41 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
     }
 
     return false;
-}
+};
 
 
+// ===================================
 //
 // EclipseSimulator.Controller methods
 //
+// ===================================
+
 EclipseSimulator.Controller.prototype.init = function() 
 {
     this.view.init();
-    // this.model.init();
+    this.model.init();
 
     // Demo
-    // playFunc(this.view, 0, 0);
-}
+    playFunc(this.view, 0, 0);
+};
 
+
+// ==============================
+//
+// EclipseSimulator.Model methods
+//
+// ==============================
+
+EclipseSimulator.Model.prototype.init = function()
+{
+};
+
+
+// ====================================
+//
+// Temp / Development / Debug functions
+//
+// ====================================
 
 function playFunc(view, sundegx, moondegx)
 {
