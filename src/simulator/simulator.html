@@ -1,6 +1,10 @@
 <script type="text/javascript" src="jquery.min.js"></script>
+<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
 <script type="text/javascript" src="ephemeris-0.1.0.js"></script>
 <script type="text/javascript" src="simulator.js"></script>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
 
 <!DOCTYPE html>
 <html>
@@ -9,9 +13,27 @@
         <circle id="sun" cx="50" cy="50" r="40" fill="#ffdd00" style="display: none"/>
         <circle id="moon" cx="150" cy="50" r="40" fill="#eee" style="display: none"/>
     </svg>
-    <div id="controls" style="height: 100px">
-        <button id="time_down">Time Down</button>
-        <button id="time_up">Time Up</button>
+    <div id="controls" style="height: 100px; width: calc(100% - 40px); padding: 15px">
+
+        <!-- Time down button -->
+        <div style="width: 115px; float: left;">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="downbutton">
+                Time Down
+            </button>
+        </div>
+
+        <!-- Time slider -->
+        <div style="width: calc(100% - 230px); float: left;">
+            <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="0" max="100" value="50">
+        </div>
+
+        <!-- Time up button -->
+        <div style="width: 115px; float: left;">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id ="upbutton">
+                Time Up
+            </button>
+        </div>
+
     </div>
 </body>
 </html>

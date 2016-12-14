@@ -7,10 +7,13 @@ var EclipseSimulator = {
 
     View: function()
     {
-        this.window   = $('#container').get(0);
-        this.controls = $('#controls').get(0);
-        this.sun      = $('#sun').get(0);
-        this.moon     = $('#moon').get(0);
+        this.window         = $('#container').get(0);
+        this.controls       = $('#controls').get(0);
+        this.sun            = $('#sun').get(0);
+        this.moon           = $('#moon').get(0);
+        this.upbutton       = $('#upbutton').get(0);
+        this.downbutton     = $('#downbutton').get(0);
+        this.slider         = $('#tslider').get(0);
 
         this.sunpos  = {x: 50, y: 50, r: 2 * Math.PI / 180};  // temp radius values
         this.moonpos = {x: 25, y: 25, r: 2 * Math.PI / 180};  // temp radius values
@@ -115,6 +118,24 @@ EclipseSimulator.View.prototype.init = function()
     // Have to create a reference to this, because inside the window
     // refresh function callback this refers to the window object
     var view = this;
+
+    //This makes the sun move along with the slider
+    //A step toward calculating and displaying the sun and moon at a specific time based on the slider
+    $("#tslider").on('input', function(){
+        view.slider_change(view.slider.value);
+    });
+
+    //Increments the slider on a click
+    $("#upbutton").click(function(){
+        view.slider.MaterialSlider.change(parseInt(view.slider.value) + 1);
+        view.slider_change(view.slider.value);
+    });
+
+    //Decrements the slider on a click
+    $("#downbutton").click(function(){
+        view.slider.MaterialSlider.change(parseInt(view.slider.value) - 1);
+        view.slider_change(view.slider.value);
+    });
 
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
@@ -225,6 +246,19 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
     return false;
 };
 
+EclipseSimulator.View.prototype.slider_change = function(new_val)
+{
+    // DEMO
+    this.sunpos = {x: new_val, y: 50, r: 2 * Math.PI / 180};
+
+    this.position_body_at_percent_coords(this.sun, this.sunpos);
+    this.position_body_at_percent_coords(this.moon, this.moonpos);
+
+    this.refresh();
+
+    // Event triggering
+    $(this).trigger('EclipseView_time_updated', new_val);
+};
 
 // ===================================
 //
@@ -236,6 +270,11 @@ EclipseSimulator.Controller.prototype.init = function()
 {
     this.view.init();
     this.model.init();
+
+    // DEMO
+    $(this.view).on('EclipseView_time_updated', function(event, val) {
+        console.log('Time updated. New value: ', val);
+    });
 };
 
 
@@ -340,8 +379,8 @@ function initSim() {
     var controller = new EclipseSimulator.Controller();
     controller.init();
 
-    // TEMP
-    demo(controller);
+    // DEMO
+    // demo(controller);
 }
 
 
