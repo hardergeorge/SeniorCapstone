@@ -127,13 +127,13 @@ EclipseSimulator.View.prototype.init = function()
 
     //Increments the slider on a click
     $("#upbutton").click(function(){
-        view.slider.MaterialSlider.change(parseInt(view.slider.value) + 1);
+        view.slider.MaterialSlider.change(parseInt(view.slider.value) + 2);
         view.slider_change(view.slider.value);
     });
 
     //Decrements the slider on a click
     $("#downbutton").click(function(){
-        view.slider.MaterialSlider.change(parseInt(view.slider.value) - 1);
+        view.slider.MaterialSlider.change(parseInt(view.slider.value) - 2);
         view.slider_change(view.slider.value);
     });
 
