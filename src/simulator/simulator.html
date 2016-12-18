@@ -9,47 +9,54 @@
 <!DOCTYPE html>
 <html>
 <body style="margin: 0px;">
-    <svg id="container" style="background-color: #00abe6; display: none">
 
-        <defs>
-            <filter id="blur" x="-1" y="-1" width="300%" height="300%">
-                <feOffset result="offOut" in="SourceAlpha" dx="2" dy="2" />
-                <feGaussianBlur result="blurOut" in="offOut" stdDeviation="10" />
-                <feComponentTransfer>
-                    <feFuncA type="linear" slope="0.25"/>
-                </feComponentTransfer>
-                <feMerge> 
-                    <feMergeNode/>
-                    <feMergeNode in="SourceGraphic"/> 
-                </feMerge>
-            </filter>
-        </defs>
+    <div id="loading" style="width: 100%; position: absolute; background-color: white; z-index: 2;">
+        <div class="mdl-spinner mdl-js-spinner is-active" style="position: absolute; top: 50%; left: calc(50% - 20px);"></div>
+    </div>
 
-        <circle id="sun" cx="50" cy="50" r="40" fill="#ffdd00" filter="url(#blur)" style="display: none"/>
-        <circle id="moon" cx="150" cy="50" r="40" fill="#eee" filter="url(#blur)" style="display: none"/>
-    </svg>
-    <div id="controls" style="height: 100px; width: calc(100% - 40px); padding: 15px">
+    <div id="sim" style="display: none;">
+        <svg id="container" style="background-color: #00abe6; display: none">
 
-        <!-- Time down button -->
-        <div style="width: 115px; float: left;">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="downbutton">
-                Time Down
-            </button>
+            <defs>
+                <filter id="blur" x="-1" y="-1" width="300%" height="300%">
+                    <feOffset result="offOut" in="SourceAlpha" dx="2" dy="2" />
+                    <feGaussianBlur result="blurOut" in="offOut" stdDeviation="10" />
+                    <feComponentTransfer>
+                        <feFuncA type="linear" slope="0.25"/>
+                    </feComponentTransfer>
+                    <feMerge> 
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/> 
+                    </feMerge>
+                </filter>
+            </defs>
+
+            <circle id="sun" cx="50" cy="50" r="40" fill="#ffdd00" filter="url(#blur)" style="display: none"/>
+            <circle id="moon" cx="150" cy="50" r="40" fill="#eee" filter="url(#blur)" style="display: none"/>
+        </svg>
+        <div id="controls" style="height: 100px; width: calc(100% - 40px); padding: 15px">
+
+            <!-- Time down button -->
+            <div style="width: 115px; float: left;">
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="downbutton">
+                    Time Down
+                </button>
+            </div>
+
+            <!-- Time slider -->
+            <div style="width: calc(100% - 230px); float: left;">
+                <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
+                <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-720" max="720" value="0" step="2">
+            </div>
+
+            <!-- Time up button -->
+            <div style="width: 115px; float: left;">
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id ="upbutton">
+                    Time Up
+                </button>
+            </div>
+
         </div>
-
-        <!-- Time slider -->
-        <div style="width: calc(100% - 230px); float: left;">
-            <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
-            <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-720" max="720" value="0" step="2">
-        </div>
-
-        <!-- Time up button -->
-        <div style="width: 115px; float: left;">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id ="upbutton">
-                Time Up
-            </button>
-        </div>
-
     </div>
 </body>
 </html>

@@ -7,7 +7,9 @@ var EclipseSimulator = {
 
     View: function()
     {
+        this.sim            = $('#sim').get(0);
         this.window         = $('#container').get(0);
+        this.loading        = $('#loading').get(0);
         this.controls       = $('#controls').get(0);
         this.sun            = $('#sun').get(0);
         this.moon           = $('#moon').get(0);
@@ -15,8 +17,9 @@ var EclipseSimulator = {
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
 
-        this.sunpos  = {x: 0, y: 0, r: 2 * Math.PI / 180};
-        this.moonpos = {x: 0, y: 0, r: 2 * Math.PI / 180};
+        // Sun/Moon start off screen
+        this.sunpos  = {x: -100, y: 0, r: 2 * Math.PI / 180};
+        this.moonpos = {x: -100, y: 0, r: 2 * Math.PI / 180};
 
         // Field of view in radians
         this.fov = {
@@ -178,10 +181,14 @@ EclipseSimulator.View.prototype.init = function()
 
 EclipseSimulator.View.prototype.refresh = function()
 {
-    $(this.window).attr('height', $(window).height() - $(this.controls).height());
+    var window_height = $(window).height();
+
+    $(this.window).attr('height', window_height - $(this.controls).height());
     $(this.window).attr('width', $(window).width());
 
     $(this.window).show();
+
+    $(this.loading).css('height', window_height + 'px');
 
     // Position sun/moon. Cannot do this until window is displayed
     this.position_body_at_percent_coords(this.sun, this.sunpos);
@@ -293,6 +300,19 @@ EclipseSimulator.View.prototype.slider_change = function(new_val)
     $(this).trigger('EclipseView_time_updated', new_val);
 };
 
+EclipseSimulator.View.prototype.toggle_loading = function()
+{
+    if ($(this.loading).is(':visible'))
+    {
+        $(this.loading).hide();
+    }
+    else
+    {
+        $(this.loading).show();
+    }
+
+};
+
 
 // ===================================
 //
@@ -302,16 +322,38 @@ EclipseSimulator.View.prototype.slider_change = function(new_val)
 
 EclipseSimulator.Controller.prototype.init = function() 
 {
-    this.model.init();
-    var {time, az} = this.model.compute_eclipse_time_and_az();
-
-    this.view.az_center = az;
     this.view.init();
 
-    // DEMO
-    $(this.view).on('EclipseView_time_updated', function(event, val) {
-        console.log('Time updated. New value: ', val);
-    });
+    var controller = this;
+
+    // Trigger these computations asynchronously, with a timeout of 1ms
+    // to give the browser the chance to re-render the DOM with the loading view
+    // after it has been initialized by the call to view.init()
+    setTimeout(function() {
+
+        controller.model.init();
+
+        // DEMO
+        $(controller.view).on('EclipseView_time_updated', function(event, val) {
+            console.log('Time updated. New value: ', val);
+        });
+        
+        var {time, az} = controller.model.compute_eclipse_time_and_az();
+        
+        controller.view.az_center = az;
+        controller.view.refresh();
+
+        // Simulator window/buttons, etc start out hidden so that the user doesn't see
+        // a partially rendered view to start (e.g. height not set, etc). This only needs
+        // to be shown once, so we do it manually
+        $(controller.view.sim).show();
+
+        // Hide loading view - this starts out visible
+        controller.view.toggle_loading();
+
+        // Signal that initilization is complete, as this function completes asynchronously
+        $(controller).trigger('EclipseController_init_complete');
+    }, 1);
 };
 
 
@@ -500,14 +542,17 @@ function initSim() {
 
     // TEMP this is a demo - paste in a lat long from google maps 
     // in the array below to position the simulator at that location!
-    var c = [-4.933564, -57.789318];
+    var c = [45.495901, -122.708959];
     c     = {lat: c[0], lng: c[1]};
 
     var controller = new EclipseSimulator.Controller(c);
-    controller.init();
 
     // DEMO
-    demo(controller);
+    $(controller).on('EclipseController_init_complete', function() {
+        demo(controller);
+    });
+
+    controller.init();
 }
 
 
