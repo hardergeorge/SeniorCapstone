@@ -363,8 +363,8 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_az = function()
 
             date.setTime(time);
 
-            e_date     = this._create_ephemeris_date(date);
-            var sep    = this._compute_sun_moon_sep(e_date);
+            e_date = this._create_ephemeris_date(date);
+            sep    = this._compute_sun_moon_sep(e_date);
         }
         while (sep < prev_sep);
 
@@ -457,7 +457,6 @@ function demo(controller)
 {
     // Simulator hard coded initialization params
     controller.model.date.setUTCHours(13);
-    // controller.view.az_center = 110 * Math.PI / 180;
 
     _demo(controller, 0);
 }
