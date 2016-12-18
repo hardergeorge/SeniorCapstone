@@ -130,13 +130,10 @@ var EclipseSimulator = {
     },
 
     ECLIPSE_DAY: new Date('08/21/2017'),
+    
     ECLIPSE_ECOAST_HOUR: 20,
+    
     ECLIPSE_WCOAST_HOUR: 16,
-
-    // Parameters used compute moon radius in EclipseSimulator.Model._compute_sun_moon_pos
-    THETA_0: 0.009043,      // Radians
-    A: 384401.0,            // Kilometers
-    EARTH_R: 6378.14,       // Kilometers
 
 };
 
