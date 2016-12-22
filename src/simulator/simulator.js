@@ -324,8 +324,8 @@ EclipseSimulator.View.prototype._refresh_hills = function()
 
         // Accessing the data attribute auto converts it to a float
         hill.style.cx = $(hill).data('cxtow-ratio') * env_size.width;
-        hill.style.cy = $(hill).data('cy-offset') + env_size.height;
-        hill.style.r  = $(hill).data('rtoh-ratio') * env_size.height;
+        hill.style.cy = $(hill).data('cy-offset')   * env_size.height + env_size.height;
+        hill.style.r  = $(hill).data('rtoh-ratio')  * env_size.height;
 
         $(hill).show();
     }
