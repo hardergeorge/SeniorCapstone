@@ -326,6 +326,8 @@ EclipseSimulator.Controller.prototype.init = function()
 
     var controller = this;
 
+    var updated_time = new Date();
+
     // Trigger these computations asynchronously, with a timeout of 1ms
     // to give the browser the chance to re-render the DOM with the loading view
     // after it has been initialized by the call to view.init()
@@ -333,18 +335,20 @@ EclipseSimulator.Controller.prototype.init = function()
 
         controller.model.init();
 
-
-        // DEMO
-        $(controller.view).on('EclipseView_time_updated', function(event, val) {
-            // Call the model to update position based on new time
-            var pos = controller.model.update_time_positioning(Number(val));
-
-        });
-
         var {time, az} = controller.model.compute_eclipse_time_and_az();
 
         controller.view.az_center = az;
         controller.view.refresh();
+
+        // DEMO
+        $(controller.view).on('EclipseView_time_updated', function(event, val) {
+            // Update the display time
+            updated_time.setTime(time.getTime() + Number(val));
+            console.log("Time updated: ", updated_time.getTime());
+
+            var pos = controller.model.update_time_positioning(updated_time);
+
+        });
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
         // a partially rendered view to start (e.g. height not set, etc). This only needs
@@ -357,6 +361,8 @@ EclipseSimulator.Controller.prototype.init = function()
         // Signal that initilization is complete, as this function completes asynchronously
         $(controller).trigger('EclipseController_init_complete');
     }, 1);
+
+
 };
 
 
@@ -372,18 +378,11 @@ EclipseSimulator.Model.prototype.init = function()
 };
 
 // Called when the time gets updated via the time slider
-EclipseSimulator.Model.prototype.update_time_positioning = function(new_time){
-  //  console.log('Time updated. New value: ', new_time);
+// Time is a date object consisting of the new time that the sun/moon need to be
+// adjusted for..
+EclipseSimulator.Model.prototype.update_time_positioning = function(time){
 
-    // Compute eclipse time
-    var {time, az} = this.compute_eclipse_time_and_az();
-
-    // Update the displayed time based on eclipse time
-    var display_time = new Date(time.getTime() + new_time);
-
-    console.log('Time updated. Displaying new time: ', display_time.getTime());
-
-    var ephem_date = this._create_ephemeris_date(display_time);
+    var ephem_date = this._create_ephemeris_date(time);
 
     return this._compute_sun_moon_pos(ephem_date);
 }
@@ -569,7 +568,7 @@ function initSim() {
 
     // DEMO
     $(controller).on('EclipseController_init_complete', function() {
-        //demo(controller);
+      //  demo(controller);
     });
 
     controller.init();
