@@ -374,6 +374,8 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Update the view
     this.view.position_sun_moon(sun, moon);
 };
+
+
 // ==============================
 //
 // EclipseSimulator.Model methods
