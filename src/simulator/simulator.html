@@ -4,7 +4,7 @@
 <script type="text/javascript" src="simulator.js"></script>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.blue-amber.min.css">
 
 <!DOCTYPE html>
 <html>
@@ -36,29 +36,29 @@
             <circle id="moon" cx="0" cy="0" r="40" fill="#EEEEEE" filter="url(#blur)" style="display: none"/>
 
             <!-- Hills -->
-            <circle id="hill1" cx="130" cy="2385" r="1800" data-cxtow-ratio="0.0902" data-rtoh-ratio="2.7692" data-cy-offset="1735"
+            <circle id="hill1" data-cxtow-ratio="0.0902" data-rtoh-ratio="2.7692" data-cy-offset="1735"
                     fill="#4CAF50" filter="url(#blur)" style="display: none"/>
-            <circle id="hill2" cx="1050" cy="2375" r="1800" data-cxtow-ratio="0.7291" data-rtoh-ratio="2.7692" data-cy-offset="1735"
+            <circle id="hill2" data-cxtow-ratio="0.7291" data-rtoh-ratio="2.7692" data-cy-offset="1735"
                     fill="#4CAF50" filter="url(#blur)" style="display: none"/>
         </svg>
-        <div id="controls" style="height: 100px; width: calc(100% - 40px); padding: 15px">
+        <div id="controls" style="height: 100px; padding: 0px 15px 0px 15px; background-color: #84521c">
 
             <!-- Time down button -->
-            <div style="width: 115px; float: left;">
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="downbutton">
+            <div style="width: 115px; float: left; margin-top: 30px">
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="downbutton">
                     Time Down
                 </button>
             </div>
 
             <!-- Time slider -->
-            <div style="width: calc(100% - 230px); float: left;">
+            <div style="width: calc(100% - 202px); float: left; margin-top: 40px">
                 <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
                 <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-720" max="720" value="0" step="2">
             </div>
 
             <!-- Time up button -->
-            <div style="width: 115px; float: left;">
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id ="upbutton">
+            <div style="width: 87px; float: left; margin-top: 30px">
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id ="upbutton">
                     Time Up
                 </button>
             </div>
