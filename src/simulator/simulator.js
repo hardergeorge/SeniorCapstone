@@ -41,6 +41,8 @@ var EclipseSimulator = {
     {
         this.view  = new EclipseSimulator.View();
         this.model = new EclipseSimulator.Model(coords);
+
+
     },
 
     Model: function(coords)
@@ -50,6 +52,9 @@ var EclipseSimulator = {
 
         // Current simulator time
         this.date = EclipseSimulator.ECLIPSE_DAY;
+
+        // Computed eclipse time
+        this.eclipseTime = EclipseSimulator.ECLIPSE_DAY;
 
         // Date object to be passed to ephemeris
         this._ephemeris_date = {};
@@ -326,8 +331,6 @@ EclipseSimulator.Controller.prototype.init = function()
 
     var controller = this;
 
-    var updated_time = new Date();
-
     // Trigger these computations asynchronously, with a timeout of 1ms
     // to give the browser the chance to re-render the DOM with the loading view
     // after it has been initialized by the call to view.init()
@@ -336,18 +339,13 @@ EclipseSimulator.Controller.prototype.init = function()
         controller.model.init();
 
         var {time, az} = controller.model.compute_eclipse_time_and_az();
-
         controller.view.az_center = az;
         controller.view.refresh();
 
         // DEMO
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
-            // Update the display time
-            updated_time.setTime(time.getTime() + Number(val));
-            console.log("Time updated: ", updated_time.getTime());
-
-            var pos = controller.model.update_time_positioning(updated_time);
-
+            // Call the handler, converting the val to millisecond
+            controller.slider_change_handler(Number(val) * 60 * 1000);
         });
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
@@ -362,10 +360,23 @@ EclipseSimulator.Controller.prototype.init = function()
         $(controller).trigger('EclipseController_init_complete');
     }, 1);
 
-
 };
 
+// Handler for when the slider gets changed
+// sliderValueMS is expected to be passed in as milliseconds
+EclipseSimulator.Controller.prototype.slider_change_handler = function(sliderValueMS)
+{
+    // Get the computed eclipse time
+    var eclipse_time = this.model.eclipseTime.getTime();
 
+    // Update the displayed time by adding the slider value to the eclipse time
+    this.model.date.setTime(eclipse_time + sliderValueMS);
+
+    // Compute sun/moon position based off of this.model.date value
+    // which is the displayed time
+    var pos = this.model.get_sun_moon_position();
+
+};
 // ==============================
 //
 // EclipseSimulator.Model methods
@@ -376,16 +387,6 @@ EclipseSimulator.Model.prototype.init = function()
 {
     $processor.init();
 };
-
-// Called when the time gets updated via the time slider
-// Time is a date object consisting of the new time that the sun/moon need to be
-// adjusted for..
-EclipseSimulator.Model.prototype.update_time_positioning = function(time){
-
-    var ephem_date = this._create_ephemeris_date(time);
-
-    return this._compute_sun_moon_pos(ephem_date);
-}
 
 EclipseSimulator.Model.prototype.get_sun_moon_position = function()
 {
@@ -439,6 +440,8 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_az = function()
 
     // Compute eclipse azimuth
     var pos = this._compute_sun_moon_pos(e_date);
+
+    this.eclipseTime.setTime(time);
 
     return {
         time: date,
