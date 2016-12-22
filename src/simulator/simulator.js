@@ -509,48 +509,6 @@ EclipseSimulator.Model.prototype._update_ephemeris = function()
 };
 
 
-// ====================================
-//
-// Temp / Development / Debug functions
-//
-// ====================================
-
-function demo(controller)
-{
-    // Simulator hard coded initialization params
-    controller.model.date.setUTCHours(13);
-
-    _demo(controller, 0);
-}
-
-function _demo(controller, i)
-{
-    if (i >= 360)
-    {
-        return;
-    }
-
-    // Compute sun and moon positions and log the amount of time it takes
-    var t = performance.now();
-    var positions = controller.model.get_sun_moon_position();
-    t = performance.now() - t;
-    console.log('Ephemeris computations took: ', t.toFixed(4), ' milliseconds');
-
-    var sun  = positions.sun;
-    var moon = positions.moon;
-
-    sun.r    = controller.view.sunpos.r;
-    moon.r   = controller.view.moonpos.r;
-
-    controller.view.position_sun_moon(sun, moon);
-
-    controller.model.date.setTime(controller.model.date.getTime() + (1000 * 60 * 2));
-
-    setTimeout(function() {
-        _demo(controller, i + 1);
-    }, 25);
-}
-
 
 // ========================
 //
@@ -565,13 +523,10 @@ function initSim() {
     var c = [45.495901, -122.708959];
     c     = {lat: c[0], lng: c[1]};
 
+    // Makes the simulator choose the default, corvallis coords
+    c = undefined;
+
     var controller = new EclipseSimulator.Controller(c);
-
-    // DEMO
-    $(controller).on('EclipseController_init_complete', function() {
-      //  demo(controller);
-    });
-
     controller.init();
 }
 
