@@ -351,8 +351,9 @@ EclipseSimulator.Controller.prototype.init = function()
 
         controller.model.init();
 
-        var {time, az} = controller.model.compute_eclipse_time_and_az();
-        controller.view.az_center = az;
+        var res  = controller.model.compute_eclipse_time_and_az();
+        
+        controller.view.az_center = res.az;
         controller.view.refresh();
 
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
@@ -388,7 +389,9 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
 
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
-    var {sun, moon} = this.model.get_sun_moon_position();
+    var pos  = this.model.get_sun_moon_position();
+    var sun  = pos.sun;
+    var moon = pos.moon;
 
     sun.r    = this.view.sunpos.r;
     moon.r   = this.view.moonpos.r;
