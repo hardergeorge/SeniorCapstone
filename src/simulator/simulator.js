@@ -383,8 +383,6 @@ EclipseSimulator.Model.prototype.update_time_positioning = function(new_time){
 
     console.log('Time updated. Displaying new time: ', display_time.getTime());
 
-    $const.glat  = this.coords.lat;
-    $const.tlong = this.coords.lng;
     var ephem_date = this._create_ephemeris_date(display_time);
 
     return this._compute_sun_moon_pos(ephem_date);
