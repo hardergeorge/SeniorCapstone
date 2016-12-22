@@ -13,6 +13,7 @@ var EclipseSimulator = {
         this.controls       = $('#controls').get(0);
         this.sun            = $('#sun').get(0);
         this.moon           = $('#moon').get(0);
+        this.hills          = $('[id^=hill]');
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
@@ -154,6 +155,7 @@ var EclipseSimulator = {
 EclipseSimulator.View.prototype.init = function()
 {
     this.refresh();
+    this._refresh_hills();
 
     // Have to create a reference to this, because inside the window
     // refresh function callback this refers to the window object
@@ -180,6 +182,7 @@ EclipseSimulator.View.prototype.init = function()
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
         view.refresh();
+        view._refresh_hills();
     });
 };
 
@@ -307,6 +310,25 @@ EclipseSimulator.View.prototype.toggle_loading = function()
         $(this.loading).show();
     }
 
+};
+
+// Made this its own function, as we dont want to do it every time
+// the sun and moon are moved
+EclipseSimulator.View.prototype._refresh_hills = function()
+{
+    var env_size = this.get_environment_size();
+
+    for (var i = 0; i < this.hills.length; i++)
+    {
+        var hill = this.hills.get(i);
+
+        // Accessing the data attribute auto converts it to a float
+        hill.style.cx = $(hill).data('cxtow-ratio') * env_size.width;
+        hill.style.cy = $(hill).data('cy-offset') + env_size.height;
+        hill.style.r  = $(hill).data('rtoh-ratio') * env_size.height;
+
+        $(hill).show();
+    }
 };
 
 
@@ -522,7 +544,7 @@ function initSim() {
 
     // TEMP this is a demo - paste in a lat long from google maps
     // in the array below to position the simulator at that location!
-    var c = [45.495901, -122.708959];
+    var c = [46.470113, -69.202133];
     c     = {lat: c[0], lng: c[1]};
 
     // Makes the simulator choose the default, corvallis coords
