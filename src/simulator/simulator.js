@@ -23,9 +23,9 @@ var EclipseSimulator = {
 
         // Field of view in radians
         this.fov = {
-            
+
             // Max x fov is 140 degrees
-            x: 140 * Math.PI / 180, 
+            x: 140 * Math.PI / 180,
 
             // Max y fov is 90 degrees
             y: 80 * Math.PI / 180
@@ -43,11 +43,11 @@ var EclipseSimulator = {
         this.model = new EclipseSimulator.Model(coords);
     },
 
-    Model: function(coords) 
+    Model: function(coords)
     {
         // Current simulator coordinates
         this.coords = coords !== undefined ? coords : EclipseSimulator.CORVALLIS_COORDS;
-        
+
         // Current simulator time
         this.date = EclipseSimulator.ECLIPSE_DAY;
 
@@ -61,26 +61,26 @@ var EclipseSimulator = {
         var hyp = Math.cos(alt);
         var y   = hyp * Math.cos(az);
         var x   = hyp * Math.sin(az);
-    
+
         return [x, y, z];
     },
 
     dot3d: function(v1, v2)
     {
-        return ((v1[0] * v2[0]) + 
-                (v1[1] * v2[1]) + 
+        return ((v1[0] * v2[0]) +
+                (v1[1] * v2[1]) +
                 (v1[2] * v2[2]));
     },
 
     normalize3d: function(v)
     {
         // Magnitude
-        var m = Math.sqrt((v[0] * v[0]) + 
-                          (v[1] * v[1]) + 
+        var m = Math.sqrt((v[0] * v[0]) +
+                          (v[1] * v[1]) +
                           (v[2] * v[2]));
 
-        return [v[0] / m, 
-                v[1] / m, 
+        return [v[0] / m,
+                v[1] / m,
                 v[2] / m];
     },
 
@@ -115,7 +115,7 @@ var EclipseSimulator = {
     },
 
     // Determine if angle a is greater than angle b
-    // That is, if b < a <= (b + pi) 
+    // That is, if b < a <= (b + pi)
     rad_gt: function(a, b)
     {
         a = EclipseSimulator.normalize_rad(a);
@@ -133,9 +133,9 @@ var EclipseSimulator = {
     },
 
     ECLIPSE_DAY: new Date('08/21/2017'),
-    
+
     ECLIPSE_ECOAST_HOUR: 20,
-    
+
     ECLIPSE_WCOAST_HOUR: 16,
 
 };
@@ -320,7 +320,7 @@ EclipseSimulator.View.prototype.toggle_loading = function()
 //
 // ===================================
 
-EclipseSimulator.Controller.prototype.init = function() 
+EclipseSimulator.Controller.prototype.init = function()
 {
     this.view.init();
 
@@ -333,13 +333,16 @@ EclipseSimulator.Controller.prototype.init = function()
 
         controller.model.init();
 
+
         // DEMO
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
-            console.log('Time updated. New value: ', val);
+            // Call the model to update position based on new time
+            var pos = controller.model.update_time_positioning(Number(val));
+
         });
-        
+
         var {time, az} = controller.model.compute_eclipse_time_and_az();
-        
+
         controller.view.az_center = az;
         controller.view.refresh();
 
@@ -367,6 +370,25 @@ EclipseSimulator.Model.prototype.init = function()
 {
     $processor.init();
 };
+
+// Called when the time gets updated via the time slider
+EclipseSimulator.Model.prototype.update_time_positioning = function(new_time){
+  //  console.log('Time updated. New value: ', new_time);
+
+    // Compute eclipse time
+    var {time, az} = this.compute_eclipse_time_and_az();
+
+    // Update the displayed time based on eclipse time
+    var display_time = new Date(time.getTime() + new_time);
+
+    console.log('Time updated. Displaying new time: ', display_time.getTime());
+
+    $const.glat  = this.coords.lat;
+    $const.tlong = this.coords.lng;
+    var ephem_date = this._create_ephemeris_date(display_time);
+
+    return this._compute_sun_moon_pos(ephem_date);
+}
 
 EclipseSimulator.Model.prototype.get_sun_moon_position = function()
 {
@@ -445,7 +467,7 @@ EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(e_date)
 
 // Computes sun and moon position at Model.coords for a given ephemeris_date
 // object, which can be created by passing a normal Date object to Model._create_ephemeris_date.
-// NOTE: Model._update_ephemeris must have been called prior to calling this 
+// NOTE: Model._update_ephemeris must have been called prior to calling this
 // function in order to register Model.coords with the ephemeris library
 EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(ephemeris_date)
 {
@@ -459,10 +481,10 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(ephemeris_date
     var moonpos = moon.position.altaz.topocentric;
 
     return {
-        sun:  {az:  EclipseSimulator.deg2rad(sunpos.azimuth),  
+        sun:  {az:  EclipseSimulator.deg2rad(sunpos.azimuth),
                alt: EclipseSimulator.deg2rad(sunpos.altitude),
         },
-        moon: {az:  EclipseSimulator.deg2rad(moonpos.azimuth),  
+        moon: {az:  EclipseSimulator.deg2rad(moonpos.azimuth),
                alt: EclipseSimulator.deg2rad(moonpos.altitude),
         },
     };
@@ -471,13 +493,13 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(ephemeris_date
 EclipseSimulator.Model.prototype._create_ephemeris_date = function(date)
 {
     return {
-        year:    date.getFullYear(), 
+        year:    date.getFullYear(),
         month:   date.getMonth() + 1, // Date object months are zero indexed
-        day:     date.getDate(), 
-        hours:   date.getUTCHours(), 
-        minutes: date.getMinutes(), 
+        day:     date.getDate(),
+        hours:   date.getUTCHours(),
+        minutes: date.getMinutes(),
         seconds: date.getSeconds()
-    };   
+    };
 }
 
 EclipseSimulator.Model.prototype._update_ephemeris = function()
@@ -508,7 +530,7 @@ function _demo(controller, i)
     if (i >= 360)
     {
         return;
-    }    
+    }
 
     // Compute sun and moon positions and log the amount of time it takes
     var t = performance.now();
@@ -523,7 +545,7 @@ function _demo(controller, i)
     moon.r   = controller.view.moonpos.r;
 
     controller.view.position_sun_moon(sun, moon);
-    
+
     controller.model.date.setTime(controller.model.date.getTime() + (1000 * 60 * 2));
 
     setTimeout(function() {
@@ -540,7 +562,7 @@ function _demo(controller, i)
 
 function initSim() {
 
-    // TEMP this is a demo - paste in a lat long from google maps 
+    // TEMP this is a demo - paste in a lat long from google maps
     // in the array below to position the simulator at that location!
     var c = [45.495901, -122.708959];
     c     = {lat: c[0], lng: c[1]};
@@ -549,7 +571,7 @@ function initSim() {
 
     // DEMO
     $(controller).on('EclipseController_init_complete', function() {
-        demo(controller);
+        //demo(controller);
     });
 
     controller.init();
