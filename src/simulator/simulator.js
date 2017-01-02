@@ -17,6 +17,8 @@ var EclipseSimulator = {
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
+        this.submit         = $('#submit').get(0);
+        this.address        = $('#address').get(0);
 
         // Sun/Moon start off screen
         this.sunpos  = {x: -100, y: 0, r: 2 * Math.PI / 180};
@@ -179,6 +181,10 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change(view.slider.value);
     });
 
+    $("#submit").click(function(){
+        view.locationSubmitted();
+    });
+
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
         view.refresh();
@@ -331,6 +337,17 @@ EclipseSimulator.View.prototype._refresh_hills = function()
     }
 };
 
+EclipseSimulator.View.prototype.locationSubmitted = function()
+{ 
+  //var map = new google.maps.Map(document.getElementById('map'), {
+  //  zoom: 8,
+  //  center: {lat: 44.5645659, lng: -123.2620435}
+  //});
+  var geocoder = new google.maps.Geocoder();
+  
+  $(this).trigger('EclipseView_location_updated', geocoder);
+};
+
 
 // ===================================
 //
@@ -360,6 +377,11 @@ EclipseSimulator.Controller.prototype.init = function()
             // Call the handler, converting the val from minutes to milliseconds
             controller.update_simulator_time_with_offset(parseInt(val) * 60 * 1000);
         });
+
+        $(controller.view).on('EclipseView_location_updated', function(event, geocod) {
+            //Call the location event handler with new location info
+            controller.geocodeAddress(geocod);
+        })
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
         // a partially rendered view to start (e.g. height not set, etc). This only needs
@@ -399,6 +421,29 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Update the view
     this.view.position_sun_moon(sun, moon);
 };
+
+EclipseSimulator.Controller.prototype.geocodeAddress = function(geocoder, resultsMap)
+{
+  var address = document.getElementById('address').value;
+  geocoder.geocode({'address': address}, function(results, status) {
+    if (status === 'OK') {
+      
+      var pos = results[0].geometry.location;
+
+      console.log(pos.lat(), pos.lng());
+
+
+     // resultsMap.setCenter(results[0].geometry.location);
+     // var marker = new google.maps.Marker({
+     //   map: resultsMap,
+     //   position: results[0].geometry.location
+     // });
+     // console.log(String(marker.position.lat()) + " " + String(marker.position.lng()))
+    } else {
+      alert('Geocode was not successful for the following reason: ' + status);
+    }
+  });
+}
 
 
 // ==============================
@@ -556,40 +601,5 @@ function initSim() {
     var controller = new EclipseSimulator.Controller(c);
     controller.init();
 }
-
-function initMap() {
-  //var map = new google.maps.Map(document.getElementById('map'), {
-  //  zoom: 8,
-  //  center: {lat: -34.397, lng: 150.644}
-  //});
-  var geocoder = new google.maps.Geocoder();
-
-  document.getElementById('submit').addEventListener('click', function() {
-    geocodeAddress(geocoder);
-  });
-}
-
-function geocodeAddress(geocoder, resultsMap) {
-  var address = document.getElementById('address').value;
-  geocoder.geocode({'address': address}, function(results, status) {
-    if (status === 'OK') {
-      
-      var pos = results[0].geometry.location;
-
-      console.log(pos.lat(), pos.lng());
-
-
-     // resultsMap.setCenter(results[0].geometry.location);
-     // var marker = new google.maps.Marker({
-     //   map: resultsMap,
-     //   position: results[0].geometry.location
-     // });
-     // console.log(String(marker.position.lat()) + " " + String(marker.position.lng()))
-    } else {
-      alert('Geocode was not successful for the following reason: ' + status);
-    }
-  });
-}
-
 
 $(document).ready(initSim);
