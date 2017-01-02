@@ -339,6 +339,8 @@ EclipseSimulator.View.prototype._refresh_hills = function()
 
 EclipseSimulator.View.prototype.locationSubmitted = function()
 { 
+  
+  // Uncommenting these lines, as well as the ones in Controller.geocodeAddress will turn the map on
   //var map = new google.maps.Map(document.getElementById('map'), {
   //  zoom: 8,
   //  center: {lat: 44.5645659, lng: -123.2620435}
@@ -378,9 +380,9 @@ EclipseSimulator.Controller.prototype.init = function()
             controller.update_simulator_time_with_offset(parseInt(val) * 60 * 1000);
         });
 
-        $(controller.view).on('EclipseView_location_updated', function(event, geocod) {
+        $(controller.view).on('EclipseView_location_updated', function(event, geocoder) {
             //Call the location event handler with new location info
-            controller.geocodeAddress(geocod);
+            controller.geocodeAddress(geocoder);
         })
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
@@ -425,20 +427,50 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
 EclipseSimulator.Controller.prototype.geocodeAddress = function(geocoder, resultsMap)
 {
   var address = document.getElementById('address').value;
+  var controller = this;
+
   geocoder.geocode({'address': address}, function(results, status) {
     if (status === 'OK') {
       
-      var pos = results[0].geometry.location;
+        var newpos = results[0].geometry.location;
 
-      console.log(pos.lat(), pos.lng());
+        console.log(newpos.lat(), newpos.lng());
 
 
-     // resultsMap.setCenter(results[0].geometry.location);
-     // var marker = new google.maps.Marker({
-     //   map: resultsMap,
-     //   position: results[0].geometry.location
-     // });
-     // console.log(String(marker.position.lat()) + " " + String(marker.position.lng()))
+        // Uncommenting these lines, as well as the ones in View.locationSubmitted will turn the map on
+        // resultsMap.setCenter(results[0].geometry.location);
+        // var marker = new google.maps.Marker({
+        //   map: resultsMap,
+        //   position: results[0].geometry.location
+        // });
+        // console.log(String(marker.position.lat()) + " " + String(marker.position.lng()))
+
+        controller.model.coords = {
+            lat: newpos.lat(),
+            lng: newpos.lng()
+        };
+
+        // This will set the model's eclipse_time attribute
+        var res = controller.model.compute_eclipse_time_and_az();
+
+        // Set model displayed date to eclipse time
+        controller.model.date.setTime(res.time.getTime());
+
+        // Set view center
+        controller.view.az_center = res.az;
+
+        // Get new position of sun/moon
+        var pos  = controller.model.get_sun_moon_position();
+        var sun  = pos.sun;
+        var moon = pos.moon;
+
+        sun.r    = controller.view.sunpos.r;
+        moon.r   = controller.view.moonpos.r;
+
+        // Update the view
+        controller.view.position_sun_moon(sun, moon);
+
+
     } else {
       alert('Geocode was not successful for the following reason: ' + status);
     }
