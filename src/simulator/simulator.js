@@ -19,8 +19,8 @@ var EclipseSimulator = {
         this.slider         = $('#tslider').get(0);
 
         // Sun/Moon start off screen
-        this.sunpos  = {x: -100, y: 0, r: 2 * Math.PI / 180};
-        this.moonpos = {x: -100, y: 0, r: 2 * Math.PI / 180};
+        this.sunpos  = {x: -100, y: 0, r: 1 * Math.PI / 180};
+        this.moonpos = {x: -100, y: 0, r: 1 * Math.PI / 180};
 
         // Field of view in radians
         this.fov = {
@@ -179,7 +179,7 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change(view.slider.value);
     });
 
-    view.initAutocomplete();
+    this.initialize_location_entry();
 
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
@@ -188,24 +188,28 @@ EclipseSimulator.View.prototype.init = function()
     });
 };
 
-EclipseSimulator.View.prototype.initAutocomplete = function()
+EclipseSimulator.View.prototype.initialize_location_entry = function()
 {
     var view = this;
 
     // Create the search box and link it to the UI element.
-    var input = document.getElementById('pac-input');
-    var searchBox = new google.maps.places.SearchBox(input);
+    var input      = document.getElementById('pac-input');
+    var search_box = new google.maps.places.SearchBox(input);
     
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
-    searchBox.addListener('places_changed', function() {
-    var places = searchBox.getPlaces();
+    search_box.addListener('places_changed', function() {
+        
+        var places = search_box.getPlaces();
 
-    if (places.length == 0) {
-        return;
-    }
+        if (places.length == 0) 
+        {    
+            // TODO Add error behavior
 
-    view.locationSubmitted();
+            return;
+        }
+
+        $(view).trigger('EclipseView_location_updated', places[0].geometry.location);
     });
 }
 
@@ -335,6 +339,11 @@ EclipseSimulator.View.prototype.toggle_loading = function()
 
 };
 
+EclipseSimulator.View.prototype.reset_controls = function()
+{
+    this.slider.MaterialSlider.change(0);
+};
+
 // Made this its own function, as we dont want to do it every time
 // the sun and moon are moved
 EclipseSimulator.View.prototype._refresh_hills = function()
@@ -352,19 +361,6 @@ EclipseSimulator.View.prototype._refresh_hills = function()
 
         $(hill).show();
     }
-};
-
-EclipseSimulator.View.prototype.locationSubmitted = function()
-{ 
-  
-  // Uncommenting these lines, as well as the ones in Controller.geocodeAddress will turn the map on
-  //var map = new google.maps.Map(document.getElementById('map'), {
-  //  zoom: 8,
-  //  center: {lat: 44.5645659, lng: -123.2620435}
-  //});
-  var geocoder = new google.maps.Geocoder();
-  
-  $(this).trigger('EclipseView_location_updated', geocoder);
 };
 
 
@@ -397,9 +393,9 @@ EclipseSimulator.Controller.prototype.init = function()
             controller.update_simulator_time_with_offset(parseInt(val) * 60 * 1000);
         });
 
-        $(controller.view).on('EclipseView_location_updated', function(event, geocoder) {
-            //Call the location event handler with new location info
-            controller.geocodeAddress(geocoder);
+        $(controller.view).on('EclipseView_location_updated', function(event, location) {
+            // Call the location event handler with new location info
+            controller.update_simulator_location(location);
         })
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
@@ -441,57 +437,33 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     this.view.position_sun_moon(sun, moon);
 };
 
-EclipseSimulator.Controller.prototype.geocodeAddress = function(geocoder)
+EclipseSimulator.Controller.prototype.update_simulator_location = function(location)
 {
-  var address = document.getElementById('pac-input').value;
-  var controller = this;
+    this.model.coords = {
+        lat: location.lat(),
+        lng: location.lng()
+    };
 
-  geocoder.geocode({'address': address}, function(results, status) {
-    if (status === 'OK') {
-      
-        var newpos = results[0].geometry.location;
+    // This will set the model's eclipse_time attribute
+    var res = this.model.compute_eclipse_time_and_az();
 
-        console.log(newpos.lat(), newpos.lng());
+    // Set model displayed date to eclipse time
+    this.model.date.setTime(res.time.getTime());
 
+    // Set view center
+    this.view.az_center = res.az;
 
-        // Uncommenting these lines, as well as the ones in View.locationSubmitted will turn the map on
-        // resultsMap.setCenter(results[0].geometry.location);
-        // var marker = new google.maps.Marker({
-        //   map: resultsMap,
-        //   position: results[0].geometry.location
-        // });
-        // console.log(String(marker.position.lat()) + " " + String(marker.position.lng()))
+    // Get new position of sun/moon
+    var pos  = this.model.get_sun_moon_position();
+    var sun  = pos.sun;
+    var moon = pos.moon;
 
-        controller.model.coords = {
-            lat: newpos.lat(),
-            lng: newpos.lng()
-        };
+    sun.r    = this.view.sunpos.r;
+    moon.r   = this.view.moonpos.r;
 
-        // This will set the model's eclipse_time attribute
-        var res = controller.model.compute_eclipse_time_and_az();
-
-        // Set model displayed date to eclipse time
-        controller.model.date.setTime(res.time.getTime());
-
-        // Set view center
-        controller.view.az_center = res.az;
-
-        // Get new position of sun/moon
-        var pos  = controller.model.get_sun_moon_position();
-        var sun  = pos.sun;
-        var moon = pos.moon;
-
-        sun.r    = controller.view.sunpos.r;
-        moon.r   = controller.view.moonpos.r;
-
-        // Update the view
-        controller.view.position_sun_moon(sun, moon);
-
-
-    } else {
-      alert('Geocode was not successful for the following reason: ' + status);
-    }
-  });
+    // Update the view
+    this.view.reset_controls();
+    this.view.position_sun_moon(sun, moon);
 }
 
 
