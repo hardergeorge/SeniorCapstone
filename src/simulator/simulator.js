@@ -17,8 +17,6 @@ var EclipseSimulator = {
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
-        this.submit         = $('#submit').get(0);
-        this.address        = $('#address').get(0);
 
         // Sun/Moon start off screen
         this.sunpos  = {x: -100, y: 0, r: 2 * Math.PI / 180};
@@ -181,9 +179,7 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change(view.slider.value);
     });
 
-    $("#submit").click(function(){
-        view.locationSubmitted();
-    });
+    view.initAutocomplete();
 
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
@@ -191,6 +187,27 @@ EclipseSimulator.View.prototype.init = function()
         view._refresh_hills();
     });
 };
+
+EclipseSimulator.View.prototype.initAutocomplete = function()
+{
+    var view = this;
+
+    // Create the search box and link it to the UI element.
+    var input = document.getElementById('pac-input');
+    var searchBox = new google.maps.places.SearchBox(input);
+    
+    // Listen for the event fired when the user selects a prediction and retrieve
+    // more details for that place.
+    searchBox.addListener('places_changed', function() {
+    var places = searchBox.getPlaces();
+
+    if (places.length == 0) {
+        return;
+    }
+
+    view.locationSubmitted();
+    });
+}
 
 EclipseSimulator.View.prototype.refresh = function()
 {
@@ -424,9 +441,9 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     this.view.position_sun_moon(sun, moon);
 };
 
-EclipseSimulator.Controller.prototype.geocodeAddress = function(geocoder, resultsMap)
+EclipseSimulator.Controller.prototype.geocodeAddress = function(geocoder)
 {
-  var address = document.getElementById('address').value;
+  var address = document.getElementById('pac-input').value;
   var controller = this;
 
   geocoder.geocode({'address': address}, function(results, status) {
