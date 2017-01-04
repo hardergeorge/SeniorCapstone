@@ -211,7 +211,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
         $(view).trigger('EclipseView_location_updated', places[0].geometry.location);
     });
-}
+};
 
 EclipseSimulator.View.prototype.refresh = function()
 {
@@ -237,7 +237,7 @@ EclipseSimulator.View.prototype.get_environment_size = function()
     return {
         width:  this.window.width.baseVal.value,
         height: this.window.height.baseVal.value,
-    }
+    };
 };
 
 EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos)
@@ -464,7 +464,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     // Update the view
     this.view.reset_controls();
     this.view.position_sun_moon(sun, moon);
-}
+};
 
 
 // ==============================
@@ -537,7 +537,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_az = function()
     return {
         time: date,
         az:   pos.sun.az,
-    }
+    };
 };
 
 // Compute sun/moon angular seperation and moon radius
@@ -591,7 +591,7 @@ EclipseSimulator.Model.prototype._create_ephemeris_date = function(date)
         minutes: date.getMinutes(),
         seconds: date.getSeconds()
     };
-}
+};
 
 EclipseSimulator.Model.prototype._update_ephemeris = function()
 {
