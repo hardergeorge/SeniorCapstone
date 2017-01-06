@@ -8,6 +8,9 @@
 
 \graphicspath{ {images/} }
 
+% Colored Text
+\usepackage[usenames, dvipsnames]{color}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Macro for the signatures at the end                %
 \newcommand*{\SignatureAndDate}[1]{%
@@ -194,6 +197,16 @@ systems in section 3.
 
 \subsection{Product functions}
 	\begin{enumerate}
+		\item The Eclipse Simulator will be a standalone JavaScript 
+		module enabling users to "preview" the eclipse. It will be 
+		designed in a stylized, 2D manner. The simulator will 
+		incorporate a time slider that allows users to simulate the 
+		eclipse in a time window spanning from 12 hours before the 
+		eclipse to 12 hours after it. As users drag the time 
+		slider, the eclipse will animate in the simulator window. 
+		The view of the eclipse which users are presented will be 
+		specific to the selected location.
+
 		\item The Eclipse Image Processor application will ingest 
 		photos of the eclipse, determine if they are images of a 
 		total solar eclipse, and if so, align them spatially
@@ -207,16 +220,21 @@ systems in section 3.
 		extracted from the image files and included in this output
 		data file. Images that are deemed as being of "non-total" solar
 		eclipses will be marked as such and otherwise ignored.
+
+		\item The Eclipse Image Processor Manager will be responsible for 
+		managing the Eclipse Image Processor application. This includes 
+		collecting images from Google Cloud for the image processor to process,
+		invoking the image processor with these images as input, and collecting 
+		the output of the image processor and uploading it to Google Cloud. The 
+		image processor and image processor manager will be deployed together 
+		in a single docker container to Google Container Engine Clusters (of VMs).
+		An important role of the image processor manager is that it will be responsible 
+		for ensuring that the compute resources on the host VMs are as saturated as 
+		possible. This means invoking multiple image processor processes concurrently, 
+		while at the same time downloading the next images to be processed and uploading 
+		the already processed images.
 		
-		\item The Eclipse Simulator will be a standalone JavaScript 
-		module enabling users to "preview" the eclipse. It will be 
-		designed in a stylized, 2D manner. The simulator will 
-		incorporate a time slider that allows users to simulate the 
-		eclipse in a time window spanning from 12 hours before the 
-		eclipse to 12 hours after it. As users drag the time 
-		slider, the eclipse will animate in the simulator window. 
-		The view of the eclipse which users are presented will be 
-		specific to the selected location.
+		
 	\end{enumerate}
 
 \subsection{User characteristics}
@@ -365,7 +383,7 @@ See Gantt Chart in Appendix.
 		 			 coordinate EXIF field)}
 
 		 			 \item rejected\_reason: reason a particular image was rejected, 
-		 			 (\textbf{TODO}), see requirement \textbf{TODO} of 3.2.2.
+		 			 see requirement \#10 of 3.2.2.
 		 		\end{enumerate}
 		 	\end{enumerate}
 			\item Processed image files
@@ -394,7 +412,15 @@ See Gantt Chart in Appendix.
 
 \subsubsection{Eclipse Image Processor Manager}
 	\begin{enumerate}
-		\item Lorem
+		\item The Eclipse Image Processor Manager will collect images to be processed
+		from Google Cloud Storage. It will obtain lists of files to download and their
+		respective metadata from Google Cloud Datastore. It will be aware of the scheme 
+		of the Datastore NoSQL database in order to read/write image metadata.
+		
+		\item The Eclipse Image Processor Manager will invoke instances of the Eclipse 
+		Image Processor and communicate with them via a command-line interface as well
+		as data files. The format of these data files, as well as the command-line interface
+		is described in 3.1.2.
 	\end{enumerate}
 
 %%%%%% Section 3.2 %%%%%%%%
@@ -404,15 +430,18 @@ See Gantt Chart in Appendix.
 	\begin{enumerate}
 		\item Displayed solar/lunar placement will be based on location and 
 		time and will account for edge cases like when the location is not in 
-		the path of totality. For example, if the location is on the opposite 
+		the path of totality. \sout{For example, if the location is on the opposite 
 		side of the world as the eclipse, the simulator should shift to a night
-		time display.
+		time display.}
 
-		\item Simulator will display the local time that the simulator is set 
+		\item The simulator location will be restricted to North America as this is where
+		the eclipse will be visible from.
+
+		\item \sout{Simulator will display the local time that the simulator is set 
 		to, e.g. there is a well defined time associated with the user 
 		selecting Corvallis, Oregon as their location and a simulator time of 
 		-3:13 (3 hours 13 minutes) before the eclipse. This time should be 
-		displayed on the simulator.
+		displayed on the simulator.}
 	\end{enumerate}
 
 \subsubsection{Eclipse Image Processor}
@@ -491,11 +520,43 @@ See Gantt Chart in Appendix.
 		\item Images \sout{with GPS EXIF information that are} that were not taken on the path of
 		totality will be rejected, see requirement \#5 in 3.1.2.
 
+		\item Images can be rejected by the image processor. When an image is rejected,
+		the reason it was rejected will be noted and exported, see requirement \#5 in 3.1.2.
+		The possible reasons for which an image can be rejected will include at least the 
+		following:
+		\begin{enumerate}
+			\item Invalid image file, e.g. image file is corrupted and cannot be opened.
+
+			\item Solar disk radius is too small.
+
+			\item There is not enough padding around the solar disk.
+
+			\item Image was not taken on the path of totality.
+		\end{enumerate}
+
 	\end{enumerate}
 
 \subsubsection{Eclipse Image Processor Manager}
 	\begin{enumerate}
-		\item Lorem
+		\item The application will be designed so that multiple instances of it
+		can run concurrently with no communication between them.
+		These distinct managers will not attempt to process the same images.
+
+		\item \textbf{\textcolor{red}{TODO:}} describe how input data from GCloud will be saved.
+
+		\item \textbf{\textcolor{red}{TODO:}} describe how output data from image processor will be parsed/uploaded.
+		
+		\item The application will be highly parallel. Multiple Eclipse Image Processor
+		application instances will be launched concurrently, and while these are working, 
+		the next images to be processed will be downloaded and previous results will be 
+		uploaded. 
+		\begin{enumerate}
+			\item The number of image processor instances launched will be determined by
+			the number of cores on the host VM. \textit{Note: this does not mean that
+			given an \(n\) core machine, \(n\) image processor instances will be launched - some cores
+			must be reserved for downloading/preparing input data, and processing/uploading results}.
+		\end{enumerate}		
+
 	\end{enumerate}
 
 % SECTION 3.3 %%%%%%%%%%%
@@ -536,5 +597,3 @@ See Gantt Chart in Appendix.
 \end{center}
 
 \end{document}
-
-        
