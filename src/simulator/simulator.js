@@ -5,7 +5,7 @@ var EclipseSimulator = {
 
     DEBUG: true,
 
-    View: function()
+    View: function(location)
     {
         this.sim            = $('#sim').get(0);
         this.window         = $('#container').get(0);
@@ -36,18 +36,20 @@ var EclipseSimulator = {
 
         // Center of frame in radians
         this.az_center = 0;
+
+        this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
     },
 
-    Controller: function(coords)
+    Controller: function(location)
     {
-        this.view  = new EclipseSimulator.View();
-        this.model = new EclipseSimulator.Model(coords);
+        this.view  = new EclipseSimulator.View(location);
+        this.model = new EclipseSimulator.Model(location);
     },
 
-    Model: function(coords)
+    Model: function(location)
     {
         // Current simulator coordinates
-        this.coords = coords !== undefined ? coords : EclipseSimulator.CORVALLIS_COORDS;
+        this.coords = location !== undefined ? location.coords : EclipseSimulator.DEFAULT_LOCATION_COORDS;
 
         // Current simulator time
         this.date = new Date(EclipseSimulator.ECLIPSE_DAY);
@@ -132,7 +134,9 @@ var EclipseSimulator = {
         return a > b && a <= Math.PI;
     },
 
-    CORVALLIS_COORDS: {
+    DEFAULT_LOCATION_NAME: 'Corvallis, OR, United States',
+
+    DEFAULT_LOCATION_COORDS: {
         lat: 44.567353,
         lng: -123.278622,
     },
@@ -209,8 +213,14 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             return;
         }
 
+        // Update location name
+        view.name = places[0].formatted_address;
+
         $(view).trigger('EclipseView_location_updated', places[0].geometry.location);
     });
+
+    // Set initial searchbox text
+    input.value = this.location_name;
 };
 
 EclipseSimulator.View.prototype.refresh = function()
@@ -614,12 +624,16 @@ function initSim() {
     // TEMP this is a demo - paste in a lat long from google maps
     // in the array below to position the simulator at that location!
     var c = [46.470113, -69.202133];
-    c     = {lat: c[0], lng: c[1]};
+    
+    var location = {
+        name: 'Some location', 
+        coords: c,
+    }
 
     // Makes the simulator choose the default, corvallis coords
-    c = undefined;
+    location = undefined;
 
-    var controller = new EclipseSimulator.Controller(c);
+    var controller = new EclipseSimulator.Controller(location);
     controller.init();
 }
 
