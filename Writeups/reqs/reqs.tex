@@ -223,14 +223,14 @@ systems in section 3.
 
 		\item The Eclipse Image Processor Manager will be responsible for 
 		managing the Eclipse Image Processor application. This includes 
-		collecting images from Google Cloud for the image processor to process,
-		invoking the image processor with these images as input, and collecting 
-		the output of the image processor and uploading it to Google Cloud. The 
-		image processor and image processor manager will be deployed together 
+		collecting images from Google Cloud for the Image Processor to process,
+		invoking the Image Processor with these images as input, and collecting 
+		the output of the Image Processor and uploading it to Google Cloud. The 
+		Image Processor and Image Processor Manager will be deployed together 
 		in a single docker container to Google Container Engine Clusters (of VMs).
-		An important role of the image processor manager is that it will be responsible 
+		An important role of the Image Processor Manager is that it will be responsible 
 		for ensuring that the compute resources on the host VMs are as saturated as 
-		possible. This means invoking multiple image processor processes concurrently, 
+		possible. This means invoking multiple Image Processor processes concurrently, 
 		while at the same time downloading the next images to be processed and uploading 
 		the already processed images.
 		
@@ -304,7 +304,7 @@ See Gantt Chart in Appendix.
 
 \subsubsection{Eclipse Image Processor}
 	\begin{enumerate}
-		\item The image processor will be compatible with Ubuntu 16.04 and
+		\item The Image Processor will be compatible with Ubuntu 16.04 and
 		 will include a script that to install all dependencies/build the 
 		 binary.
 
@@ -437,7 +437,9 @@ See Gantt Chart in Appendix.
 		\item The simulator location will be restricted to North America as this is where
 		the eclipse will be visible from.
 
-		\item \sout{Simulator will display the local time that the simulator is set 
+		\item The Simulator will display a timestamp indicating the time that the simulator
+		is set to. 
+		\sout{Simulator will display the local time that the simulator is set 
 		to, e.g. there is a well defined time associated with the user 
 		selecting Corvallis, Oregon as their location and a simulator time of 
 		-3:13 (3 hours 13 minutes) before the eclipse. This time should be 
@@ -520,7 +522,7 @@ See Gantt Chart in Appendix.
 		\item Images \sout{with GPS EXIF information that are} that were not taken on the path of
 		totality will be rejected, see requirement \#5 in 3.1.2.
 
-		\item Images can be rejected by the image processor. When an image is rejected,
+		\item Images can be rejected by the Image Processor. When an image is rejected,
 		the reason it was rejected will be noted and exported, see requirement \#5 in 3.1.2.
 		The possible reasons for which an image can be rejected will include at least the 
 		following:
@@ -542,20 +544,34 @@ See Gantt Chart in Appendix.
 		can run concurrently with no communication between them.
 		These distinct managers will not attempt to process the same images.
 
-		\item \textbf{\textcolor{red}{TODO:}} describe how input data from GCloud will be saved.
+		\item The application will record the time at which it "checks-out" image
+		files for processing in Datastore. This enables future processing of images
+		that were downloaded by an Image Processor Manager instance that later became
+		delinquent.
 
-		\item \textbf{\textcolor{red}{TODO:}} describe how output data from image processor will be parsed/uploaded.
+		\item The application will group files/metadata downloaded from Google
+		Cloud into directories corresponding to individual workloads that will be 
+		delegated to distinct Image Processor instances.
+
+		\item When an Image Processor instance completes its workload, its output data 
+		will be collected by its parent Image Processor Manager and uploaded to Google 
+		Cloud. This will include processed image files and metadata that is saved to 
+		Datastore.
+
+		\item The application will kill delinquent Image Processor Instances and upload
+		the results of processing any images that were processed successfully. Images that
+		were not processed successfully will be marked as such in Datastore. 
 		
 		\item The application will be highly parallel. Multiple Eclipse Image Processor
 		application instances will be launched concurrently, and while these are working, 
 		the next images to be processed will be downloaded and previous results will be 
 		uploaded. 
 		\begin{enumerate}
-			\item The number of image processor instances launched will be determined by
+			\item The number of Image Processor instances launched will be determined by
 			the number of cores on the host VM. \textit{Note: this does not mean that
-			given an \(n\) core machine, \(n\) image processor instances will be launched - some cores
+			given an \(n\) core machine, \(n\) Image Processor instances will be launched - some cores
 			must be reserved for downloading/preparing input data, and processing/uploading results}.
-		\end{enumerate}		
+		\end{enumerate}
 
 	\end{enumerate}
 
@@ -577,7 +593,16 @@ See Gantt Chart in Appendix.
 
 \subsubsection{Eclipse Image Processor Manager}
 	\begin{enumerate}
-		\item Lorem
+		\item The Image Processor Manager will saturate either the CPUs or network interface of
+		the host VM to which it is deployed. The reason for the "or" in the above statement is
+		that either the time to process images, or the time to download them / upload their
+		processed counterparts will be the bottleneck. \textit{Context:} Which of these factors 
+		is in fact the bottleneck can then be investigated and the host VMs can be scaled 
+		accordingly. E.g. if all CPU cores are running at nearly 100\% but the network interface 
+		is not, then VMs with more cores should be used. Conversely, if the network interface is 
+		saturated but not all cores are running at 100\%, then VMs with fewer cores should be used. 
+		The goal here is to get as close to network saturation and 100\% utilization of all CPU
+		cores as possible.
 	\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
