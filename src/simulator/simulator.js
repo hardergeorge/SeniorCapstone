@@ -198,7 +198,10 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
     // Create the search box and link it to the UI element.
     var input      = document.getElementById('pac-input');
-    var search_box = new google.maps.places.SearchBox(input);
+    var options = {
+        componentRestrictions: {country: 'us', country: 'ca', country: 'mx'}
+    };
+    var search_box = new google.maps.places.Autocomplete(input, options);
     
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
