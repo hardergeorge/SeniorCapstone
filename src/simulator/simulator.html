@@ -1,5 +1,5 @@
 <script type="text/javascript" src="jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_API_KEY&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnhjGb4uWVRghLy-HlLHe52-k5SazPLSM&libraries=places"></script>
 <script type="text/javascript" src="ephemeris-0.1.0.js"></script>
 <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
 <script defer type="text/javascript" src="simulator.js"></script>
@@ -13,6 +13,14 @@
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <meta charset="utf-8">
 <style>
+
+    #map-canvas {
+      min-width: 200px;
+      width: 50%;
+      min-height: 200px;
+      height: 80%;
+      border: 1px solid blue;
+    }
     
     #floating-panel {
         position: absolute;
@@ -113,9 +121,11 @@
 
         </div>
     </div>
-
+    <div id="map-canvas"></div>
     <div id="floating-panel">
         <input id="pac-input" class="controls" type="text" placeholder="Location Search">
     </div>
+
+
 </body>
 </html>
