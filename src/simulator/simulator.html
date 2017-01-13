@@ -15,10 +15,8 @@
 <style>
 
     #map-canvas {
-    height: 400px;
-    width: 400px;
-    /*overflow:hidden;
-    z-index:-999;*/
+    height: 350px;
+    width: 350px;
     }
     
     #floating-panel {
@@ -122,9 +120,9 @@
     </div>
     
     <div id="floating-panel">
-        <input id="pac-input" class="controls" type="text" placeholder="Location Search">
+        <input id="pac-input" style="float: left;" class="controls" type="text" placeholder="Location Search">
 
-        <div style="width: 115px; float: left; margin-top: 30px">
+        <div style="width: 115px; float: left; margin-top: 8px">
             <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="mapbutton">
                 Map
             </button>
@@ -132,11 +130,6 @@
 
         <div id="map-canvas"></div>
     </div>
-
-
-
-    <div id="map-canvas"></div>
-
 
 </body>
 </html>
