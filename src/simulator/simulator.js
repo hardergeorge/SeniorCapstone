@@ -18,6 +18,11 @@ var EclipseSimulator = {
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
 
+        this.map            = new google.maps.Map(document.getElementById('map-canvas'), {
+                                center: {lat: 44.5646, lng: -123.2620},
+                                zoom: 11
+                            });
+
         // Sun/Moon start off screen
         this.sunpos  = {x: -100, y: 0, r: 1 * Math.PI / 180};
         this.moonpos = {x: -100, y: 0, r: 1 * Math.PI / 180};
@@ -183,15 +188,26 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change(view.slider.value);
     });
 
+    //Hide the map when the view initializes
+    $("#map-canvas").hide();
+
+    //Toggles the visibility of the map on click
     $("#mapbutton").click(function(){
         $("#map-canvas").toggle(resizeMap);
 
         function resizeMap() {
-            var center2 = map.getCenter();
-            google.maps.event.trigger(map, "resize"); // resize map
-            map.setCenter(center2);
+            var center2 = view.map.getCenter();
+            google.maps.event.trigger(view.map, "resize"); // resize map
+            view.map.setCenter(center2);
         }
-    }); 
+    });
+
+    /*function initMap() {
+            var map = new google.maps.Map(document.getElementById('map-canvas'), {
+            center: {lat: -33.8688, lng: 151.2195},
+            zoom: 13
+        });
+    }*/ 
 
     this.initialize_location_entry();
 
@@ -649,23 +665,5 @@ function initSim() {
     var controller = new EclipseSimulator.Controller(location);
     controller.init();
 }
-
-var map;
-var mapOptions = {
-    center: new google.maps.LatLng(54.89832877373636, -2.9350662231445312),
-    zoom: 11,
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-};
-
-function initMap() {
-    map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
-
-}
-
-initMap();
-
-$(document).ready(function () {
-    $("#map-canvas").hide();
-});
 
 $(document).ready(initSim);
