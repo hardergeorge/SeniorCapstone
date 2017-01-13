@@ -228,11 +228,17 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
         componentRestrictions: {country: 'us'}
     };
     var search_box = new google.maps.places.Autocomplete(input, options);
+
+    var marker = new google.maps.Marker({
+        map: this.map,
+        anchorPoint: new google.maps.Point(0, -29)
+    });
     
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
     search_box.addListener('place_changed', function() {
         
+        marker.setVisible(false);
         var place = search_box.getPlace();
 
         if (!place.geometry) 
@@ -241,6 +247,17 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             console.log("No details available for: " + places.name);
             return;
         }
+
+        // If the place has a geometry, then present it on a map.
+        if (place.geometry.viewport) {
+            view.map.fitBounds(place.geometry.viewport);
+            view.map.setZoom(11);
+        } else {
+            view.map.setCenter(place.geometry.location);
+            view.map.setZoom(11); 
+        }
+        marker.setPosition(place.geometry.location);
+        marker.setVisible(true);
 
         // Update location name
         view.name = place.formatted_address;
