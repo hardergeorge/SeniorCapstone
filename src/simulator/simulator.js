@@ -183,6 +183,16 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change(view.slider.value);
     });
 
+    $("#mapbutton").click(function(){
+        $("#map-canvas").toggle(resizeMap);
+
+        function resizeMap() {
+            var center2 = map.getCenter();
+            google.maps.event.trigger(map, "resize"); // resize map
+            map.setCenter(center2);
+        }
+    }); 
+
     this.initialize_location_entry();
 
     // Rescale the window when the parent iframe changes size
@@ -199,9 +209,9 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     // Create the search box and link it to the UI element.
     var input      = document.getElementById('pac-input');
     var options = {
-        componentRestrictions: {country: 'us', country: 'ca', country: 'mx'}
+        componentRestrictions: {country: 'us'}
     };
-    var search_box = new google.maps.places.Autocomplete(input, options);
+    var search_box = new google.maps.places.SearchBox(input, options);
     
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
@@ -640,18 +650,22 @@ function initSim() {
     controller.init();
 }
 
-$(function() {
-  var mapOptions = {
-    zoom: 8,
-    center: new google.maps.LatLng(-34.397, 150.644)
-  };
-  var map = new google.maps.Map($("#map-canvas")[0], mapOptions);
+var map;
+var mapOptions = {
+    center: new google.maps.LatLng(54.89832877373636, -2.9350662231445312),
+    zoom: 11,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+};
 
-  // listen for the window resize event & trigger Google Maps to update too
-  $(window).resize(function() {
-    // (the 'map' here is the result of the created 'var map = ...' above)
-    google.maps.event.trigger(map, "resize");
-  });
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+}
+
+initMap();
+
+$(document).ready(function () {
+    $("#map-canvas").hide();
 });
 
 $(document).ready(initSim);
