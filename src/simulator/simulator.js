@@ -227,25 +227,25 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     var options = {
         componentRestrictions: {country: 'us'}
     };
-    var search_box = new google.maps.places.SearchBox(input, options);
+    var search_box = new google.maps.places.Autocomplete(input, options);
     
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
-    search_box.addListener('places_changed', function() {
+    search_box.addListener('place_changed', function() {
         
-        var places = search_box.getPlaces();
+        var place = search_box.getPlace();
 
-        if (places.length == 0) 
+        if (!place.geometry) 
         {    
             // TODO Add error behavior
-
+            console.log("No details available for: " + places.name);
             return;
         }
 
         // Update location name
-        view.name = places[0].formatted_address;
+        view.name = place.formatted_address;
 
-        $(view).trigger('EclipseView_location_updated', places[0].geometry.location);
+        $(view).trigger('EclipseView_location_updated', place.geometry.location);
     });
 
     // Set initial searchbox text
