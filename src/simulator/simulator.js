@@ -27,14 +27,14 @@ var EclipseSimulator = {
         this.marker         = undefined;
 
         // Sun/Moon start off screen
-        this.sunpos  = {x: -100, y: 0, r: 1 * Math.PI / 180};
-        this.moonpos = {x: -100, y: 0, r: 1 * Math.PI / 180};
+        this.sunpos  = {x: -100, y: 0, r: 0.5 * Math.PI / 180};
+        this.moonpos = {x: -100, y: 0, r: 0.5 * Math.PI / 180};
 
         // Field of view in radians
         this.fov = {
 
             // Max x fov is 140 degrees
-            x: 140 * Math.PI / 180,
+            x: 90 * Math.PI / 180,
 
             // Max y fov is 90 degrees
             y: 80 * Math.PI / 180
@@ -247,7 +247,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
         if (!place.geometry) 
         {    
-
             view.display_error_to_user('Location not found!');
             return;
         }
@@ -287,8 +286,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
                     if (!place) 
                     {    
-                        // TODO Add error behavior
-                        console.log("No details available for: " + place.name);
+                        view.display_error_to_user("No details available for: " + place.name);
                         return;
                     }
 
@@ -301,13 +299,11 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     $(view).trigger('EclipseView_location_updated', place);
 
                 } else {
-                    //TODO: Add Bret's error function
-                    console.log('Results not in US');
+                    view.display_error_to_user("Simulator is restricted to the United States");
                     return;
                 }
             } else {
-                //TODO: Add Bret's error function
-                console.log('Geocoder failed due to: ' + status);
+                view.display_error_to_user("Location not found");
                 return;
             }
         });
