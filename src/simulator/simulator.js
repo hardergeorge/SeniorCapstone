@@ -17,6 +17,14 @@ var EclipseSimulator = {
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
+        this.error_snackbar = $('#error-snackbar').get(0);
+
+        this.map            = new google.maps.Map(document.getElementById('map-canvas'), {
+                                center: {lat: 44.5646, lng: -123.2620},
+                                zoom: 11
+                            });
+        this.search_box     = undefined;
+        this.marker         = undefined;
 
         // Sun/Moon start off screen
         this.sunpos  = {x: -100, y: 0, r: 1 * Math.PI / 180};
@@ -134,6 +142,10 @@ var EclipseSimulator = {
         return a > b && a <= Math.PI;
     },
 
+    DEFAULT_USER_ERR_MSG: 'An error occured',
+
+    DEFAULT_USER_ERR_TIMEOUT: 2000,
+
     DEFAULT_LOCATION_NAME: 'Corvallis, OR, United States',
 
     DEFAULT_LOCATION_COORDS: {
@@ -183,6 +195,20 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change(view.slider.value);
     });
 
+    //Hide the map when the view initializes
+    $("#map-canvas").hide();
+
+    //Toggles the visibility of the map on click
+    $("#mapbutton").click(function(){
+        $("#map-canvas").toggle(resizeMap);
+
+        function resizeMap() {
+            var center2 = view.map.getCenter();
+            google.maps.event.trigger(view.map, "resize"); // resize map
+            view.map.setCenter(center2);
+        }
+    });
+
     this.initialize_location_entry();
 
     // Rescale the window when the parent iframe changes size
@@ -198,25 +224,94 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
     // Create the search box and link it to the UI element.
     var input      = document.getElementById('pac-input');
-    var search_box = new google.maps.places.SearchBox(input);
-    
+    var options = {
+        componentRestrictions: {country: 'us'}
+    };
+    view.search_box = new google.maps.places.Autocomplete(input, options);
+
+    view.marker = new google.maps.Marker({
+        map: this.map,
+        position: {lat: 44.5646, lng: -123.2620}
+    });
+
+    view.marker.setVisible(true);
+
+    var geocoder = new google.maps.Geocoder;
+
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
-    search_box.addListener('places_changed', function() {
+    view.search_box.addListener('place_changed', function() {
         
-        var places = search_box.getPlaces();
+        view.marker.setVisible(false);
+        var place = view.search_box.getPlace();
 
-        if (places.length == 0) 
+        if (!place.geometry) 
         {    
-            // TODO Add error behavior
 
+            view.display_error_to_user('Location not found!');
             return;
         }
 
-        // Update location name
-        view.name = places[0].formatted_address;
+        // If the place has a geometry, then present it on a map.
+        if (place.geometry.viewport) {
+            view.map.fitBounds(place.geometry.viewport);
+            view.map.setZoom(11);
+        } else {
+            view.map.setCenter(place.geometry.location);
+            view.map.setZoom(11); 
+        }
+        view.marker.setPosition(place.geometry.location);
+        view.marker.setVisible(true);
 
-        $(view).trigger('EclipseView_location_updated', places[0].geometry.location);
+        // Update location name
+        view.name = place.formatted_address;
+
+        $(view).trigger('EclipseView_location_updated', place.geometry.location);
+    });
+
+    google.maps.event.addListener(view.map, 'click', function(event) {
+
+        var place = event.latLng;
+        
+        var latlng = {lat: place.lat(), lng: place.lng()};
+        
+        geocoder.geocode({'location': latlng}, function(results, status) {
+            if (status === 'OK') {
+                if (results[1].formatted_address.includes('USA')) {
+
+                    view.marker.setVisible(false);
+
+                    // Update location name
+                    view.name = results[1].formatted_address;
+                    input.value = results[1].formatted_address;
+
+                    if (!place) 
+                    {    
+                        // TODO Add error behavior
+                        console.log("No details available for: " + place.name);
+                        return;
+                    }
+
+                    view.marker.setPosition(place);
+                    view.marker.setVisible(true);
+
+                    // Update location name
+                    view.name = place;
+
+                    $(view).trigger('EclipseView_location_updated', place);
+
+                } else {
+                    //TODO: Add Bret's error function
+                    console.log('Results not in US');
+                    return;
+                }
+            } else {
+                //TODO: Add Bret's error function
+                console.log('Geocoder failed due to: ' + status);
+                return;
+            }
+        });
+
     });
 
     // Set initial searchbox text
@@ -371,6 +466,24 @@ EclipseSimulator.View.prototype._refresh_hills = function()
 
         $(hill).show();
     }
+};
+
+EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, timeout)
+{
+    error_msg = error_msg === undefined ? EclipseSimulator.DEFAULT_USER_ERR_MSG 
+                                        : error_msg;
+
+    timeout = timeout === undefined ? EclipseSimulator.DEFAULT_USER_ERR_TIMEOUT
+                                    : timeout;
+
+    var data = {
+        message:        error_msg,
+        timeout:        timeout,
+        actionHandler:  undefined,
+        actionText:     '',
+    };
+
+    this.error_snackbar.MaterialSnackbar.showSnackbar(data);
 };
 
 
