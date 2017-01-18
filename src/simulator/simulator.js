@@ -202,12 +202,16 @@ EclipseSimulator.View.prototype.init = function()
         }
     });
 
-    /*function initMap() {
-            var map = new google.maps.Map(document.getElementById('map-canvas'), {
-            center: {lat: -33.8688, lng: 151.2195},
-            zoom: 13
-        });
-    }*/ 
+    /*google.maps.event.addListener(view.map, 'click', function(event) {
+        placeMarker(event.latLng);
+
+        function placeMarker(location) {
+                var marker = new google.maps.Marker({
+                position: location, 
+                map: view.map
+            });
+        }
+    });*/
 
     this.initialize_location_entry();
 
@@ -244,7 +248,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
         if (!place.geometry) 
         {    
             // TODO Add error behavior
-            console.log("No details available for: " + places.name);
+            console.log("No details available for: " + place.name);
             return;
         }
 
@@ -263,6 +267,30 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
         view.name = place.formatted_address;
 
         $(view).trigger('EclipseView_location_updated', place.geometry.location);
+    });
+
+    google.maps.event.addListener(view.map, 'click', function(event) {
+
+        marker.setVisible(false);
+        var place = event.latLng;
+
+        if (!place) 
+        {    
+            // TODO Add error behavior
+            console.log("No details available for: " + place.name);
+            return;
+        }
+
+        view.map.setCenter(place);
+        view.map.setZoom(12);
+
+        marker.setPosition(place);
+        marker.setVisible(true);
+
+        // Update location name
+        view.name = place;
+
+        $(view).trigger('EclipseView_location_updated', place);
     });
 
     // Set initial searchbox text
