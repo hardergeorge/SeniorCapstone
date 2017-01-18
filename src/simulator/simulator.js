@@ -17,6 +17,7 @@ var EclipseSimulator = {
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
+        this.error_snackbar = $('#error-snackbar').get(0);
 
         // Sun/Moon start off screen
         this.sunpos  = {x: -100, y: 0, r: 1 * Math.PI / 180};
@@ -134,6 +135,10 @@ var EclipseSimulator = {
         return a > b && a <= Math.PI;
     },
 
+    DEFAULT_USER_ERR_MSG: 'An error occured',
+
+    DEFAULT_USER_ERR_TIMEOUT: 2000,
+
     DEFAULT_LOCATION_NAME: 'Corvallis, OR, United States',
 
     DEFAULT_LOCATION_COORDS: {
@@ -208,8 +213,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
         if (places.length == 0) 
         {    
-            // TODO Add error behavior
-
+            view.display_error_to_user('Location not found!');
             return;
         }
 
@@ -371,6 +375,24 @@ EclipseSimulator.View.prototype._refresh_hills = function()
 
         $(hill).show();
     }
+};
+
+EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, timeout)
+{
+    error_msg = error_msg === undefined ? EclipseSimulator.DEFAULT_USER_ERR_MSG 
+                                        : error_msg;
+
+    timeout = timeout === undefined ? EclipseSimulator.DEFAULT_USER_ERR_TIMEOUT
+                                    : timeout;
+
+    var data = {
+        message:        error_msg,
+        timeout:        timeout,
+        actionHandler:  undefined,
+        actionText:     '',
+    };
+
+    this.error_snackbar.MaterialSnackbar.showSnackbar(data);
 };
 
 
