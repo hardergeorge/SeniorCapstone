@@ -18,6 +18,7 @@ var EclipseSimulator = {
         this.downbutton     = $('#downbutton').get(0);
         this.slider         = $('#tslider').get(0);
         this.error_snackbar = $('#error-snackbar').get(0);
+        this.slider_labels  = $('[id^=slabel]');
 
         // Sun/Moon start off screen
         this.sunpos  = {x: -100, y: 0, r: 1 * Math.PI / 180};
@@ -134,6 +135,8 @@ var EclipseSimulator = {
 
         return a > b && a <= Math.PI;
     },
+
+    VIEW_TICK_SEP: 6 * 60 * 60 * 1000,
 
     DEFAULT_USER_ERR_MSG: 'An error occured',
 
@@ -266,13 +269,14 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
     target.style.cx = env_size.width * (pos.x / 100);
 };
 
-EclipseSimulator.View.prototype.position_sun_moon = function(sunpos, moonpos)
+EclipseSimulator.View.prototype.position_sun_moon = function(sunpos, moonpos, time)
 {
     this.sunpos.x  = this.get_x_percent_from_az(sunpos.az, sunpos.r);
     this.sunpos.y  = this.get_y_percent_from_alt(sunpos.alt);
     this.moonpos.x = this.get_x_percent_from_az(moonpos.az, sunpos.r);
     this.moonpos.y = this.get_y_percent_from_alt(moonpos.alt);
 
+    this.update_slider_labels(time);
     this.refresh();
 };
 
@@ -395,6 +399,17 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
     this.error_snackbar.MaterialSnackbar.showSnackbar(data);
 };
 
+EclipseSimulator.View.prototype.update_slider_labels = function(time)
+{
+    var date = new Date(time.getTime() - (2 * EclipseSimulator.VIEW_TICK_SEP));
+
+    for (var i = 0; i < this.slider_labels.length; i++)
+    {
+        $(this.slider_labels[i]).text(date.getHours() + ':' + date.getMinutes());
+        date.setTime(date.getTime() + EclipseSimulator.VIEW_TICK_SEP);
+    }
+};
+
 
 // ===================================
 //
@@ -466,7 +481,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     moon.r   = this.view.moonpos.r;
 
     // Update the view
-    this.view.position_sun_moon(sun, moon);
+    this.view.position_sun_moon(sun, moon, this.model.eclipse_time);
 };
 
 EclipseSimulator.Controller.prototype.update_simulator_location = function(location)
@@ -495,7 +510,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
     // Update the view
     this.view.reset_controls();
-    this.view.position_sun_moon(sun, moon);
+    this.view.position_sun_moon(sun, moon, res.time);
 };
 
 
