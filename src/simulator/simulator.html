@@ -13,6 +13,11 @@
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <meta charset="utf-8">
 <style>
+
+    #map-canvas {
+    height: 350px;
+    width: 350px;
+    }
     
     #floating-panel {
         position: absolute;
@@ -131,14 +136,23 @@
 
         </div>
     </div>
-
+    
     <div id="floating-panel">
-        <input id="pac-input" class="controls" type="text" placeholder="Location Search">
+        <input id="pac-input" style="float: left;" class="controls" type="text" placeholder="Location Search">
+
+        <div style="width: 115px; float: left; margin-top: 8px">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="mapbutton">
+                Map
+            </button>
+        </div>
+
+        <div id="map-canvas"></div>
     </div>
 
     <div id="error-snackbar" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
         <button class="mdl-snackbar__action" type="button"></button>
     </div>
+
 </body>
 </html>
