@@ -143,7 +143,7 @@ var EclipseSimulator = {
         return a > b && a <= Math.PI;
     },
 
-    VIEW_TICK_SEP: 6 * 60 * 60 * 1000,
+    VIEW_TICK_SEP: 3 * 60 * 60 * 1000,
 
     DEFAULT_USER_ERR_MSG: 'An error occured',
 
