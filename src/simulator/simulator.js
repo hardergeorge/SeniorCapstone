@@ -41,10 +41,11 @@ var EclipseSimulator = {
             y: 80 * Math.PI / 180
         };
 
-        this.x_fov_buffer = 15 * Math.PI / 180;
+        this.fov_buffer = 15 * Math.PI / 180;
 
         // Center of frame in radians
-        this.az_center = 0;
+        this.az_center  = 0;
+        this.alt_center = 40 * Math.PI / 180;
 
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
     },
@@ -66,7 +67,7 @@ var EclipseSimulator = {
         // Date object to be passed to ephemeris
         this._ephemeris_date = {};
 
-        // Computed eclipse time -- temp value, this will be set when 
+        // Computed eclipse time -- temp value, this will be set when
         // Model.compute_eclipse_time_and_az is called
         this.eclipse_time = new Date(EclipseSimulator.ECLIPSE_DAY);
     },
@@ -244,12 +245,12 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
     view.search_box.addListener('place_changed', function() {
-        
+
         view.marker.setVisible(false);
         var place = view.search_box.getPlace();
 
-        if (!place.geometry) 
-        {    
+        if (!place.geometry)
+        {
             view.display_error_to_user('Location not found!');
             return;
         }
@@ -260,7 +261,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             view.map.setZoom(11);
         } else {
             view.map.setCenter(place.geometry.location);
-            view.map.setZoom(11); 
+            view.map.setZoom(11);
         }
         view.marker.setPosition(place.geometry.location);
         view.marker.setVisible(true);
@@ -274,9 +275,9 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     google.maps.event.addListener(view.map, 'click', function(event) {
 
         var place = event.latLng;
-        
+
         var latlng = {lat: place.lat(), lng: place.lng()};
-        
+
         geocoder.geocode({'location': latlng}, function(results, status) {
             if (status === 'OK') {
                 if (results[1].formatted_address.includes('USA')) {
@@ -287,8 +288,8 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     view.name = results[1].formatted_address;
                     input.value = results[1].formatted_address;
 
-                    if (!place) 
-                    {    
+                    if (!place)
+                    {
                         view.display_error_to_user("No details available for: " + place.name);
                         return;
                     }
@@ -358,66 +359,56 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
 
 EclipseSimulator.View.prototype.position_sun_moon = function(sunpos, moonpos, time)
 {
-    this.sunpos.x  = this.get_x_percent_from_az(sunpos.az, sunpos.r);
-    this.sunpos.y  = this.get_y_percent_from_alt(sunpos.alt);
-    this.moonpos.x = this.get_x_percent_from_az(moonpos.az, sunpos.r);
-    this.moonpos.y = this.get_y_percent_from_alt(moonpos.alt);
+    // this.sunpos.x  = this.get_x_percent_from_az(sunpos.az, sunpos.r);
+    // this.sunpos.y  = this.get_y_percent_from_alt(sunpos.alt);
+    // this.moonpos.x = this.get_x_percent_from_az(moonpos.az, sunpos.r);
+    // this.moonpos.y = this.get_y_percent_from_alt(moonpos.alt);
+
+    this.sunpos.x  = this.get_percent_from_altaz(sunpos.az,   this.az_center,  this.fov.x, sunpos.r);
+    this.sunpos.y  = this.get_percent_from_altaz(sunpos.alt,  this.alt_center, this.fov.y, sunpos.r);
+    this.moonpos.x = this.get_percent_from_altaz(moonpos.az,  this.az_center,  this.fov.x, moonpos.r);
+    this.moonpos.y = this.get_percent_from_altaz(moonpos.alt, this.alt_center, this.fov.y, moonpos.r);
+
+    // get_percent_from_altaz = function(altaz, center, fov, body_r)
 
     this.update_slider_labels(time);
     this.refresh();
 };
 
-EclipseSimulator.View.prototype.get_x_percent_from_az = function(az, radius)
+EclipseSimulator.View.prototype.get_percent_from_altaz = function(altaz, center, fov, body_r)
 {
-    var dist_from_center = Math.sin(az - this.az_center);
-    var half_fov_width   = Math.sin(this.fov.x / 2);
+    var dist_from_center = Math.sin(altaz - center);
+    var half_fov_width   = Math.sin(fov / 2);
 
-    if (this.az_out_of_view(az, radius))
+    if (this.out_of_view(altaz, center, fov, body_r))
     {
         // Just move the body way way off screen
-        dist_from_center += this.fov.x * 10;
+        dist_from_center += fov * 10;
     }
 
     return 50 + (50 * dist_from_center / half_fov_width);
 };
 
-// This may need some re-visiting... the current computations imply a field of view of 2*fov.y
-// Compute y coordinate in simulator window as a percentage of the window height
-// Assumes altitude is <= (pi/2)
-EclipseSimulator.View.prototype.get_y_percent_from_alt = function(alt)
+EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_r)
 {
-    var height     = Math.sin(alt);
-    var fov_height = Math.sin(this.fov.y);
+    var bound = center + (fov / 2);
+    var dist  = EclipseSimulator.rad_diff(bound, altaz);
 
-    // Body out of view. Shoot it way off screen
-    if (EclipseSimulator.normalize_rad(alt) > (0.5 * Math.PI))
-    {
-        return 200;
-    }
+    bound += this.fov_buffer;
 
-    return 100 * height / fov_height;;
-};
-
-EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
-{
-    var bound = this.az_center + (this.fov.x / 2);
-    var dist  = EclipseSimulator.rad_diff(bound, az);
-
-    bound += this.x_fov_buffer;
-
-    // Body off screen to the right
-    if (EclipseSimulator.rad_gt(az, bound) && dist > radius)
+    // Body off screen in positive direction
+    if (EclipseSimulator.rad_gt(altaz, bound) && dist > body_r)
     {
         return true;
     }
 
-    bound = this.az_center - (this.fov.x / 2);
-    dist  = EclipseSimulator.rad_diff(bound, az);
+    bound = center - (fov / 2);
+    dist  = EclipseSimulator.rad_diff(bound, altaz);
 
-    bound -= this.x_fov_buffer;
+    bound -= this.fov_buffer;
 
-    // Body off screen to the left
-    if (EclipseSimulator.rad_gt(bound, az) && dist > radius)
+    // Body off screen in negative direction
+    if (EclipseSimulator.rad_gt(bound, altaz) && dist > body_r)
     {
         return true;
     }
@@ -470,7 +461,7 @@ EclipseSimulator.View.prototype._refresh_hills = function()
 
 EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, timeout)
 {
-    error_msg = error_msg === undefined ? EclipseSimulator.DEFAULT_USER_ERR_MSG 
+    error_msg = error_msg === undefined ? EclipseSimulator.DEFAULT_USER_ERR_MSG
                                         : error_msg;
 
     timeout = timeout === undefined ? EclipseSimulator.DEFAULT_USER_ERR_TIMEOUT
@@ -518,7 +509,7 @@ EclipseSimulator.Controller.prototype.init = function()
         controller.model.init();
 
         var res  = controller.model.compute_eclipse_time_and_az();
-        
+
         controller.view.az_center = res.az;
         controller.view.refresh();
 
@@ -743,14 +734,16 @@ EclipseSimulator.Model.prototype._update_ephemeris = function()
 //
 // ========================
 
+var global_controller = undefined;
+
 function initSim() {
 
     // TEMP this is a demo - paste in a lat long from google maps
     // in the array below to position the simulator at that location!
     var c = [46.470113, -69.202133];
-    
+
     var location = {
-        name: 'Some location', 
+        name: 'Some location',
         coords: c,
     }
 
@@ -759,6 +752,17 @@ function initSim() {
 
     var controller = new EclipseSimulator.Controller(location);
     controller.init();
+
+    return controller;
 }
 
-$(document).ready(initSim);
+$(document).ready(function() {
+
+    var controller = initSim();
+
+    // In debug mode, add the controller instance to the global namespace
+    if (EclipseSimulator.DEBUG)
+    {
+        global_controller = controller;
+    }
+});
