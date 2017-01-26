@@ -667,8 +667,6 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     moon.r   = this.view.moonpos.r;
 
     // Update the view
-    // this.view.position_sun_moon(sun, moon, this.model.eclipse_time);
-
     this.view.sunpos  = sun;
     this.view.moonpos = moon;
     this.view.refresh();
@@ -705,7 +703,6 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     this.view.eclipse_time = res.time;
     this.view.update_slider_labels();
     this.view.refresh();
-    // this.view.position_sun_moon(sun, moon, res.time);
 };
 
 
