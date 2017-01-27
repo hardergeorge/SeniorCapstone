@@ -359,20 +359,31 @@ EclipseSimulator.View.prototype.refresh = function()
 
     $(this.loading).css('height', window_height + 'px');
 
+    if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
+    {
+        var az_center  = this.sunpos.az;
+        var alt_center = this.sunpos.alt;
+    }
+    else
+    {
+        var az_center  = this.az_center;
+        var alt_center = this.alt_center;
+    }
+
     // Position sun/moon. Cannot do this until window is displayed
     this.position_body_at_percent_coords(
         this.sun,
         {
-            x: this.get_ratio_from_altaz(this.sunpos.az,  this.az_center,  this.current_fov.x, this.sunpos.r),
-            y: this.get_ratio_from_altaz(this.sunpos.alt, this.alt_center, this.current_fov.y, this.sunpos.r),
+            x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
+            y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
             r: this.get_ratio_from_body_angular_r(this.sunpos.r),
         }
     );
     this.position_body_at_percent_coords(
         this.moon,
         {
-            x: this.get_ratio_from_altaz(this.moonpos.az,  this.az_center,  this.current_fov.x, this.moonpos.r),
-            y: this.get_ratio_from_altaz(this.moonpos.alt, this.alt_center, this.current_fov.y, this.moonpos.r),
+            x: this.get_ratio_from_altaz(this.moonpos.az,  az_center,  this.current_fov.x, this.moonpos.r),
+            y: this.get_ratio_from_altaz(this.moonpos.alt, alt_center, this.current_fov.y, this.moonpos.r),
             r: this.get_ratio_from_body_angular_r(this.moonpos.r),
         }
     );
@@ -670,6 +681,17 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     this.view.sunpos  = sun;
     this.view.moonpos = moon;
     this.view.refresh();
+
+    if (EclipseSimulator.DEBUG)
+    {
+        console.log(
+            this.model.date.toUTCString()
+            + '\nlat: ' + this.model.coords.lat
+            + '\nlng: ' + this.model.coords.lng
+            + '\nS(alt: ' + sun.alt + ' az: ' + sun.az + ')'
+            + '\nM(alt: ' + moon.alt + ' az: ' + moon.az + ')'
+        );
+    }
 };
 
 EclipseSimulator.Controller.prototype.update_simulator_location = function(location)
