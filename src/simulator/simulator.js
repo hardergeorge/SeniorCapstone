@@ -174,6 +174,9 @@ var EclipseSimulator = {
         wide: 1,
     },
 
+    VIEW_BG_COLOR_MAX: [3, 39, 53],
+    VIEW_BG_COLOR_MIN: [3, 169, 244],
+
     VIEW_SLIDER_NSTEPS: 720,
 
     DEFAULT_USER_ERR_MSG: 'An error occured',
@@ -610,19 +613,19 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
 // that is passed in.
 // -------------------------------
 // A higher percent means a lighter background color
-// Color_percent range: 0 to 100
-EclipseSimulator.View.prototype.update_background = function(color_percent){
+// Color_percent range: 0 to 1
+// Obj : object we want to change the color of
+// Min/Max: minimum and maximum color range for obj
+EclipseSimulator.View.prototype.update_background = function(color_percent, obj, min, max){
 
-  var dark_rgb = [3, 39, 53]; // Darkest color for background
-  var light_rgb = [3, 169, 244]; // Lightest color for background
-  var new_rgb = [3, 39, 53]; // new values to be computed
+  var new_rgb = min; // new values to be set to default minimum
 
   // Compute new color value based on percent and floor to integer
-  new_rgb[1] = Math.floor((color_percent/100)*light_rgb[1] + dark_rgb[1]);
-  new_rgb[2] = Math.floor((color_percent/100)*light_rgb[2] + dark_rgb[2]);
+  new_rgb[1] = Math.floor((color_percent)*min[1] + max[1]);
+  new_rgb[2] = Math.floor((color_percent)*min[2] + max[2]);
 
   // Set new background color for the window based off of new_rgb array
-  this.window.style.backgroundColor = "rgb(3," + new_rgb[1] + ","
+  obj.style.backgroundColor = "rgb(3," + new_rgb[1] + ","
                                                           + new_rgb[2] + ")";
 };
 
@@ -651,6 +654,8 @@ EclipseSimulator.Controller.prototype.init = function()
         controller.view.eclipse_time = res.time;
         controller.view.update_slider_labels();
         controller.view.refresh();
+        controller.view.update_background(.5, controller.view.window,
+                            EclipseSimulator.VIEW_BG_COLOR_MIN, EclipseSimulator.VIEW_BG_COLOR_MAX);
 
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
             // Call the handler, converting the val from minutes to milliseconds
