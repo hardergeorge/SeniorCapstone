@@ -606,6 +606,26 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
     }
 };
 
+// Update the background color of the simulator based on a percent value
+// that is passed in.
+// -------------------------------
+// A higher percent means a lighter background color
+// Color_percent range: 0 to 100
+EclipseSimulator.View.prototype.update_background = function(color_percent){
+
+  var dark_rgb = [3, 39, 53]; // Darkest color for background
+  var light_rgb = [3, 169, 244]; // Lightest color for background
+  var new_rgb = [3, 39, 53]; // new values to be computed
+
+  // Compute new color value based on percent and floor to integer
+  new_rgb[1] = Math.floor((color_percent/100)*light_rgb[1] + dark_rgb[1]);
+  new_rgb[2] = Math.floor((color_percent/100)*light_rgb[2] + dark_rgb[2]);
+
+  // Set new background color for the window based off of new_rgb array
+  this.window.style.backgroundColor = "rgb(3," + new_rgb[1] + ","
+                                                          + new_rgb[2] + ")";
+};
+
 // ===================================
 //
 // EclipseSimulator.Controller methods
