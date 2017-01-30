@@ -85,9 +85,6 @@ var EclipseSimulator = {
         // Current simulator time
         this.date = new Date(EclipseSimulator.ECLIPSE_DAY);
 
-        // Date object to be passed to ephemeris
-        this._ephemeris_date = {};
-
         // Computed eclipse time -- temp value, this will be set when
         // Model.compute_eclipse_time_and_pos is called
         this.eclipse_time = new Date(EclipseSimulator.ECLIPSE_DAY);
@@ -736,24 +733,17 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
 EclipseSimulator.Model.prototype.init = function()
 {
-    $processor.init();
 };
 
 EclipseSimulator.Model.prototype.get_sun_moon_position = function()
 {
-    // Set date and position
-    this._update_ephemeris();
-    return this._compute_sun_moon_pos(this._ephemeris_date);
+    return this._compute_sun_moon_pos(this.date);
 };
 
 EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 {
-    // Set up ephemeris position
-    this._update_ephemeris();
-
     // Initial date/time to begin looking for eclipse time
-    var date   = EclipseSimulator.ECLIPSE_DAY;
-    var e_date = {};
+    var date = EclipseSimulator.ECLIPSE_DAY;
     date.setUTCHours(EclipseSimulator.ECLIPSE_WCOAST_HOUR);
 
     // Sun/Moon angular separation
@@ -776,8 +766,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
             date.setTime(time);
 
-            e_date = this._create_ephemeris_date(date);
-            sep    = this._compute_sun_moon_sep(e_date);
+            sep = this._compute_sun_moon_sep(date);
         }
         while (sep < prev_sep);
 
@@ -790,7 +779,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
     }
 
     // Compute eclipse azimuth
-    var pos = this._compute_sun_moon_pos(e_date);
+    var pos = this._compute_sun_moon_pos(date);
 
     // Save eclipse time in the model
     this.eclipse_time.setTime(time);
@@ -803,10 +792,9 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 };
 
 // Compute sun/moon angular seperation and moon radius
-EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(e_date)
+EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(date)
 {
-    this._update_ephemeris();
-    var pos = this._compute_sun_moon_pos(e_date);
+    var pos = this._compute_sun_moon_pos(date);
 
     var sun_vec   = EclipseSimulator.alt_az_to_vec3d(pos.sun.alt, pos.sun.az);
     var moon_vec  = EclipseSimulator.alt_az_to_vec3d(pos.moon.alt, pos.moon.az);
@@ -818,51 +806,16 @@ EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(e_date)
     return Math.acos(d);
 };
 
-// Computes sun and moon position at Model.coords for a given ephemeris_date
-// object, which can be created by passing a normal Date object to Model._create_ephemeris_date.
-// NOTE: Model._update_ephemeris must have been called prior to calling this
-// function in order to register Model.coords with the ephemeris library
-EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(ephemeris_date)
+EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
 {
-    var sun  = $moshier.body.sun;
-    var moon = $moshier.body.moon;
-
-    $processor.calc(ephemeris_date, sun);
-    $processor.calc(ephemeris_date, moon);
-
-    var sunpos  = sun.position.altaz.topocentric;
-    var moonpos = moon.position.altaz.topocentric;
+    var julian_date = new A.JulianDay(date);
+    var coords      = A.EclCoord.fromWgs84(this.coords.lat, this.coords.lng, undefined);
 
     return {
-        sun:  {az:  EclipseSimulator.deg2rad(sunpos.azimuth),
-               alt: EclipseSimulator.deg2rad(sunpos.altitude),
-        },
-        moon: {az:  EclipseSimulator.deg2rad(moonpos.azimuth),
-               alt: EclipseSimulator.deg2rad(moonpos.altitude),
-        },
+        sun: A.Solar.topocentricPosition(julian_date, coords, true).hz,
+        moon: A.Moon.topocentricPosition(julian_date, coords, true).hz,
     };
 };
-
-EclipseSimulator.Model.prototype._create_ephemeris_date = function(date)
-{
-    return {
-        year:    date.getFullYear(),
-        month:   date.getMonth() + 1, // Date object months are zero indexed
-        day:     date.getDate(),
-        hours:   date.getUTCHours(),
-        minutes: date.getMinutes(),
-        seconds: date.getSeconds()
-    };
-};
-
-EclipseSimulator.Model.prototype._update_ephemeris = function()
-{
-    $const.glat  = this.coords.lat;
-    $const.tlong = this.coords.lng;
-
-    this._ephemeris_date = this._create_ephemeris_date(this.date);
-};
-
 
 
 // ========================
