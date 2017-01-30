@@ -18,6 +18,7 @@ var EclipseSimulator = {
         this.downbutton     = $('#downbutton').get(0);
         this.mapbutton      = $('#mapbutton').get(0);
         this.zoombutton     = $('#zoom').get(0);
+        this.playbutton     = $('#play').get(0);
         this.slider         = $('#tslider').get(0);
         this.error_snackbar = $('#error-snackbar').get(0);
         this.slider_labels  = $('[id^=slabel]');
@@ -67,6 +68,8 @@ var EclipseSimulator = {
         this.eclipse_time = undefined;
 
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
+
+        this.playing = false;
     },
 
     Controller: function(location)
@@ -176,6 +179,13 @@ var EclipseSimulator = {
 
     VIEW_SLIDER_NSTEPS: 720,
 
+    PLAY_REFRESH_RATE: 16,
+
+    STANDARD_PLAY_SPEED: {
+        zoom: 1000,
+        wide: 1000,
+    },
+
     DEFAULT_USER_ERR_MSG: 'An error occured',
 
     DEFAULT_USER_ERR_TIMEOUT: 2000,
@@ -192,6 +202,11 @@ var EclipseSimulator = {
     ECLIPSE_ECOAST_HOUR: 20,
 
     ECLIPSE_WCOAST_HOUR: 16,
+
+    PLAY_PAUSE_BUTTON: {
+        true: 'play_circle_outline',
+        false: 'pause_circle_outline',
+    },
 
 };
 
@@ -214,21 +229,30 @@ EclipseSimulator.View.prototype.init = function()
     //This makes the sun move along with the slider
     //A step toward calculating and displaying the sun and moon at a specific time based on the slider
     $(this.slider).on('input', function(){
+        view.playing = false;
         view.slider_change();
     });
 
     //Increments the slider on a click
     $(this.upbutton).click(function(){
+        view.playing = false;
         view.slider_change('up');
     });
 
     //Decrements the slider on a click
     $(this.downbutton).click(function(){
+        view.playing = false;
         view.slider_change('down');
     });
 
     $(this.zoombutton).click(function() {
+        view.playing = false;
         view.toggle_zoom()
+    });
+
+    $(this.playbutton).click(function() {
+        view.playing = !view.playing;
+        view.play_simulator_step(parseFloat(view.slider.value));
     });
 
     //Hide the map when the view initializes
@@ -236,6 +260,7 @@ EclipseSimulator.View.prototype.init = function()
 
     //Toggles the visibility of the map on click
     $(this.mapbutton).click(function(){
+        view.playing = false;
         $(view.mapcanvas).toggle(resizeMap);
 
         function resizeMap() {
@@ -278,6 +303,8 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
     view.search_box.addListener('place_changed', function() {
+
+        view.playing = false;
 
         view.marker.setVisible(false);
         var place = view.search_box.getPlace();
@@ -474,6 +501,30 @@ EclipseSimulator.View.prototype.slider_change = function(direction)
     var new_val = current + offset;
     this.slider.MaterialSlider.change(new_val);
     $(this).trigger('EclipseView_time_updated', new_val);
+};
+
+EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
+{
+    var view = this;
+
+    $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+
+    if(!this.playing)
+    {
+        return;
+    }
+    if(time_val >= EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2)
+    {
+        return;
+    }
+
+    this.slider.MaterialSlider.change(time_val);
+    $(this).trigger('EclipseView_time_updated', time_val);
+    
+    setTimeout(function(){
+        view.play_simulator_step(time_val + EclipseSimulator.STANDARD_PLAY_SPEED[view.zoom_level] * EclipseSimulator.PLAY_REFRESH_RATE / 60 / 1000);
+    }, EclipseSimulator.PLAY_REFRESH_RATE);
+
 };
 
 EclipseSimulator.View.prototype.toggle_loading = function()
