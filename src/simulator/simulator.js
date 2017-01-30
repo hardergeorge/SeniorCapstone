@@ -58,8 +58,6 @@ var EclipseSimulator = {
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_WIDE;
         this.current_fov = this.wide_fov;
 
-        this.fov_buffer = 15 * Math.PI / 180;
-
         // Center of frame in radians
         this.az_center  = 0;
         this.alt_center = 40 * Math.PI / 180;
@@ -251,9 +249,12 @@ EclipseSimulator.View.prototype.init = function()
 
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
+        view.update_fov_x();
         view.refresh();
         view._refresh_hills();
     });
+
+    this.update_fov_x();
 };
 
 EclipseSimulator.View.prototype.initialize_location_entry = function()
@@ -407,7 +408,7 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
     var env_size = this.get_environment_size();
 
     // Adjust radius
-    target.style.r = pos.r;
+    target.style.r = env_size.height * pos.r;
 
     // with SVG, (0, 0) is top left corner
     target.style.cy = env_size.height * (1 - pos.y);
@@ -416,7 +417,7 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
 
 EclipseSimulator.View.prototype.get_ratio_from_body_angular_r = function(r)
 {
-    return this.get_environment_size().width * Math.sin(r) / Math.sin(this.current_fov.x);
+    return Math.sin(r) / Math.sin(this.current_fov.y);
 };
 
 EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, fov, body_r)
@@ -428,6 +429,8 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
     {
         // Just move the body way way off screen
         dist_from_center += fov * 0.1;
+
+        console.log('oov');
     }
 
     return 0.5 + (0.5 * dist_from_center / half_fov_width);
@@ -438,8 +441,6 @@ EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_
     var bound = center + (fov / 2);
     var dist  = EclipseSimulator.rad_diff(bound, altaz);
 
-    bound += this.fov_buffer;
-
     // Body off screen in positive direction
     if (EclipseSimulator.rad_gt(altaz, bound) && dist > body_r)
     {
@@ -448,8 +449,6 @@ EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_
 
     bound = center - (fov / 2);
     dist  = EclipseSimulator.rad_diff(bound, altaz);
-
-    bound -= this.fov_buffer;
 
     // Body off screen in negative direction
     if (EclipseSimulator.rad_gt(bound, altaz) && dist > body_r)
@@ -606,6 +605,12 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
     {
         this.alt_center = alt;
     }
+};
+
+EclipseSimulator.View.prototype.update_fov_x = function()
+{
+    var env_size = this.get_environment_size();
+    this.current_fov.x = this.current_fov.y * env_size.width / env_size.height;
 };
 
 // Computes an intermediate color between min and max, converts this color to an rgb string,
