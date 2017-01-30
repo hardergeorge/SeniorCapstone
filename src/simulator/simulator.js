@@ -487,17 +487,33 @@ EclipseSimulator.View.prototype.play_simulator = function()
     
     var view = this;
     var step = EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
-    var lower_bound = -EclipseSimulator.VIEW_SLIDER_NSTEPS/2
-    var upper_bound = EclipseSimulator.VIEW_SLIDER_NSTEPS/2
+    var lower_bound = parseInt($(view.slider).attr('min'));
+    var upper_bound = parseInt($(view.slider).attr('max'));
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE) {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
 
-        async function run_sim() {
+        async function run_sim_wide() {
             for(var i = lower_bound; i < upper_bound; i += step) {
                 if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE){
+                    view.slider.MaterialSlider.change(i);
+                    $(view).trigger('EclipseView_time_updated', i);
+                    console.log(parseInt($(view.slider).attr('min')));
+                    await sleep(6.25);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        run_sim_wide();
+    } else {
+        async function run_sim_zoom() {
+            for(var i = lower_bound; i < upper_bound; i += step) {
+                if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_ZOOM){
                     view.slider.MaterialSlider.change(i);
                     $(view).trigger('EclipseView_time_updated', i);
                     await sleep(6.25);
@@ -507,10 +523,7 @@ EclipseSimulator.View.prototype.play_simulator = function()
             }
         }
 
-        run_sim();
-    } else {
-        view.display_error_to_user("Play function not available in zoom mode");
-        return;
+        run_sim_zoom();
     }
 };
 
