@@ -183,7 +183,7 @@ var EclipseSimulator = {
 
     STANDARD_PLAY_SPEED: {
         zoom: 1000,
-        wide: 1000,
+        wide: 2000,
     },
 
     DEFAULT_USER_ERR_MSG: 'An error occured',
@@ -515,6 +515,8 @@ EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
     }
     if(time_val >= EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2)
     {
+        this.playing = false;
+        $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
         return;
     }
 
