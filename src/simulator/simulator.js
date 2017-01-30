@@ -203,6 +203,11 @@ var EclipseSimulator = {
 
     ECLIPSE_WCOAST_HOUR: 16,
 
+    PLAY_PAUSE_BUTTON: {
+        true: 'play_circle_outline',
+        false: 'pause_circle_outline',
+    },
+
 };
 
 
@@ -246,12 +251,9 @@ EclipseSimulator.View.prototype.init = function()
     });
 
     $(this.playbutton).click(function() {
-        if(!view.playing){
-            view.playing = true;
-            view.play_simulator_step(parseFloat(view.slider.value));
-        } else {
-            view.playing = false;
-        }
+        $(view.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[view.playing]);
+        view.playing = !view.playing;
+        view.play_simulator_step(parseFloat(view.slider.value));
     });
 
     //Hide the map when the view initializes
@@ -508,6 +510,7 @@ EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
     var view = this;
 
     if(!view.playing){
+        $(view.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!view.playing]);
         return;
     }
     if(time_val >= EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level] * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2){
