@@ -675,7 +675,6 @@ EclipseSimulator.Controller.prototype.init = function()
 
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
             // Call the handler, converting the val from minutes to milliseconds
-            //controller.update_simulator_time_with_offset(parseFloat(val) * 60 * 1000);
             controller.update_simulator_time_with_offset(parseFloat(val) * 60 * 1000);
         });
 
