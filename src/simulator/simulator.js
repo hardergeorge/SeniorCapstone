@@ -171,6 +171,11 @@ var EclipseSimulator = {
         wide: 1,
     },
 
+    VIEW_BG_COLOR_MAX: [3, 39, 53],
+    VIEW_BG_COLOR_MIN: [3, 169, 244],
+    VIEW_HILL_COLOR_MAX: [76, 55, 26],
+    VIEW_HILL_COLOR_MIN: [76, 175, 80],
+
     VIEW_SLIDER_NSTEPS: 720,
 
     DEFAULT_USER_ERR_MSG: 'An error occured',
@@ -603,6 +608,32 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
     }
 };
 
+// Update the background color of the simulator based on a percent value
+// that is passed in.
+// -------------------------------
+// A higher percent means a lighter background color
+// Color_percent range: 0 to 1
+// Obj : object we want to change the color of
+// Min/Max: minimum and maximum color range for obj
+EclipseSimulator.View.prototype.update_object_color = function(color_percent, change_func, min, max)
+{
+    // new values to be set to default minimum
+    var new_rgb = [0, 0, 0];
+
+    // Compute new color value based on percent and floor to integer
+    for (var i = 0; i < 3; i++)
+    {
+        var diff   = max[i] - min[i];
+        new_rgb[i] = Math.floor((1 - color_percent) * diff + min[i]);
+    }
+
+    // Create rgb str in std css format
+    var rgb_str = "rgb(" + new_rgb[0] + "," + new_rgb[1] + "," + new_rgb[2] + ")";
+
+    change_func(rgb_str);
+};
+
+
 // ===================================
 //
 // EclipseSimulator.Controller methods
@@ -855,4 +886,12 @@ $(document).ready(function() {
     {
         global_controller = controller;
     }
+
+    // Demo
+    // setTimeout(function() {
+    //     controller.view.update_object_color(
+    //         0.5, function(c) { controller.view.window.style.backgroundColor = c; },
+    //         EclipseSimulator.VIEW_BG_COLOR_MIN, EclipseSimulator.VIEW_BG_COLOR_MAX
+    //     );
+    // }, 1000);
 });
