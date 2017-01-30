@@ -608,13 +608,16 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
     }
 };
 
-// Update the background color of the simulator based on a percent value
-// that is passed in.
-// -------------------------------
-// A higher percent means a lighter background color
-// Color_percent range: 0 to 1
-// Obj : object we want to change the color of
-// Min/Max: minimum and maximum color range for obj
+// Computes an intermediate color between min and max, converts this color to an rgb string,
+// and passes this string to change_func. This string is of the form 'rgb(x, y, z)' where x, y, and
+// z are numbers in [0, 255]
+//
+// color_percent: Percentage min and max for the intermediate value - this value should be on the
+//                interval [0, 1]
+// change_func:   The function to pass the new rgb string to
+// min:           The min color value. This is a 3 element array with numeric values corresponding
+//                to the red, green, and blue color values. These numbers should be in [0, 255].
+// max:           The min color value. Format is the same as min.
 EclipseSimulator.View.prototype.update_object_color = function(color_percent, change_func, min, max)
 {
     // new values to be set to default minimum
