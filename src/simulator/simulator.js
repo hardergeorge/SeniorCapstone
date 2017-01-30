@@ -18,6 +18,7 @@ var EclipseSimulator = {
         this.downbutton     = $('#downbutton').get(0);
         this.mapbutton      = $('#mapbutton').get(0);
         this.zoombutton     = $('#zoom').get(0);
+        this.playbutton     = $('#play').get(0);
         this.slider         = $('#tslider').get(0);
         this.error_snackbar = $('#error-snackbar').get(0);
         this.slider_labels  = $('[id^=slabel]');
@@ -229,6 +230,10 @@ EclipseSimulator.View.prototype.init = function()
 
     $(this.zoombutton).click(function() {
         view.toggle_zoom()
+    });
+
+    $(this.playbutton).click(function() {
+        view.play_simulator()
     });
 
     //Hide the map when the view initializes
@@ -477,6 +482,38 @@ EclipseSimulator.View.prototype.slider_change = function(direction)
     $(this).trigger('EclipseView_time_updated', new_val);
 };
 
+EclipseSimulator.View.prototype.play_simulator = function()
+{
+    
+    var view = this;
+    var step = EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
+    var lower_bound = -EclipseSimulator.VIEW_SLIDER_NSTEPS/2
+    var upper_bound = EclipseSimulator.VIEW_SLIDER_NSTEPS/2
+
+    if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE) {
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function run_sim() {
+            for(var i = lower_bound; i < upper_bound; i += step) {
+                if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE){
+                    view.slider.MaterialSlider.change(i);
+                    $(view).trigger('EclipseView_time_updated', i);
+                    await sleep(6.25);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        run_sim();
+    } else {
+        view.display_error_to_user("Play function not available in zoom mode");
+        return;
+    }
+};
+
 EclipseSimulator.View.prototype.toggle_loading = function()
 {
     if ($(this.loading).is(':visible'))
@@ -634,6 +671,7 @@ EclipseSimulator.Controller.prototype.init = function()
 
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
             // Call the handler, converting the val from minutes to milliseconds
+            //controller.update_simulator_time_with_offset(parseFloat(val) * 60 * 1000);
             controller.update_simulator_time_with_offset(parseFloat(val) * 60 * 1000);
         });
 
