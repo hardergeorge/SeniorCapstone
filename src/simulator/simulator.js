@@ -501,7 +501,6 @@ EclipseSimulator.View.prototype.play_simulator = function()
                 if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE){
                     view.slider.MaterialSlider.change(i);
                     $(view).trigger('EclipseView_time_updated', i);
-                    console.log(parseInt($(view.slider).attr('min')));
                     await sleep(6.25);
                 } else {
                     break;
