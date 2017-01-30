@@ -251,7 +251,6 @@ EclipseSimulator.View.prototype.init = function()
     });
 
     $(this.playbutton).click(function() {
-        $(view.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[view.playing]);
         view.playing = !view.playing;
         view.play_simulator_step(parseFloat(view.slider.value));
     });
@@ -509,21 +508,22 @@ EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
 {
     var view = this;
 
-    if(!view.playing){
-        $(view.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!view.playing]);
+    $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+
+    if(!this.playing)
+    {
         return;
     }
-    if(time_val >= EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level] * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2){
+    if(time_val >= EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2)
+    {
         return;
     }
 
-
-    view.slider.MaterialSlider.change(time_val);
-    $(view).trigger('EclipseView_time_updated', time_val);
+    this.slider.MaterialSlider.change(time_val);
+    $(this).trigger('EclipseView_time_updated', time_val);
     
-
     setTimeout(function(){
-        view.play_simulator_step(time_val += EclipseSimulator.STANDARD_PLAY_SPEED[view.zoom_level] * EclipseSimulator.PLAY_REFRESH_RATE / 60000);
+        view.play_simulator_step(time_val + EclipseSimulator.STANDARD_PLAY_SPEED[view.zoom_level] * EclipseSimulator.PLAY_REFRESH_RATE / 60 / 1000);
     }, EclipseSimulator.PLAY_REFRESH_RATE);
 
 };
