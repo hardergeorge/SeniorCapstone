@@ -429,8 +429,6 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
     {
         // Just move the body way way off screen
         dist_from_center += fov * 0.1;
-
-        console.log('oov');
     }
 
     return 0.5 + (0.5 * dist_from_center / half_fov_width);
