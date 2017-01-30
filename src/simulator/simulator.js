@@ -494,36 +494,28 @@ EclipseSimulator.View.prototype.play_simulator = function()
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE) {
-
-        async function run_sim_wide() {
-            for(var i = lower_bound; i < upper_bound; i += step) {
-                if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_WIDE){
-                    view.slider.MaterialSlider.change(i);
-                    $(view).trigger('EclipseView_time_updated', i);
-                    await sleep(6.25);
-                } else {
-                    break;
-                }
+    async function run_sim() {
+        for(var i = lower_bound; i < upper_bound; i += step) {
+            //handle if user zooms while outside of zoomed time window
+            if(i < parseInt($(view.slider).attr('min')) && view.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM){
+                i = parseInt($(view.slider).attr('min'));
             }
-        }
-
-        run_sim_wide();
-    } else {
-        async function run_sim_zoom() {
-            for(var i = lower_bound; i < upper_bound; i += step) {
-                if(view.zoom_level === EclipseSimulator.VIEW_ZOOM_ZOOM){
-                    view.slider.MaterialSlider.change(i);
-                    $(view).trigger('EclipseView_time_updated', i);
-                    await sleep(6.25);
-                } else {
-                    break;
-                }
+            if(i > parseInt($(view.slider).attr('max')) && view.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM){
+                i = parseInt($(view.slider).attr('max'));
             }
-        }
 
-        run_sim_zoom();
+            //update the upper bound and step in case user changed zoom
+            upper_bound = parseInt($(view.slider).attr('max'));
+            step = EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
+
+            //update slider, time, and then wait
+            view.slider.MaterialSlider.change(i);
+            $(view).trigger('EclipseView_time_updated', i);
+            await sleep(60);
+        }
     }
+
+    run_sim();
 };
 
 EclipseSimulator.View.prototype.toggle_loading = function()
