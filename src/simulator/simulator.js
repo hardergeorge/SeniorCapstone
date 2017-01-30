@@ -618,28 +618,24 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
 // Color_percent range: 0 to 1
 // Obj : object we want to change the color of
 // Min/Max: minimum and maximum color range for obj
-EclipseSimulator.View.prototype.update_background = function(color_percent,
-                                                    change_funct, min, max){
+EclipseSimulator.View.prototype.update_object_color = function(color_percent, change_func, min, max)
+{
+    // new values to be set to default minimum
+    var new_rgb = [0, 0, 0];
 
-  var new_rgb =  min; // new values to be set to default minimum
+    // Compute new color value based on percent and floor to integer
+    for (var i = 0; i < 3; i++)
+    {
+        var diff   = max[i] - min[i];
+        new_rgb[i] = Math.floor((1 - color_percent) * diff + min[i]);
+    }
 
-  // Compute new color value based on percent and floor to integer
-  new_rgb[1] = Math.floor((color_percent)*min[1] + max[1]);
-  new_rgb[2] = Math.floor((color_percent)*min[2] + max[2]);
+    // Create rgb str in std css format
+    var rgb_str = "rgb(" + new_rgb[0] + "," + new_rgb[1] + "," + new_rgb[2] + ")";
 
-  change_funct(new_rgb);
-
-/*
-  this.hills[0].style.fill = "rgb(3," + new_rgb_hills[1] + ","
-                                      + new_rgb_hills[2] + ")";*/
+    change_func(rgb_str);
 };
 
-// Update window background color to the "new_color" value (RGB format)
-EclipseSimulator.View.prototype.update_window_color = function(new_color){
-
-  this.window.style.backgroundColor = "rgb(" + new_color[0] + "," +
-                                    new_color[1] + "," + new_color[2] + ")";
-};
 
 // ===================================
 //
@@ -666,11 +662,6 @@ EclipseSimulator.Controller.prototype.init = function()
         controller.view.eclipse_time = res.time;
         controller.view.update_slider_labels();
         controller.view.refresh();
-        controller.view.update_background(.5,
-                                          controller.view.update_window_color,
-                                          EclipseSimulator.VIEW_BG_COLOR_MIN,
-                                          EclipseSimulator.VIEW_BG_COLOR_MAX);
-
 
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
             // Call the handler, converting the val from minutes to milliseconds
@@ -942,4 +933,12 @@ $(document).ready(function() {
     {
         global_controller = controller;
     }
+
+    // Demo
+    // setTimeout(function() {
+    //     controller.view.update_object_color(
+    //         0.5, function(c) { controller.view.window.style.backgroundColor = c; },
+    //         EclipseSimulator.VIEW_BG_COLOR_MIN, EclipseSimulator.VIEW_BG_COLOR_MAX
+    //     );
+    // }, 1000);
 });
