@@ -406,7 +406,7 @@ EclipseSimulator.View.prototype.refresh = function()
         {
             x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
             y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
-            r: this.get_ratio_from_body_angular_r(this.sunpos.r),
+            r: this.get_ratio_from_body_angular_r(this.sunpos.r, this.sunpos.alt, alt_center),
         }
     );
     this.position_body_at_percent_coords(
@@ -414,7 +414,7 @@ EclipseSimulator.View.prototype.refresh = function()
         {
             x: this.get_ratio_from_altaz(this.moonpos.az,  az_center,  this.current_fov.x, this.moonpos.r),
             y: this.get_ratio_from_altaz(this.moonpos.alt, alt_center, this.current_fov.y, this.moonpos.r),
-            r: this.get_ratio_from_body_angular_r(this.moonpos.r),
+            r: this.get_ratio_from_body_angular_r(this.moonpos.r, this.moonpos.alt, alt_center),
         }
     );
 
@@ -442,9 +442,10 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
     target.style.cx = env_size.width * pos.x;
 };
 
-EclipseSimulator.View.prototype.get_ratio_from_body_angular_r = function(r)
+EclipseSimulator.View.prototype.get_ratio_from_body_angular_r = function(r, alt, center)
 {
-    return Math.sin(r) / Math.sin(this.current_fov.y);
+    var x = EclipseSimulator.rad_diff(alt, center);
+    return (Math.sin(x + r) - Math.sin(x)) / (2 * Math.sin(this.current_fov.y / 2));
 };
 
 EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, fov, body_r)
@@ -454,8 +455,7 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
 
     if (this.out_of_view(altaz, center, fov, body_r))
     {
-        // Just move the body way way off screen
-        dist_from_center += fov * 0.1;
+        return -0.5;
     }
 
     return 0.5 + (0.5 * dist_from_center / half_fov_width);
@@ -520,7 +520,7 @@ EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
 
     this.slider.MaterialSlider.change(time_val);
     $(this).trigger('EclipseView_time_updated', time_val);
-    
+
     setTimeout(function(){
         view.play_simulator_step(time_val + EclipseSimulator.STANDARD_PLAY_SPEED[view.zoom_level] * EclipseSimulator.PLAY_REFRESH_RATE / 60 / 1000);
     }, EclipseSimulator.PLAY_REFRESH_RATE);
