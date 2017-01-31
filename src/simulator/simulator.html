@@ -97,15 +97,28 @@
         </svg>
         <div id="controls" style="height: 110px; padding: 0px 15px 0px 15px; background-color: #84521c">
 
+            <!-- Play button -->
+            <div style="float: left; width: 100px; margin-top: 14px;">
+                <button style="width: 75px;"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                        id="play">
+                    <i class="material-icons">play_circle_outline</i>
+                </button>
+                <button style="margin-top: 10px; width: 75px;"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                        id="speedbutton">
+                </button>
+            </div>
+
             <!-- Time down button -->
-            <div style="width: 115px; float: left; margin-top: 30px">
+            <div style="float: left; margin-top: 30px">
                 <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="downbutton">
-                    Time Down
+                    <i class="material-icons">skip_previous</i>
                 </button>
             </div>
 
             <!-- Time slider -->
-            <div style="width: calc(100% - 202px); float: left; margin-top: 40px">
+            <div style="width: calc(100% - 237px); float: left; margin-top: 40px">
                 <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
                 <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
 
@@ -129,16 +142,9 @@
             </div>
 
             <!-- Time up button -->
-            <div style="width: 87px; float: left; margin-top: 30px">
+            <div style="float: left; margin-top: 30px">
                 <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id ="upbutton">
-                    Time Up
-                </button>
-            </div>
-
-            <!-- Play button -->
-            <div style="width: 115px; float: left; margin-top: 30px">
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="play">
-                    <i class="material-icons">play_circle_outline</i>
+                    <i class="material-icons">skip_next</i>
                 </button>
             </div>
 
