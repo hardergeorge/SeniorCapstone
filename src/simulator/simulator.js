@@ -170,13 +170,13 @@ var EclipseSimulator = {
     VIEW_ZOOM_ZOOM: 'zoom',
 
     VIEW_SLIDER_STEP_MIN: {
-        zoom: 0.1,
-        wide: 1,
+        zoom: 0.3,
+        wide: 0.3,
     },
 
-    VIEW_BG_COLOR_MAX: [3, 39, 53],
-    VIEW_BG_COLOR_MIN: [3, 169, 244],
-    VIEW_HILL_COLOR_MAX: [76, 55, 26],
+    VIEW_BG_COLOR_MAX:   [3,  39,  53],
+    VIEW_BG_COLOR_MIN:   [3,  169, 244],
+    VIEW_HILL_COLOR_MAX: [76, 55,  26],
     VIEW_HILL_COLOR_MIN: [76, 175, 80],
 
     VIEW_SLIDER_NSTEPS: 720,
@@ -193,8 +193,8 @@ var EclipseSimulator = {
             fast: 4000
         },
         wide: {
-            slow: 2000,
-            fast: 8000
+            slow: 1000,
+            fast: 4000
         },
     },
 
@@ -637,7 +637,7 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
         var mins = "" + date.getMinutes();
         mins     = mins.length == 1 ? "0" + mins : mins;
 
-        $(this.slider_labels[i]).text(date.getHours() + ':' + mins);
+        $(this.slider_labels[i]).text(date.getUTCHours() + ':' + mins);
         date.setTime(date.getTime() + tick_sep_ms);
     }
 };
@@ -659,26 +659,8 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.hills.show();
     }
 
-    // Compute new slider bounds
-    var slider_minmax = EclipseSimulator.VIEW_SLIDER_NSTEPS *
-                        EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] / 2;
-
-    // If the current slider position is out of bounds, reset the time to eclipse time
-    if (this.slider.value > slider_minmax || this.slider.value < -slider_minmax)
-    {
-        this.slider.MaterialSlider.change(0);
-        this.slider_change();
-    }
-
-    $(this.slider).attr('min', -slider_minmax);
-    $(this.slider).attr('max', slider_minmax);
-    $(this.slider).attr('step', EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]);
-
-    // Re-render the slider as it now has a new position, since its bounds have changed
-    this.slider.MaterialSlider.boundChangeHandler();
-
-    // Update the slider labels to match the new bounds
-    this.update_slider_labels();
+    // Update the slider labels and bounds
+    this.update_slider();
     this.set_play_speed_label();
     this.refresh();
 };
@@ -728,6 +710,31 @@ EclipseSimulator.View.prototype.update_object_color = function(color_percent, ch
     change_func(rgb_str);
 };
 
+EclipseSimulator.View.prototype.update_slider = function()
+{
+    var slider_minmax = EclipseSimulator.VIEW_SLIDER_NSTEPS
+                        * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] / 2;
+
+    // If the current slider position is out of bounds, reset the time to eclipse time
+    if (this.slider.value > slider_minmax || this.slider.value < -slider_minmax)
+    {
+       this.slider.MaterialSlider.change(0);
+       this.slider_change();
+    }
+
+    $(this.slider).attr('min', -slider_minmax);
+    $(this.slider).attr('max', slider_minmax);
+    $(this.slider).attr('step', EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]);
+
+    // Re-render the slider as it now has a new position, since its bounds have changed
+    if (this.slider.MaterialSlider !== undefined)
+    {
+        this.slider.MaterialSlider.boundChangeHandler();
+    }
+
+    this.update_slider_labels();
+};
+
 
 // ===================================
 //
@@ -752,7 +759,7 @@ EclipseSimulator.Controller.prototype.init = function()
 
         controller.view.update_eclipse_pos(res.alt, res.az);
         controller.view.eclipse_time = res.time;
-        controller.view.update_slider_labels();
+        controller.view.update_slider();
         controller.view.refresh();
 
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
@@ -846,7 +853,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     this.view.sunpos       = sun;
     this.view.moonpos      = moon;
     this.view.eclipse_time = res.time;
-    this.view.update_slider_labels();
+    this.view.update_slider();
     this.view.refresh();
 };
 
