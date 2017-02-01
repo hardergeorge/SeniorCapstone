@@ -807,6 +807,8 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     sun.r    = this.view.sunpos.r;
     moon.r   = this.view.moonpos.r;
 
+    this.model.compute_percent_eclipse(sun, moon);
+
     // Update the view
     this.view.sunpos  = sun;
     this.view.moonpos = moon;
@@ -948,6 +950,47 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
         sun: A.Solar.topocentricPosition(julian_date, coords, true).hz,
         moon: A.Moon.topocentricPosition(julian_date, coords, true).hz,
     };
+};
+
+EclipseSimulator.Model.prototype.compute_percent_eclipse = function(sun, moon)
+{
+  console.log(sun);
+  console.log(moon);
+
+  // sun.r -> topocrentic radius of the sun n in degrees
+  // Convert it to radians
+  var sun_r = (EclipseSimulator.rad2deg(sun.r))*60*60;
+  var moon_r = (EclipseSimulator.rad2deg(moon.r))*60*60;
+
+  console.log(sun_r)
+
+  // Compute angular separation
+  var sep = EclipseSimulator.rad2deg(this._compute_sun_moon_sep(this.date))*60*60;
+
+  // Is sun.r the sun's radius?
+  var lunedelta, lune_area, percent_eclipse;
+  if(sep<(sun_r + moon_r)){
+    var a = sun_r, b = moon_r, c = sep;
+    var inner = (a+b+c)*(b+c-a)*(c+a-b)*(a+b-c);
+    if(inner < 0) lunedelta = 0;
+    else lunedelta = (1/4)*Math.sqrt(inner);
+  }
+  else{ // Sun/Moon aren't touching
+    lunedelta = -1;
+    percent_eclipse = 0;
+  }
+
+  // Compute percent eclipse
+  if(lunedelta != -1 && lunedelta > 0){
+    lune_area = 2*lunedelta + (sun_r*sun_r)*
+          Math.acos(((moon_r*moon_r)-(sun_r*sun_r)-(sep*sep))/(2*sun_r*sep)) -
+          (moon_r*moon_r)*Math.acos(((moon_r*moon_r)+(sep*sep)-(sun_r*sun_r))/
+          (2*moon_r*sep));
+    percent_eclipse=(1-(lune_area/(Math.PI*sun_r*sun_r)))*100
+  }
+  else if(lunedelta == 0) {percent_eclipse = 100;}
+
+  console.log("Percent eclipse:   " + percent_eclipse);
 };
 
 
