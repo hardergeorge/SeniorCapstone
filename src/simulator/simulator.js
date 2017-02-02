@@ -807,7 +807,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     sun.r    = this.view.sunpos.r;
     moon.r   = this.view.moonpos.r;
 
-    this.model.compute_percent_eclipse(sun, moon);
+    var eclipse_percent = this.model.compute_percent_eclipse();
 
     // Update the view
     this.view.sunpos  = sun;
@@ -952,22 +952,22 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
     };
 };
 
-EclipseSimulator.Model.prototype.compute_percent_eclipse = function(sun, moon)
+// Compute the percent of the eclipse
+// sun_r and moon_r correspond to the radius (In radians) of each body
+// Returns a percent between 0 and 1
+EclipseSimulator.Model.prototype.compute_percent_eclipse = function()
 {
-  console.log(sun);
-  console.log(moon);
+  // Based off of the eclipse_test.py computation
+  // Compute radius
+  var sun_r = .5 * 60 * 60;
+  var moon_r = .5 * 60 * 60;
 
-  // sun.r -> topocrentic radius of the sun n in degrees
-  // Convert it to radians
-  var sun_r = (EclipseSimulator.rad2deg(sun.r))*60*60;
-  var moon_r = (EclipseSimulator.rad2deg(moon.r))*60*60;
+  // Compute angular separation and convert to degrees (Taken from python script)
+  var sep = EclipseSimulator.rad2deg(this._compute_sun_moon_sep(this.date)) * 3600;
+  console.log("Angular Separation:   " + sep);
 
-  console.log(sun_r)
-
-  // Compute angular separation
-  var sep = EclipseSimulator.rad2deg(this._compute_sun_moon_sep(this.date))*60*60;
-
-  // Is sun.r the sun's radius?
+  // Compute size of lune in arcsec^2 (From eclipse_test.py)
+  // http://mathworld.wolfram.com/Lune.html
   var lunedelta, lune_area, percent_eclipse;
   if(sep<(sun_r + moon_r)){
     var a = sun_r, b = moon_r, c = sep;
@@ -986,11 +986,14 @@ EclipseSimulator.Model.prototype.compute_percent_eclipse = function(sun, moon)
           Math.acos(((moon_r*moon_r)-(sun_r*sun_r)-(sep*sep))/(2*sun_r*sep)) -
           (moon_r*moon_r)*Math.acos(((moon_r*moon_r)+(sep*sep)-(sun_r*sun_r))/
           (2*moon_r*sep));
-    percent_eclipse=(1-(lune_area/(Math.PI*sun_r*sun_r)))*100
+    percent_eclipse=(1-(lune_area/(Math.PI*sun_r*sun_r)))
   }
-  else if(lunedelta == 0) {percent_eclipse = 100;}
+  else if(lunedelta == 0) {percent_eclipse = 1;}
 
+  // debug output
   console.log("Percent eclipse:   " + percent_eclipse);
+
+  return(percent_eclipse);
 };
 
 
