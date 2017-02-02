@@ -807,6 +807,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     sun.r    = this.view.sunpos.r;
     moon.r   = this.view.moonpos.r;
 
+    // Get the eclipse_percent for background color change
     var eclipse_percent = this.model.compute_percent_eclipse();
 
     // Update the view
@@ -982,10 +983,12 @@ EclipseSimulator.Model.prototype.compute_percent_eclipse = function()
 
   // Compute percent eclipse
   if(lunedelta != -1 && lunedelta > 0){
+    // compute lune area
     lune_area = 2*lunedelta + (sun_r*sun_r)*
           Math.acos(((moon_r*moon_r)-(sun_r*sun_r)-(sep*sep))/(2*sun_r*sep)) -
           (moon_r*moon_r)*Math.acos(((moon_r*moon_r)+(sep*sep)-(sun_r*sun_r))/
           (2*moon_r*sep));
+
     percent_eclipse=(1-(lune_area/(Math.PI*sun_r*sun_r)))
   }
   else if(lunedelta == 0) {percent_eclipse = 1;}
