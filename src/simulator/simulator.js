@@ -966,12 +966,8 @@ EclipseSimulator.Model.prototype.compute_percent_eclipse = function(sun_r, moon_
   var lune_area = this._compute_lune_area(sun_r, moon_r, sep, lune_delta);
 
   var percent_eclipse;
-  if(lune_delta == 0){
-    percent_eclipse = 1;
-  }
-  else{
-    percent_eclipse = (1-(lune_area/(Math.PI*sun_r*sun_r)));
-  }
+
+  percent_eclipse = lune_delta == 0 ? 1 : 1-(lune_area/(Math.PI*sun_r*sun_r));
 
   // debug output
   console.log("Percent eclipse:   " + percent_eclipse);
