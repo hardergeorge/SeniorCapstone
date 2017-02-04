@@ -30,6 +30,7 @@ var EclipseSimulator = {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
                                 zoom: 11
                             });
+        this.map_visible    = false;
         this.search_box     = undefined;
         this.marker         = undefined;
 
@@ -279,19 +280,28 @@ EclipseSimulator.View.prototype.init = function()
         view.set_play_speed_label();
     });
 
-    //Hide the map when the view initializes
+    // Hide the map when the view initializes
     $(this.mapcanvas).hide();
 
-    //Toggles the visibility of the map on click
-    $(this.mapbutton).click(function(){
+    // Toggles the visibility of the map on click
+    $(this.mapbutton).click(function() {
         view.playing = false;
-        $(view.mapcanvas).toggle(resizeMap);
 
-        function resizeMap() {
-            var center2 = view.map.getCenter();
-            google.maps.event.trigger(view.map, "resize"); // resize map
-            view.map.setCenter(center2);
+        var center_map = function() {
+            var center = view.map.getCenter();
+            google.maps.event.trigger(view.map, "resize");
+            view.map.setCenter(center);
         }
+
+        $(view.mapcanvas).toggle(200, center_map);
+
+        $(view.mapbutton).toggleClass('push-left', 200);
+        $(view.mapbutton).toggleClass('push-down');
+        $(view.zoombutton).toggleClass('push-down');
+
+        var icon = view.map_visible ? 'map' : 'arrow_back';
+        $(view.mapbutton).find('i').text(icon);
+        view.map_visible = !view.map_visible;
     });
 
     this.initialize_location_entry();

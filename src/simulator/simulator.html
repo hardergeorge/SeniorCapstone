@@ -1,11 +1,12 @@
 <script type="text/javascript" src="jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_API_KEY&libraries=places"></script>
+<script type="text/javascript" src="jquery-ui.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnhjGb4uWVRghLy-HlLHe52-k5SazPLSM&libraries=places"></script>
 <script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
 <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
 <script defer type="text/javascript" src="simulator.js"></script>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.blue-amber.min.css">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.grey-amber.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
 <!DOCTYPE html>
@@ -14,24 +15,48 @@
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <meta charset="utf-8">
 <style>
-
-    #map-canvas {
-    height: 350px;
-    width: 350px;
+    .map-container {
+        height: 400px;
+        width: 70%;
+        max-width: calc(100% - 550px);
     }
-
-    #floating-panel {
+    .top-bar {
         position: absolute;
         top: 10px;
         left: 10px;
+        padding-top: 12px;
         z-index: 5;
         background-color: rgba(0, 0, 0, 0);
         text-align: center;
         font-family: 'Roboto','sans-serif';
+        width: 100%;
     }
-
+    .top-bar .mdl-button, .top-bar .map-container {
+        margin-left: 8px;
+        float: left;
+    }
+    .top-bar .mdl-button.push-down {
+        margin-top: 4px;
+    }
+    .top-bar .mdl-button.push-left {
+        margin-left: -64px;
+    }
+    .top-bar input {
+        height: 48px;
+        font-size: 18px;
+        background-color: #fff;
+        font-family: 'Roboto';
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 300px;
+        border-radius: 2px;
+    }
+    .mdl-button, .mdl-button:focus, .mdl-button:hover {
+        background-color: #fff;
+    }
     .controls {
-        margin-top: 10px;
         border: 1px solid transparent;
         border-radius: 2px 0 0 2px;
         box-sizing: border-box;
@@ -40,25 +65,6 @@
         outline: none;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
-
-    #pac-input {
-        background-color: #fff;
-        font-family: 'Roboto';
-        font-size: 15px;
-        font-weight: 300;
-        margin-left: 12px;
-        padding: 0 11px 0 13px;
-        text-overflow: ellipsis;
-        width: 300px;
-      }
-
-    #pac-input:focus {
-        border-color: #4d90fe;
-    }
-    .pac-container {
-        font-family: Roboto;
-    }
-
 </style>
 </head>
 
@@ -151,24 +157,22 @@
         </div>
     </div>
 
-    <div id="floating-panel">
+    <div class="top-bar">
         <input id="pac-input" style="float: left;" class="controls" type="text" placeholder="Location Search">
 
-        <div style="width: 115px; float: left; margin-top: 8px">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" id="mapbutton">
-                Map
-            </button>
-        </div>
+        <div id="map-canvas" class="map-container"></div>
 
-        <div id="map-canvas"></div>
-    </div>
+        <button class="mdl-button mdl-js-button mdl-button--fab" id="mapbutton">
+            <i class="material-icons">map</i>
+        </button>
 
-    <div style="position: absolute; float: right; top: 18px; right: 18px;">
-        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" id="zoom">
-            Toggle Zoom
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
+            <i class="material-icons">zoom_in</i>
         </button>
     </div>
 
+
+    <!-- Error message box -->
     <div id="error-snackbar" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
         <button class="mdl-snackbar__action" type="button"></button>
