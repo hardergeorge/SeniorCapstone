@@ -17,53 +17,50 @@
 <style>
     .map-container {
         height: 400px;
-        width: 70%;
-        max-width: calc(100% - 550px);
     }
-    .top-bar {
+    .floating-bar {
         position: absolute;
-        top: 10px;
-        left: 10px;
+        left: 50%;
         padding-top: 12px;
         z-index: 5;
-        background-color: rgba(0, 0, 0, 0);
         text-align: center;
         font-family: 'Roboto','sans-serif';
-        width: 100%;
     }
-    .top-bar .mdl-button, .top-bar .map-container {
+    .floating-bar .inner {
+        position: relative;
+        left: -50%;
+    }
+    .floating-bar.top {
+        top: 10px;
+    }
+    .floating-bar .mdl-button, .floating-bar .map-container {
         margin-left: 8px;
         float: left;
     }
-    .top-bar .mdl-button.push-down {
+    .floating-bar .mdl-button.push-down {
         margin-top: 4px;
     }
-    .top-bar .mdl-button.push-left {
+    .floating-bar.top .mdl-button.push-left {
         margin-left: -64px;
     }
-    .top-bar input {
-        height: 48px;
+    .floating-bar.top input {
+        height: 56px;
         font-size: 18px;
         background-color: #fff;
         font-family: 'Roboto';
         font-weight: 300;
-        margin-left: 12px;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
         width: 300px;
         border-radius: 2px;
     }
+    .floating-bar.top .search {
+        border: 1px solid transparent;
+        border-radius: 2px;
+        outline: none;
+    }
     .mdl-button, .mdl-button:focus, .mdl-button:hover {
         background-color: #fff;
-    }
-    .controls {
-        border: 1px solid transparent;
-        border-radius: 2px 0 0 2px;
-        box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        height: 32px;
-        outline: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
 </style>
 </head>
@@ -157,18 +154,20 @@
         </div>
     </div>
 
-    <div class="top-bar">
-        <input id="pac-input" style="float: left;" class="controls" type="text" placeholder="Location Search">
+    <div class="floating-bar top">
+        <div class="inner">
+            <input id="pac-input" style="float: left;" class="mdl-shadow--2dp search" type="text" placeholder="Location Search">
 
-        <div id="map-canvas" class="map-container"></div>
+            <div id="map-canvas" class="mdl-shadow--2dp map-container"></div>
 
-        <button class="mdl-button mdl-js-button mdl-button--fab" id="mapbutton">
-            <i class="material-icons">map</i>
-        </button>
+            <button class="mdl-button mdl-js-button mdl-button--fab" id="mapbutton">
+                <i class="material-icons">map</i>
+            </button>
 
-        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
-            <i class="material-icons">zoom_in</i>
-        </button>
+            <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
+                <i class="material-icons">zoom_in</i>
+            </button>
+        </div>
     </div>
 
 

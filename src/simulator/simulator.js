@@ -25,6 +25,7 @@ var EclipseSimulator = {
         this.slider_labels  = $('[id^=slabel]');
         this.mapcanvas      = $('#map-canvas').get(0);
         this.search_input   = $('#pac-input').get(0);
+        this.topbar         = $('.floating-bar.top .inner').get(0);
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
@@ -175,6 +176,10 @@ var EclipseSimulator = {
         wide: 0.3,
     },
 
+    VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_OPEN:   372,
+    VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_CLOSED: 428,
+    VIEW_MAP_MAX_W: 800,
+
     VIEW_BG_COLOR_MAX:   [3,  39,  53],
     VIEW_BG_COLOR_MIN:   [3,  169, 244],
     VIEW_HILL_COLOR_MAX: [76, 55,  26],
@@ -293,12 +298,31 @@ EclipseSimulator.View.prototype.init = function()
             view.map.setCenter(center);
         }
 
-        $(view.mapcanvas).toggle(200, center_map);
-
+        // Reposition the map and zoom buttons
         $(view.mapbutton).toggleClass('push-left', 200);
         $(view.mapbutton).toggleClass('push-down');
         $(view.zoombutton).toggleClass('push-down');
+        if (!view.map_visible)
+        {
+            // Set the width so that everything along the top lines up
+            var width = view.get_environment_size().width;
+            var map_w = width - EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_OPEN;
+            map_w     = Math.min(map_w, EclipseSimulator.VIEW_MAP_MAX_W);
 
+            $(view.mapcanvas).css('width', map_w + 'px');
+
+            var top_bar_w = EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_OPEN + map_w;
+        }
+        else
+        {
+            var top_bar_w = EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_CLOSED;
+        }
+        $(view.topbar).animate({'width': top_bar_w + 'px'}, 200);
+
+        // Show the map and center it
+        $(view.mapcanvas).toggle(200, center_map);
+
+        // Toggle the map button icon
         var icon = view.map_visible ? 'map' : 'arrow_back';
         $(view.mapbutton).find('i').text(icon);
         view.map_visible = !view.map_visible;
@@ -660,6 +684,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.current_fov = this.zoomed_fov;
         this.alt_center  = this.eclipse_alt;
         this.hills.hide();
+        var label = 'zoom_out';
     }
     else
     {
@@ -667,7 +692,9 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.current_fov = this.wide_fov;
         this.alt_center  = this.wide_fov.y / 2;
         this.hills.show();
+        var label = 'zoom_in';
     }
+    $(this.zoombutton).find('i').text(label);
 
     // Update the slider labels and bounds
     this.update_slider();
