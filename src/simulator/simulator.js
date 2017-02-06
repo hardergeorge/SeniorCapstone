@@ -269,6 +269,16 @@ EclipseSimulator.View.prototype.init = function()
     });
 
     $(this.playbutton).click(function() {
+        // If the slider is at the very end of the time range and the user hits
+        // the play button again. It will restart the playing of the simulation
+        // from the beginning.
+        if(view.end_of_slider)
+        {
+          // Restart the slider at the beginning
+          view.slider.value = -1*EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
+                           * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
+        }
+
         view.playing = !view.playing;
         view.play_simulator_step(parseFloat(view.slider.value));
     });
@@ -547,6 +557,10 @@ EclipseSimulator.View.prototype.slider_change = function(direction)
 {
     var current = parseFloat(this.slider.value);
     var offset  = 0;
+    var max_offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
+                     * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
+
+    if(this.slider.value >= max_offset) this.end_of_slider = true;
 
     if (direction === 'up')
     {
@@ -562,6 +576,7 @@ EclipseSimulator.View.prototype.slider_change = function(direction)
     $(this).trigger('EclipseView_time_updated', new_val);
 };
 
+
 EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
 {
     $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
@@ -572,15 +587,18 @@ EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
         return;
     }
 
-    // We have reached the end of the time range
     var max_offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
                      * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
+
     if (time_val >= max_offset)
     {
+        this.end_of_slider = true;
         this.playing = false;
         $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
         return;
     }
+
+    this.end_of_slider = false;
 
     this.slider.MaterialSlider.change(time_val);
     $(this).trigger('EclipseView_time_updated', time_val);
