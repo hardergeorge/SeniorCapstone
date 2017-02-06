@@ -1,11 +1,12 @@
 <script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="jquery-ui.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_API_KEY&libraries=places"></script>
 <script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
 <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
 <script defer type="text/javascript" src="simulator.js"></script>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.blue-amber.min.css">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.grey-amber.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
 <!DOCTYPE html>
@@ -14,51 +15,73 @@
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <meta charset="utf-8">
 <style>
-
-    #map-canvas {
-    height: 350px;
-    width: 350px;
+    .map-container {
+        height: 400px;
     }
-
-    #floating-panel {
+    .floating-bar {
         position: absolute;
-        top: 10px;
-        left: 10px;
+        left: 50%;
+        padding-top: 12px;
         z-index: 5;
-        background-color: rgba(0, 0, 0, 0);
         text-align: center;
         font-family: 'Roboto','sans-serif';
     }
-
-    .controls {
-        margin-top: 10px;
-        border: 1px solid transparent;
-        border-radius: 2px 0 0 2px;
-        box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        height: 32px;
-        outline: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    .floating-bar .inner {
+        position: relative;
+        left: -50%;
     }
-
-    #pac-input {
+    .floating-bar.top {
+        top: 10px;
+    }
+    .floating-bar.bottom {
+        bottom: 10px;
+        width: calc(100% - 100px);
+    }
+    .floating-bar.bottom .inner {
+        bottom: 10px;
+    }
+    .floating-bar .mdl-button, .floating-bar .map-container {
+        margin-left: 8px;
+        float: left;
+    }
+    .floating-bar .mdl-button.push-down {
+        margin-top: 4px;
+    }
+    .floating-bar.top .mdl-button.push-left {
+        margin-left: -64px;
+    }
+    .floating-bar.top input {
+        height: 56px;
+        font-size: 18px;
         background-color: #fff;
         font-family: 'Roboto';
-        font-size: 15px;
         font-weight: 300;
-        margin-left: 12px;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
         width: 300px;
-      }
-
-    #pac-input:focus {
-        border-color: #4d90fe;
+        border-radius: 2px;
     }
-    .pac-container {
-        font-family: Roboto;
+    .floating-bar.top .search {
+        border: 1px solid transparent;
+        border-radius: 2px;
+        outline: none;
     }
-
+    .mdl-button, .mdl-button:focus, .mdl-button:hover {
+        background-color: #fff;
+    }
+    .slider-tick {
+        height: 10px;
+        width: 2px;
+        background-color: #fff;
+        float: left; 
+        margin-left: calc(25% - 3px);
+    }
+    .slider-label {
+        height: 20px; 
+        width: 40px; 
+        float: left; 
+        margin-left: calc(25% - 50px);
+    }
 </style>
 </head>
 
@@ -95,80 +118,84 @@
             <circle id="hill2" data-cxtow-ratio="0.7291" data-rtoh-ratio="2.7692" data-cy-offset="2.6692"
                     fill="#4CAF50" filter="url(#blur)" style="display: none"/>
         </svg>
-        <div id="controls" style="height: 110px; padding: 0px 15px 0px 15px; background-color: #84521c">
 
-            <!-- Play button -->
-            <div style="float: left; width: 100px; margin-top: 14px;">
-                <button style="width: 75px;"
-                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
-                        id="play">
-                    <i class="material-icons">play_circle_outline</i>
-                </button>
-                <button style="margin-top: 10px; width: 75px;"
-                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
-                        id="speedbutton">
-                </button>
-            </div>
+        <div class="floating-bar bottom">
+            <div class="inner">
+                <div id="controls" style="height: 110px; padding: 0px 15px 0px 15px; background-color: #84521c">
 
-            <!-- Time down button -->
-            <div style="float: left; margin-top: 30px">
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="downbutton">
-                    <i class="material-icons">skip_previous</i>
-                </button>
-            </div>
+                    <!-- Play button -->
+                    <div style="float: left; width: 100px; margin-top: 14px;">
+                        <button style="width: 75px;"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                                id="play">
+                            <i class="material-icons">play_circle_outline</i>
+                        </button>
+                        <button style="margin-top: 10px; width: 75px;"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                                id="speedbutton">
+                        </button>
+                    </div> 
 
-            <!-- Time slider -->
-            <div style="width: calc(100% - 237px); float: left; margin-top: 40px">
-                <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
-                <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
+                    <!-- Time slider -->
+                    <div style="width: calc(100% - 300px); float: left; margin-top: 40px">
+                        <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
+                        <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
 
-                <!-- Tick Marks -->
-                <div style="width: calc(100% - 50px); height: 10px; margin-left: 25px; margin-top: 5px;">
-                    <div style="height: 10px; width: 2px; background-color: #fff; float: left; margin-left: 0px;"></div>
-                    <div style="height: 10px; width: 2px; background-color: #fff; float: left; margin-left: calc(25% - 3px);"></div>
-                    <div style="height: 10px; width: 2px; background-color: #fff; float: left; margin-left: calc(25% - 3px);"></div>
-                    <div style="height: 10px; width: 2px; background-color: #fff; float: left; margin-left: calc(25% - 3px);"></div>
-                    <div style="height: 10px; width: 2px; background-color: #fff; float: left; margin-left: calc(25% - 3px);"></div>
+                        <!-- Tick Marks -->
+                        <div style="width: calc(100% - 50px); height: 10px; margin-left: 25px; margin-top: 5px;">
+                            <div class="slider-tick" style="margin-left: 0px;"></div>
+                            <div class="slider-tick"></div>
+                            <div class="slider-tick"></div>
+                            <div class="slider-tick"></div>
+                            <div class="slider-tick"></div>
+                        </div>
+
+                        <div style="width: calc(100% - 10px); height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; color: #fff; font-weight: 600;">
+                            <div id="slabel1" class="slider-label" style="margin-left: 0px;"></div>
+                            <div id="slabel3" class="slider-label"></div>
+                            <div id="slabel3" class="slider-label"></div>
+                            <div id="slabel4" class="slider-label"></div>
+                            <div id="slabel5" class="slider-label"></div>
+                        </div>
+                    </div>
+
+                    <!-- Time down button -->
+                    <div style="float: left; margin-top: 30px">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="downbutton">
+                            <i class="material-icons">skip_previous</i>
+                        </button>
+                    </div>
+
+                    <!-- Time up button -->
+                    <div style="float: left; margin-top: 30px">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id ="upbutton">
+                            <i class="material-icons">skip_next</i>
+                        </button>
+                    </div>
+
                 </div>
-
-                <div style="width: calc(100% - 10px); height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; color: #fff; font-weight: 600;">
-                    <div id="slabel1" style="height: 20px; width: 40px; float: left; margin-left: 0px;"></div>
-                    <div id="slabel2" style="height: 20px; width: 40px; float: left; margin-left: calc(25% - 50px);"></div>
-                    <div id="slabel3" style="height: 20px; width: 40px; float: left; margin-left: calc(25% - 50px);"></div>
-                    <div id="slabel4" style="height: 20px; width: 40px; float: left; margin-left: calc(25% - 50px);"></div>
-                    <div id="slabel5" style="height: 20px; width: 40px; float: left; margin-left: calc(25% - 50px);"></div>
-                </div>
-
             </div>
-
-            <!-- Time up button -->
-            <div style="float: left; margin-top: 30px">
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id ="upbutton">
-                    <i class="material-icons">skip_next</i>
-                </button>
-            </div>
-
         </div>
     </div>
 
-    <div id="floating-panel">
-        <input id="pac-input" style="float: left;" class="controls" type="text" placeholder="Location Search">
+    <div class="floating-bar top">
+        <div class="inner">
+            <input id="pac-input" style="float: left;" class="mdl-shadow--2dp search" type="text" placeholder="Location Search">
 
-        <div style="width: 115px; float: left; margin-top: 8px">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" id="mapbutton">
-                Map
+            <div id="map-canvas" class="mdl-shadow--2dp map-container"></div>
+
+            <button class="mdl-button mdl-js-button mdl-button--fab" id="mapbutton">
+                <i class="material-icons">map</i>
+            </button>
+
+            <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
+                <i class="material-icons">zoom_in</i>
             </button>
         </div>
-
-        <div id="map-canvas"></div>
     </div>
 
-    <div style="position: absolute; float: right; top: 18px; right: 18px;">
-        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" id="zoom">
-            Toggle Zoom
-        </button>
-    </div>
 
+    <!-- Error message box -->
     <div id="error-snackbar" class="mdl-js-snackbar mdl-snackbar">
         <div class="mdl-snackbar__text"></div>
         <button class="mdl-snackbar__action" type="button"></button>
