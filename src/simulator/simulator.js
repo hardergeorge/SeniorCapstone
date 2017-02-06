@@ -41,33 +41,43 @@ var EclipseSimulator = {
 
         // Wide field of view in radians
         this.wide_fov = {
-
-            // Max x fov is 140 degrees
-            x: 90 * Math.PI / 180,
+            // Max x fov is 140 degrees - will be set by first call to View.update_fov when the
+            // simulator is in wide mode
+            x: undefined,
 
             // Max y fov is 90 degrees
-            y: 80 * Math.PI / 180
+            y: undefined,
+
+            // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
+            _y: 80 * Math.PI / 180,
+
+            // Max x fov
+            _x_max: 160 * Math.PI / 180,
         };
 
         // Zoomed field of view in radians
         this.zoomed_fov = {
-
-            // Max x fov is 140 degrees
-            x: 10 * Math.PI / 180,
+            // Max x fov is 140 degrees - will be set by first call to View.update_fov when the
+            // simulator is zoomed
+            x: undefined,
 
             // Max y fov is 90 degrees
-            y: 10 * Math.PI / 180
+            y: undefined,
+
+            // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
+            _y: 10 * Math.PI / 180,
+
+            // Max x fov
+            _x_max: 160 * Math.PI / 180,
         };
 
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_WIDE;
         this.current_fov = this.wide_fov;
 
-        // Center of frame in radians
-        this.az_center  = 0;
-        this.alt_center = 40 * Math.PI / 180;
+        // Used to center frame on eclipse
+        this.eclipse_az = 0;
 
-        // Altitude/time of the eclipse - used to toggle between zoomed/not zoomed mode
-        this.eclipse_alt  = undefined;
+        // Time of the eclipse - used to toggle between zoomed/not zoomed mode
         this.eclipse_time = undefined;
 
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
@@ -237,8 +247,8 @@ var EclipseSimulator = {
 
 EclipseSimulator.View.prototype.init = function()
 {
-    this.refresh();
-    this._refresh_hills();
+    // Needs to be called the first time as this will set the simulator size
+    this._update_sim_size();
 
     // Have to create a reference to this, because inside the window
     // refresh function callback this refers to the window object
@@ -342,13 +352,16 @@ EclipseSimulator.View.prototype.init = function()
 
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
-        view.update_fov_x();
+        view._update_sim_size();
+        view.update_fov();
         view.refresh();
         view._refresh_hills();
     });
 
     this.set_play_speed_label();
-    this.update_fov_x();
+    this.update_fov();
+    this.refresh();
+    this._refresh_hills();
 };
 
 EclipseSimulator.View.prototype.initialize_location_entry = function()
@@ -447,7 +460,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     this.search_input.value = this.location_name;
 };
 
-EclipseSimulator.View.prototype.refresh = function()
+EclipseSimulator.View.prototype._update_sim_size = function()
 {
     var window_height = $(window).height();
 
@@ -457,7 +470,10 @@ EclipseSimulator.View.prototype.refresh = function()
     $(this.window).show();
 
     $(this.loading).css('height', window_height + 'px');
+};
 
+EclipseSimulator.View.prototype.refresh = function()
+{
     if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
     {
         var az_center  = this.sunpos.az;
@@ -465,8 +481,8 @@ EclipseSimulator.View.prototype.refresh = function()
     }
     else
     {
-        var az_center  = this.az_center;
-        var alt_center = this.alt_center;
+        var az_center  = this.eclipse_az;
+        var alt_center = this.current_fov.y / 2;
     }
 
     // Position sun/moon. Cannot do this until window is displayed
@@ -619,14 +635,7 @@ EclipseSimulator.View.prototype.set_play_speed_label = function()
 
 EclipseSimulator.View.prototype.toggle_loading = function()
 {
-    if ($(this.loading).is(':visible'))
-    {
-        $(this.loading).hide();
-    }
-    else
-    {
-        $(this.loading).show();
-    }
+    $(this.loading).toggle();
 };
 
 EclipseSimulator.View.prototype.reset_controls = function()
@@ -700,7 +709,6 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     {
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_ZOOM;
         this.current_fov = this.zoomed_fov;
-        this.alt_center  = this.eclipse_alt;
         this.hills.hide();
         var label = 'zoom_out';
     }
@@ -708,7 +716,6 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     {
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_WIDE;
         this.current_fov = this.wide_fov;
-        this.alt_center  = this.wide_fov.y / 2;
         this.hills.show();
         var label = 'zoom_in';
     }
@@ -717,24 +724,34 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     // Update the slider labels and bounds
     this.update_slider();
     this.set_play_speed_label();
+    this.update_fov();
     this.refresh();
+    this._refresh_hills();
 };
 
 EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
 {
-    this.az_center   = az;
-    this.eclipse_alt = alt;
-
-    if (this.zoom_level === EclipseSimulator.VIEW_ZOOM_ZOOM)
-    {
-        this.alt_center = alt;
-    }
+    this.eclipse_az = az;
 };
 
-EclipseSimulator.View.prototype.update_fov_x = function()
+EclipseSimulator.View.prototype.update_fov = function()
 {
-    var env_size = this.get_environment_size();
-    this.current_fov.x = this.current_fov.y * env_size.width / env_size.height;
+    var env_size  = this.get_environment_size();
+    var ratio     = env_size.width / env_size.height;
+    var desired_x = this.current_fov._y * ratio;
+
+    // Window aspect ratio prevents desired y fov. Using the desired y fov, this.current_fov._y
+    // would result in an x fov that is greater than the max allowed.
+    if (desired_x > this.current_fov._x_max)
+    {
+        this.current_fov.x = this.current_fov._x_max
+        this.current_fov.y = this.current_fov._x_max / ratio;
+    }
+    else
+    {
+        this.current_fov.x = desired_x;
+        this.current_fov.y = this.current_fov._y;
+    }
 };
 
 // Computes an intermediate color between min and max, converts this color to an rgb string,
