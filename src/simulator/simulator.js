@@ -35,6 +35,8 @@ var EclipseSimulator = {
         this.search_box     = undefined;
         this.marker         = undefined;
 
+        this.end_of_slider = false;
+
         // Sun/moon position in radians
         this.sunpos  = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
         this.moonpos = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
