@@ -179,6 +179,14 @@ var EclipseSimulator = {
         return a > b && a <= Math.PI;
     },
 
+    // Compute sun/moon angular seperation and moon radius
+    // See https://en.wikipedia.org/wiki/Angular_distance
+    compute_sun_moon_sep: function(sun, moon) {
+        var a = (Math.sin(sun.alt) * Math.sin(moon.alt)) +
+                (Math.cos(sun.alt) * Math.cos(moon.alt) * Math.cos(sun.az - moon.az));
+        return Math.acos(a);
+    },
+
     VIEW_ZOOM_WIDE: 'wide',
 
     VIEW_ZOOM_ZOOM: 'zoom',
@@ -809,6 +817,86 @@ EclipseSimulator.View.prototype.update_slider = function()
     this.update_slider_labels();
 };
 
+// Compute the percent of the eclipse
+// sun_r and moon_r correspond to the radius (In radians) of each body
+// Returns a percent between 0 and 1
+EclipseSimulator.View.prototype.compute_percent_eclipse = function()
+{
+    // Avoid repeated attribute lookups
+    var sun_r  = this.sunpos.r;
+    var moon_r = this.moonpos.r;
+
+    // Angular separation
+    var sep        = EclipseSimulator.compute_sun_moon_sep(this.sunpos, this.moonpos);
+    var lune_delta = this._compute_lune_delta(sun_r, moon_r, sep);
+    var lune_area  = this._compute_lune_area(sun_r,  moon_r, sep, lune_delta);
+
+    // Total solar eclipse
+    if (lune_delta == 0)
+    {
+        var percent_eclipse = 1;
+    }
+    // No eclipse
+    else if (lune_delta == -1)
+    {
+        var percent_eclipse = 0;
+    }
+    else
+    {
+        var percent_eclipse = 1 - (lune_area / (Math.PI * sun_r * sun_r))
+    }
+
+    if (EclipseSimulator.DEBUG)
+    {
+        console.log("Percent eclipse: " + percent_eclipse);
+    }
+
+    return percent_eclipse;
+};
+
+// Compute size of lune in radians
+// http://mathworld.wolfram.com/Lune.html
+EclipseSimulator.View.prototype._compute_lune_delta = function(sun_r, moon_r, sep)
+{
+    var lune_delta = -1;
+
+    console.log('sep: ' + sep + ' sun_r + moon_r: ' + (sun_r + moon_r));
+
+    if (sep < (sun_r + moon_r))
+    {
+        var inner = ( sun_r + moon_r + sep) *
+                    (-sun_r + moon_r + sep) *
+                    (sun_r  - moon_r + sep) *
+                    (sun_r  + moon_r - sep);
+
+        if (inner < 0)
+        {
+            lune_delta = 0;
+        }
+        else
+        {
+            lune_delta = 0.25 * Math.sqrt(inner);
+        }
+    }
+
+    return lune_delta;
+};
+
+// Assumes lune_delta > 0
+EclipseSimulator.View.prototype._compute_lune_area = function(sun_r, moon_r, sep, lune_delta)
+{
+    // Avoid computing the same thing over and over again
+    var moon_r2 = moon_r * moon_r;
+    var sun_r2  = sun_r  * sun_r;
+    var sep2    = sep * sep;
+
+    var lune_area = (2 * lune_delta) +
+                    (sun_r2  * Math.acos((moon_r2 - sun_r2 - sep2) / (2 * sun_r  * sep))) -
+                    (moon_r2 * Math.acos((moon_r2 - sun_r2 + sep2) / (2 * moon_r * sep)));
+
+    return lune_area;
+};
+
 
 // ===================================
 //
@@ -880,10 +968,6 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
 
     sun.r    = this.view.sunpos.r;
     moon.r   = this.view.moonpos.r;
-
-    // Get the eclipse_percent for background color change
-    var ecl_percent = this.model.compute_percent_eclipse(this.view.sunpos.r, this.view.moonpos.r);
-
 
     // Update the view
     this.view.sunpos  = sun;
@@ -977,7 +1061,8 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
             date.setTime(time);
 
-            sep = this._compute_sun_moon_sep(date);
+            var pos = this._compute_sun_moon_pos(date);
+            sep     = EclipseSimulator.compute_sun_moon_sep(pos.sun, pos.moon);
         }
         while (sep < prev_sep);
 
@@ -1003,19 +1088,19 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 };
 
 // Compute sun/moon angular seperation and moon radius
-EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(date)
-{
-    var pos = this._compute_sun_moon_pos(date);
-
-    var sun_vec   = EclipseSimulator.alt_az_to_vec3d(pos.sun.alt, pos.sun.az);
-    var moon_vec  = EclipseSimulator.alt_az_to_vec3d(pos.moon.alt, pos.moon.az);
-
-    var norm_sun  = EclipseSimulator.normalize3d(sun_vec);
-    var norm_moon = EclipseSimulator.normalize3d(moon_vec);
-    var d         = EclipseSimulator.dot3d(norm_sun, norm_moon);
-
-    return Math.acos(d);
-};
+// EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(date)
+// {
+//     var pos = this._compute_sun_moon_pos(date);
+//
+//     var sun_vec   = EclipseSimulator.alt_az_to_vec3d(pos.sun.alt, pos.sun.az);
+//     var moon_vec  = EclipseSimulator.alt_az_to_vec3d(pos.moon.alt, pos.moon.az);
+//
+//     var norm_sun  = EclipseSimulator.normalize3d(sun_vec);
+//     var norm_moon = EclipseSimulator.normalize3d(moon_vec);
+//     var d         = EclipseSimulator.dot3d(norm_sun, norm_moon);
+//
+//     return Math.acos(d);
+// };
 
 EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
 {
@@ -1027,58 +1112,6 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
         moon: A.Moon.topocentricPosition(julian_date, coords, true).hz,
     };
 };
-
-// Compute the percent of the eclipse
-// sun_r and moon_r correspond to the radius (In radians) of each body
-// Returns a percent between 0 and 1
-EclipseSimulator.Model.prototype.compute_percent_eclipse = function(sun_r, moon_r)
-{
-  // Compute angular separation
-  var sep = this._compute_sun_moon_sep(this.date);
-
-  var lune_delta = this._compute_lune_delta(sun_r, moon_r, sep);
-  var lune_area = this._compute_lune_area(sun_r, moon_r, sep, lune_delta);
-
-  var percent_eclipse = lune_delta == 0 ? 1 : 1-(lune_area/(Math.PI*sun_r*sun_r));
-
-  // debug output
-  console.log("Percent eclipse:   " + percent_eclipse);
-
-  return(percent_eclipse);
-};
-
-EclipseSimulator.Model.prototype._compute_lune_delta = function(sun_r, moon_r, sep){
-
-  // Compute size of lune in radians
-  // http://mathworld.wolfram.com/Lune.html
-  var lunedelta = -1;
-
-  if(sep<(sun_r + moon_r)){
-    var a = sun_r, b = moon_r, c = sep;
-    var inner = (a+b+c)*(b+c-a)*(c+a-b)*(a+b-c);
-    if(inner < 0) lunedelta = 0;
-    else lunedelta = (1/4)*Math.sqrt(inner);
-  }
-
-  return lunedelta;
-};
-
-EclipseSimulator.Model.prototype._compute_lune_area = function(sun_r, moon_r, sep, lunedelta){
-
-  // Compute percent eclipse
-  var lune_area;
-
-  if(lunedelta != -1 && lunedelta > 0){
-    // compute lune area
-    lune_area = 2*lunedelta + (sun_r*sun_r)*
-          Math.acos(((moon_r*moon_r)-(sun_r*sun_r)-(sep*sep))/(2*sun_r*sep)) -
-          (moon_r*moon_r)*Math.acos(((moon_r*moon_r)+(sep*sep)-(sun_r*sun_r))/
-          (2*moon_r*sep));
-  }
-
-  return lune_area;
-};
-
 
 
 // ========================
