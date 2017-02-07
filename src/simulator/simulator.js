@@ -356,6 +356,12 @@ EclipseSimulator.View.prototype.init = function()
         view.map_visible = !view.map_visible;
     });
 
+    // Initialize top bar width
+    $(this.topbar).css({
+        'width': EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_CLOSED + 'px'},
+        200
+    );
+
     this.initialize_location_entry();
 
     // Rescale the window when the parent iframe changes size
