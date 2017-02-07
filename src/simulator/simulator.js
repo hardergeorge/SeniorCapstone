@@ -17,7 +17,9 @@ var EclipseSimulator = {
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.mapbutton      = $('#mapbutton').get(0);
-        this.play_speed_btn = $('#speedbutton').get(0);
+        this.speed_btn_slow = $('#speed-button-slow').get(0);
+        this.speed_btn_fast = $('#speed-button-fast').get(0);
+        this.speed_selector = $('#speed-menu').get(0);
         this.zoombutton     = $('#zoom').get(0);
         this.playbutton     = $('#play').get(0);
         this.slider         = $('#tslider').get(0);
@@ -295,16 +297,20 @@ EclipseSimulator.View.prototype.init = function()
         view.play_simulator_step(parseFloat(view.slider.value));
     });
 
-    $(this.play_speed_btn).click(function() {
+    //toggle's the view play speed and disables the menu option for the current speed
+    $(this.speed_selector).click(function() {
         if (view.play_speed == EclipseSimulator.VIEW_PLAY_SPEED_SLOW)
         {
             view.play_speed = EclipseSimulator.VIEW_PLAY_SPEED_FAST;
+            $(view.speed_btn_fast).attr('disabled', true);
+            $(view.speed_btn_slow).attr('disabled', false);
         }
         else
         {
             view.play_speed = EclipseSimulator.VIEW_PLAY_SPEED_SLOW;
+            $(view.speed_btn_fast).attr('disabled', false);
+            $(view.speed_btn_slow).attr('disabled', true);
         }
-        view.set_play_speed_label();
     });
 
     // Hide the map when the view initializes
@@ -466,7 +472,7 @@ EclipseSimulator.View.prototype._update_sim_size = function()
 {
     var window_height = $(window).height();
 
-    $(this.window).attr('height', window_height - $(this.controls).height());
+    $(this.window).attr('height', window_height);
     $(this.window).attr('width', $(window).width());
 
     $(this.window).show();
@@ -631,8 +637,8 @@ EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
 
 EclipseSimulator.View.prototype.set_play_speed_label = function()
 {
-    var speed = EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][this.play_speed];
-    $(this.play_speed_btn).text(speed + 'X');
+    $(this.speed_btn_slow).text(EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][EclipseSimulator.VIEW_PLAY_SPEED_SLOW] + 'X');
+    $(this.speed_btn_fast).text(EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][EclipseSimulator.VIEW_PLAY_SPEED_FAST] + 'X');
 }
 
 EclipseSimulator.View.prototype.toggle_loading = function()

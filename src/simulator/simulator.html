@@ -66,21 +66,23 @@
         border-radius: 2px;
         outline: none;
     }
-    .mdl-button, .mdl-button:focus, .mdl-button:hover {
+    .mdl-button, .mdl-button:focus, .mdl-button:hover, .mdl-button--raised.mdl-button--colored {
         background-color: #fff;
-    }
-    .slider-tick {
-        height: 10px;
-        width: 2px;
-        background-color: #fff;
-        float: left; 
-        margin-left: calc(25% - 3px);
     }
     .slider-label {
         height: 20px; 
         width: 40px; 
         float: left; 
         margin-left: calc(25% - 50px);
+    }
+    .control-bar {
+        height: 80px; 
+        padding: 0px 15px 0px 15px; 
+        background-color: #fff
+    }
+    .floating-bar.bottom .mdl-button {
+        float: left;
+        margin-top: 20px
     }
 </style>
 </head>
@@ -90,6 +92,61 @@
     <div id="loading" style="width: 100%; position: absolute; background-color: white; z-index: 2;">
         <div class="mdl-spinner mdl-js-spinner is-active" style="position: absolute; top: 50%; left: calc(50% - 20px);"></div>
     </div>
+
+    <div class="floating-bar bottom">
+            <div class="inner">
+                <div id="controls" class="control-bar">
+
+                    <!-- Play button -->
+                    <button class="mdl-button mdl-js-button"
+                            id="play">
+                        <i class="material-icons">play_circle_outline</i>
+                    </button>
+                        <!-- <button
+                                class="mdl-button mdl-js-button"
+                                id="speedbutton">
+                        </button> -->
+
+                    <!-- Right aligned menu below button -->
+                    <button id="speed-menu-button"
+                            class="mdl-button mdl-js-button mdl-button--icon">
+                        <i class="material-icons">arrow_drop_down</i>
+                    </button>
+
+                    <ul id="speed-menu" class="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
+                        for="speed-menu-button">
+                        <li disabled id="speed-button-slow" class="mdl-menu__item"></li>
+                        <li id="speed-button-fast" class="mdl-menu__item"></li>
+                    </ul>
+
+                    <!-- Time slider -->
+                    <div style="width: calc(100% - 300px); float: left; margin-top: 20px">
+                        <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
+                        <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
+
+                        <div style="width: calc(100% - 10px); height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; color: #bdb7b7; font-weight: 600;">
+                            <div id="slabel1" class="slider-label" style="margin-left: 0px;"></div>
+                            <div id="slabel3" class="slider-label"></div>
+                            <div id="slabel3" class="slider-label"></div>
+                            <div id="slabel4" class="slider-label"></div>
+                            <div id="slabel5" class="slider-label"></div>
+                        </div>
+                    </div>
+
+                    <!-- Time down button -->                    
+                    <button class="mdl-button mdl-js-button" id="downbutton">
+                        <i class="material-icons">skip_previous</i>
+                    </button>
+                    
+
+                    <!-- Time up button -->
+                    <button class="mdl-button mdl-js-button" id ="upbutton">
+                        <i class="material-icons">skip_next</i>
+                    </button>
+
+                </div>
+            </div>
+        </div>
 
     <div id="sim" style="display: none;">
         <svg id="container" style="background-color: #03A9F4; display: none">
@@ -118,64 +175,6 @@
             <circle id="hill2" data-cxtow-ratio="0.7291" data-rtoh-ratio="2.7692" data-cy-offset="2.6692"
                     fill="#4CAF50" filter="url(#blur)" style="display: none"/>
         </svg>
-
-        <div class="floating-bar bottom">
-            <div class="inner">
-                <div id="controls" style="height: 110px; padding: 0px 15px 0px 15px; background-color: #84521c">
-
-                    <!-- Play button -->
-                    <div style="float: left; width: 100px; margin-top: 14px;">
-                        <button style="width: 75px;"
-                                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
-                                id="play">
-                            <i class="material-icons">play_circle_outline</i>
-                        </button>
-                        <button style="margin-top: 10px; width: 75px;"
-                                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
-                                id="speedbutton">
-                        </button>
-                    </div> 
-
-                    <!-- Time slider -->
-                    <div style="width: calc(100% - 300px); float: left; margin-top: 40px">
-                        <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
-                        <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
-
-                        <!-- Tick Marks -->
-                        <div style="width: calc(100% - 50px); height: 10px; margin-left: 25px; margin-top: 5px;">
-                            <div class="slider-tick" style="margin-left: 0px;"></div>
-                            <div class="slider-tick"></div>
-                            <div class="slider-tick"></div>
-                            <div class="slider-tick"></div>
-                            <div class="slider-tick"></div>
-                        </div>
-
-                        <div style="width: calc(100% - 10px); height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; color: #fff; font-weight: 600;">
-                            <div id="slabel1" class="slider-label" style="margin-left: 0px;"></div>
-                            <div id="slabel3" class="slider-label"></div>
-                            <div id="slabel3" class="slider-label"></div>
-                            <div id="slabel4" class="slider-label"></div>
-                            <div id="slabel5" class="slider-label"></div>
-                        </div>
-                    </div>
-
-                    <!-- Time down button -->
-                    <div style="float: left; margin-top: 30px">
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="downbutton">
-                            <i class="material-icons">skip_previous</i>
-                        </button>
-                    </div>
-
-                    <!-- Time up button -->
-                    <div style="float: left; margin-top: 30px">
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id ="upbutton">
-                            <i class="material-icons">skip_next</i>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="floating-bar top">
