@@ -113,57 +113,57 @@ interactions with the controller module.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Current Status of the Project}
 
-As a whole this project has moved from the pre-planning stages into the earliest
-development phase. The image processor and the image processor manager are both
-fully designed, while the eclipse simulator is farther along and has some existing proof of
-concept code.
+%As a whole this project has moved from the pre-planning stages into the earliest
+%development phase. The image processor and the image processor manager are both
+%fully designed, while the eclipse simulator is farther along and has some existing proof of
+%concept code.
 
 \subsection{Image Processor}
 
-This part of the project is still in the design and planning phase, development
-work has not begun. However, we have a clear design plan and have identified
-several tools and technologies that we will use to build the image processor.
+%This part of the project is still in the design and planning phase, development
+%work has not begun. However, we have a clear design plan and have identified
+%several tools and technologies that we will use to build the image processor.
 
-The image processor will use OpenCV and its built in Hough Transform as well as
-an existing algorithm that we plan to modify and improve upon in order to
-identify eclipses in images. We have chosen to use C++ to build the image
-processor because it gives us better control over the speed at which this
-application runs while still providing us with the ability to leverage the
-OpenCV API. We have also clearly defined the inputs and outputs of the in order
-to allow the parts of the system that interact with the image processor to
-proceed independently with their development.
+%The image processor will use OpenCV and its built in Hough Transform as well as
+%an existing algorithm that we plan to modify and improve upon in order to
+%identify eclipses in images. We have chosen to use C++ to build the image
+%processor because it gives us better control over the speed at which this
+%application runs while still providing us with the ability to leverage the
+%OpenCV API. We have also clearly defined the inputs and outputs of the in order
+%to allow the parts of the system that interact with the image processor to
+%proceed independently with their development.
 
 \subsection{Image Processor Manager}
 
-Development has yet to start on the image processor manager, but we have a very good idea of how we
-are going to build it. Additionally, we will have access to code that Bret wrote during his internship
-this summer that we will be able to repurpose to handle large parts of the interactions with Google Cloud.
+%Development has yet to start on the image processor manager, but we have a very good idea of how we
+%are going to build it. Additionally, we will have access to code that Bret wrote during his internship
+%this summer that we will be able to repurpose to handle large parts of the interactions with Google Cloud.
 
 \subsection{Eclipse Simulator}
 
-As it currently stands, progress has been made to create an initial working
-demo of the simulator. We have worked with the Ephemeris library to see how
-accurate its computations are. There was some variance when comparing the
-values it returned to other 2017 solar eclipse predictions, but we have
-decided that the variance is not large enough to warrant worry. Work has
-been done to create a front end view for the simulator. Eventually Google
-will be providing the sprites that the simulator will use, but we are currently
-just using simple SVG circles to simulate the Sun and Moon. We also have the
-code to render these Sun and Moon SVGs on the eclipse simulator window given
-their altitude and azimuth (vertical/horizontal angular coordinates). We will
-continue working on the eclipse simulator over winter break.
+%As it currently stands, progress has been made to create an initial working
+%demo of the simulator. We have worked with the Ephemeris library to see how
+%accurate its computations are. There was some variance when comparing the
+%values it returned to other 2017 solar eclipse predictions, but we have
+%decided that the variance is not large enough to warrant worry. Work has
+%been done to create a front end view for the simulator. Eventually Google
+%will be providing the sprites that the simulator will use, but we are currently
+%just using simple SVG circles to simulate the Sun and Moon. We also have the
+%code to render these Sun and Moon SVGs on the eclipse simulator window given
+%their altitude and azimuth (vertical/horizontal angular coordinates). We will
+%continue working on the eclipse simulator over winter break.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Problems           %
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems and Possible Solutions}
 
-Around week 8 of the term, we found that some results differed in the Ephemeris
-library calculations and eclipse predictions we found elsewhere. We brought
-this issue up with our client, and he said to continue progress on the
-simulator as the variance we were seeing was not very significant for the
-simulator. Once further progress has been made on the simulator, it may be
-necessary to dig into the Ephemeris codebase to determine any problems.
+%Around week 8 of the term, we found that some results differed in the Ephemeris
+%library calculations and eclipse predictions we found elsewhere. We brought
+%this issue up with our client, and he said to continue progress on the
+%simulator as the variance we were seeing was not very significant for the
+%simulator. Once further progress has been made on the simulator, it may be
+%necessary to dig into the Ephemeris codebase to determine any problems.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Code               %
@@ -306,11 +306,43 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Week by Week Summary of Group Activities}
 
+\subsection{Winter Break Week 1}
+
+    \begin{itemize}
+
+    \item lorem
+
+    \end{itemize}
+
+\subsection{Winter Break Week 2}
+
+    \begin{itemize}
+
+    \item lorem
+
+    \end{itemize}
+
+\subsection{Winter Break Week 3}
+
+    \begin{itemize}
+
+    \item lorem
+
+    \end{itemize}
+
+\subsection{Winter Break Week 4}
+
+    \begin{itemize}
+
+    \item lorem
+
+    \end{itemize}
+
 \subsection{Week 1}
 
     \begin{itemize}
 
-    \item Go to class
+    \item lorem
 
     \end{itemize}
 
@@ -318,9 +350,7 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item Worked on initial draft of problem statement.
-
-    \item Established a LaTeX workflow.
+    \item lorem
 
     \end{itemize}
 
@@ -328,10 +358,7 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item Got feedback from sponsor and Kirstin on initial problem statement 
-    draft. Our sponsor was happy with our initial draft. Kirstin informed us that 
-    our problem statement was actually a bit too verbose and covered a lot of 
-    material that was more relevant to the technology review.
+    \item lorem
 
     \end{itemize}
 
@@ -339,13 +366,7 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item Had an initial meeting with Vee, our TA.
-
-    \item Researched rotation matrices and quaternions at the suggestion of our 
-    sponsor. He pointed us to this material as being relevant to our rotating 
-    images, but likely more involved than actually necessary. He still encouraged 
-    us to research the material as he thought it was interesting and good to 
-    know. It was!
+    \item lorem
 
     \end{itemize}
 
@@ -353,7 +374,7 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item Created initial requirements document draft.
+    \item lorem
 
     \end{itemize}
 
@@ -361,63 +382,7 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item Reviewed requirements document with project sponsor.
-
-    \item Followed up on new information we received from our client in week 5, 
-    specifically that we would have access to GPS/timestamp EXIF info in the 
-    image processor. We considered this and proposed a scheme to incorporate it 
-    into the image processor that our client was very happy with.
-
-    \end{itemize}
-
-\subsection{Week 7}
-
-    \begin{itemize}
-
-    \item Our sponsor added an additional component to the project, the image 
-    processor manager. Previously this had been outside the scope of the project. 
-    We were initially hesitant about taking this on, but realized that there was 
-    some relevant code from Bret’s internship over the summer that we can 
-    repurpose for this component of the project.
-
-    \end{itemize}
-
-\subsection{Week 8}
-
-    \begin{itemize}
-
-    \item Began work on the eclipse simulator. We ran into some issues computing 
-    accurate sun/moon positions using JavaScript. The first library we were 
-    using, SunCalc was not producing accurate results. After switching to the 
-    Ephemeris library, we started seeing better results.
-
-    \end{itemize}
-
-\subsection{Week 9}
-
-    \begin{itemize}
-
-    \item Met as a group and ironed out a high level design for the various 
-    components of the project. 
-
-    \item Individually began working on our respective design document pieces.
-
-    \item Continued to see accuracy issues with eclipse calculations in 
-    JavaScript, even after switching to Ephemeris. We spoke to our sponsor about 
-    this and he recommended moving on for the time being, as he did not think 
-    these computations were off enough to warrant concern, or even render them 
-    unusable.
-
-    \end{itemize}
-
-\subsection{Week 10}
-
-    \begin{itemize}
-
-    \item Completed and turned in design document, we struggled a bit 
-    interpreting the IEEE 1016 standard for the design document.
-
-    \item Began work on the view code for the eclipse simulator.
+    \item lorem
 
     \end{itemize}
 
@@ -431,20 +396,11 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \hline \textbf{Positives} & \textbf{Deltas} & \textbf{Actions} \\ \hline
 
-    Image Processor design completed &  & \\ \hline
-    Image Processor Manager design completed &  & \\ \hline
-    Began work on Eclipse Simulator & User interaction & Implement buttons to alter sun/moon positions \\ \hline
-
-    Have access to Solar Eclipse Image Standardisation and Sequencing algorithm, research paper and code
-    & Existing code is written in IDL and the algorithm does not completely meet our needs at this point in time
-    & Port code to C++ and modify algorithm to meet our needs \\ \hline
-
-    Have reusable code from Bret’s internship that is relevant to both the Image Processor and Image Processor Manager
-    & Need to work on re-purposing this code to fit our needs and incorporate into our project
-    & Need to work with sponsor to get this code open sourced \\ \hline
-
-    Sponsor impressed by proposed usage of EXIF GPS data in Image Processor &  & \\ \hline
-
+    lorem & lorem & lorem \\ \hline
+    lorem & lorem & lorem \\ \hline
+    lorem & lorem & lorem \\ \hline
+    lorem & lorem & lorem \\ \hline
+    lorem & lorem & lorem \\ \hline
 
     \end{tabular}
 \end{table}
