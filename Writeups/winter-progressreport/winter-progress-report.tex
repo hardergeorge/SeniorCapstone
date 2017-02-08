@@ -45,7 +45,7 @@ retrospectives section at the end.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Project Overview}
 
-The North American Solar Eclipse 2017 Senior Capstone project is partnership
+The North American Solar Eclipse 2017 Senior Capstone project is partnered
 with Google to build a set of applications that will assist the development of
 the Eclipse Megamovie Project. The overall project has been broken down into
 three components: the eclipse image processor, the image processor manager, and
@@ -99,7 +99,7 @@ to interact with a time slider that will simulate the eclipse in a time
 window spanning from 12 hours before the eclipse to 12 hours after it.
 
 To help with the eclipse ephemeris computations, we will be using an external
-JavaScript library called Ephemeris. For the front end view for the simulator,
+JavaScript library called MeeusJs. For the front end view for the simulator,
 we will be utilizing HTML5 SVG. We plan to implement a model-view-controller
 architecture for controlling the states of each component as well as handling
 the interactions. This architecture was chosen due to the ability to easily
@@ -115,10 +115,18 @@ interactions with the controller module.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Current Status of the Project}
 
-%As a whole this project has moved from the pre-planning stages into the earliest
-%development phase. The image processor and the image processor manager are both
-%fully designed, while the eclipse simulator is farther along and has some existing proof of
-%concept code.
+As a whole this project has moved from the pre-planning stages into the earliest
+development phase. The image processor and the image processor manager are both
+fully designed, while the eclipse simulator is farther along and has some existing proof of
+concept code.
+
+When this project was being planned
+the Image Processor was the main thrust of the project and the simulator was, in
+our minds, a secondary objective that could be completed quickly. However, the
+emphasis has shifted toward producing an extremely polished visualization of the
+eclipse that will be included on the eclipsemega.movie site. This shift in
+priorities as well as the delays with code becoming open-sourced has placed this
+piece of the project on the back burner for the time being.
 
 \subsection{Image Processor}
 
@@ -141,14 +149,8 @@ needs to be open-sourced before we can work with it. Our project sponsor has
 been working on getting this code to us, however this process relies on approval
 from several levels on management at Google and is a slow moving process. Based
 on conversations with our sponsor we do not expect this code to become available
-until the end of February or beginning of March. Second, there has been somewhat
-of a shift in priorities for our sponsor. When this project was being planned
-the Image Processor was the main thrust of the project and the simulator was, in
-our minds, a secondary objective that could be completed quickly. However, the
-emphasis has shifted toward producing an extremely polished visualization of the
-eclipse that will be included ont he eclipsemega.movie site. This shift in
-priorities as well as the delays with code becoming open-sourced has placed this
-piece of the project on the back burner for the time being.
+until the end of February or beginning of March. Secondly and as mentioned above,
+there has been somewhatf a shift in priorities for our sponsor.
 
 \subsection{Image Processor Manager}
 
@@ -169,6 +171,23 @@ piece of the project on the back burner for the time being.
 %code to render these Sun and Moon SVGs on the eclipse simulator window given
 %their altitude and azimuth (vertical/horizontal angular coordinates). We will
 %continue working on the eclipse simulator over winter break.
+
+As it currently stands, progress has been made to create an initial working
+demo of the simulator. Users of the simulator can perform all functionalities
+outlined in the requirements document. This includes entering their location by
+typing it in or by utilizing a popup map. Additonally, a zoom mode has been
+implemented. This allows users to see a more close-up view of the visualized
+eclipse instead of the traditional landscape view.
+
+One feature not previously mentioned is an autoplay feature. This will allow
+users to view the simulated eclipse from the beginning to end of a certain
+time range. Most recently, we have updated the user interface so it is more
+polished and fluid.
+
+Our next step is to create a darkening effect for when the moon starts to
+cover the sun. We have written functions to compute the percent of the eclipse
+at a certain time as well the ability to alter the background color based on
+the percentage passed into it.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Problems           %
@@ -314,9 +333,9 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 		  This code did not work for locations off the path of totality.
 
     \item Added an expanding and collapsing Google Map to the simulator that connects
-          to the location search box
+          to the location search box.
 
-    \item Restricted Google Maps search results to the United States
+    \item Restricted Google Maps search results to the United States.
 
     \end{itemize}
 
@@ -334,7 +353,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 		  project as soon as possible. He is planning to open source these as soon as
 		  possible.
 
-    \item Finished integrating Google Map to the simulator. Users can drop markers on the 
+    \item Finished integrating Google Map to the simulator. Users can drop markers on the
           map to set their location or use the location search box. Marker drops and search
           results are restricted to the United States.
 
@@ -392,10 +411,10 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 		\end{itemize}
 
     \item Added a play button to the simulator that runs through the eclipse from the time the
-          the simulator is currently at until the end of the time range. The play function has 
+          the simulator is currently at until the end of the time range. The play function has
           adjustable speed.
 
-    \item Replaced the epehemeris.js library with meuus.js to fix the accuracy issues with sun and 
+    \item Replaced the epehemeris.js library with meuus.js to fix the accuracy issues with sun and
           moon position.
 
     \end{itemize}
@@ -408,7 +427,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
         \begin{itemize}
 
-            \item Centered the location search box and map/zoom buttons. 
+            \item Centered the location search box and map/zoom buttons.
 
             \item Changed the map dimensions so it expands to a large rectangle instead of smaller square.
 
@@ -420,7 +439,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
         \end{itemize}
 
-    \item Asked our sponsor to talk with the Gonglue about getting us useable images of the background 
+    \item Asked our sponsor to talk with the Gonglue about getting us useable images of the background
           scene in his mocks of the simulator.
 
     \end{itemize}
