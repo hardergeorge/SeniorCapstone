@@ -313,6 +313,11 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 		  would be able to interpolate pre-computed eclipse time values from Nasa.
 		  This code did not work for locations off the path of totality.
 
+    \item Added an expanding and collapsing Google Map to the simulator that connects
+          to the location search box
+
+    \item Restricted Google Maps search results to the United States
+
     \end{itemize}
 
 \subsection{Week 2}
@@ -328,6 +333,10 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 		  working on the image processor / image processor manager components of our
 		  project as soon as possible. He is planning to open source these as soon as
 		  possible.
+
+    \item Finished integrating Google Map to the simulator. Users can drop markers on the 
+          map to set their location or use the location search box. Marker drops and search
+          results are restricted to the United States.
 
     \end{itemize}
 
@@ -382,13 +391,37 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
 		\end{itemize}
 
+    \item Added a play button to the simulator that runs through the eclipse from the time the
+          the simulator is currently at until the end of the time range. The play function has 
+          adjustable speed.
+
+    \item Replaced the epehemeris.js library with meuus.js to fix the accuracy issues with sun and 
+          moon position.
+
     \end{itemize}
 
 \subsection{Week 5}
 
     \begin{itemize}
 
-    \item lorem
+    \item Finished the UI tweaks to the top and bottom control bars.
+
+        \begin{itemize}
+
+            \item Centered the location search box and map/zoom buttons. 
+
+            \item Changed the map dimensions so it expands to a large rectangle instead of smaller square.
+
+            \item All buttons are now using Material Design Icons instead of text.
+
+            \item Changed color scheme of the control bars to white/grey/black.
+
+            \item Lower control bar floats over the hills instead of sitting at the bottom of the screen.
+
+        \end{itemize}
+
+    \item Asked our sponsor to talk with the Gonglue about getting us useable images of the background 
+          scene in his mocks of the simulator.
 
     \end{itemize}
 
