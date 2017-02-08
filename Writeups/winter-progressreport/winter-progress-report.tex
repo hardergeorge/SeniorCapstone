@@ -10,6 +10,8 @@
 \usepackage{url}
 \usepackage{minted}
 
+\graphicspath{ {images/} }
+
 \renewcommand*\contentsname{Table of Contents} % Rename ToC
 
 % Temp title and author
@@ -28,7 +30,7 @@ This document describes the current state of the \textit{North American Solar Ec
 senior capstone project. The document gives a brief overview of the project and its components,
 describes the current state of the project, describes problems that have been
 encountered throughout the term, shows some of the code that has been produced thus far, gives
-a week-by-week outline of progress throughout the term, and reflects over the term in the 
+a week-by-week outline of progress throughout the term, and reflects over the term in the
 retrospectives section at the end.
 \end{abstract}
 
@@ -170,7 +172,7 @@ interactions with the controller module.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Interesting Code}
 
-Below are some interesting sections of the Eclipse Simulator view code that we have so far. 
+Below are some interesting sections of the Eclipse Simulator view code that we have so far.
 The code shown below focuses on rendering the Sun and Moon on the screen given their
 altitude and azimuth. \\
 
@@ -310,7 +312,14 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Tuned basic simulator UI (non-functional).
+
+	\item Began implementing simulator model using ephemeris JS to perform sun/moon
+		  position computations. Verified that these computations can be done
+		  quickly enough for our purposes.
+
+	\item Built loading screen with simple toggle function. Therefore it requires only
+		  one line of code to toggle simulator loading state.
 
     \end{itemize}
 
@@ -318,7 +327,9 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Built controller to link simulator model and view.
+
+	\item Made simulator UI "prettier." Added hills to scene.
 
     \end{itemize}
 
@@ -326,7 +337,7 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Built reverse geocoding proof of concept using Google Maps.
 
     \end{itemize}
 
@@ -334,7 +345,8 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Connected reverse geocoding code to simulator, enabling users to use a search
+	      bar to set the simulator to the location of their choice.
 
     \end{itemize}
 
@@ -342,7 +354,16 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+	\item Talked to our sponsor about open-sourcing the existing image processor /
+		  image processor manager code. He is working on creating an external repo with
+		  this code so that we can all (him included) collaborate on it there.
+
+	\item Completed documenting requirements changes from the end of fall term. Got
+		  revised requirements document signed by our sponsor.
+
+	\item Implemented basic 2d interpolation code in Python using scipy to see if we
+		  would be able to interpolate pre-computed eclipse time values from Nasa.
+		  This code did not work for locations off the path of totality.
 
     \end{itemize}
 
@@ -350,7 +371,15 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Achieved very good (within 1 minute accuracy) results computing eclipse time
+		  using 2d interpolation with scipy. This accuracy extends across the United
+		  States, both inside and outside the path of totality, including in areas that
+		  were previously causing problems, like Florida.
+
+	\item Told our sponsor that this is our big development term, so we are hoping to get
+		  working on the image processor / image processor manager components of our
+		  project as soon as possible. He is planning to open source these as soon as
+		  possible.
 
     \end{itemize}
 
@@ -358,7 +387,21 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Altered view rendering of Sun/Moon y position in frame.
+
+	\item Implemented simulator zoom mode.
+
+	\item Met with our sponsor, the Google lead on the Eclipse Megamovie project,
+		  Justin Koh, and Gonglue Jiang, a Google UX designer regarding simulator design/
+		  feedback.
+
+	\item Updated zoom mode to center Sun in frame following feedback from Justin.
+
+	\item Verified that the reason the simulator looks inaccurate in locations like San
+		  Diego (where there is only a partial eclipse) is inaccurate ephemeris JS
+		  computations.
+
+	\item Considered/brainstormed various methods for improving ephemeris computations.
 
     \end{itemize}
 
@@ -366,7 +409,30 @@ EclipseSimulator.View.prototype.az_out_of_view = function(az, radius)
 
     \begin{itemize}
 
-    \item lorem
+    \item Received Gonglue's design mocks from our sponsor.
+
+	\item Proposed solutions to problems raised by the design mocks. See below:
+
+		\begin{itemize}
+
+		\item The hills are quite tall, if left as-is, the sun/moon will not become
+			  visible until they are at a non-negligible altitude. To solve this,
+			  I proposed define 0 degrees of altitude at a point towards the top of the
+			  hills. This would mean that the bottom of the hills correspond to an altitude
+			  value of less than 0. This should not cause any problems.
+
+		\item The sun/moon in the mocks are very large, much more so than in the current
+			  simulator, at least in wide mode. If left as-is, this will make the simulator
+			  show the eclipse starting much earlier than it is supposed to. To solve this, I
+			  proposed that we "stretch" degrees at the altitudes around the sun. This would
+			  potentially enable us to still have a field of view where there are 80 degrees
+			  of altitude, but maintain a large sun/moon. See an illustration of this concept below:
+
+			  \begin{center}
+			  	\includegraphics[width=0.5\textwidth]{angle.eps}
+			  \end{center}
+
+		\end{itemize}
 
     \end{itemize}
 
