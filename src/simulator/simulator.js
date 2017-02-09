@@ -1048,23 +1048,30 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
     // Initial time increment of 5 minutes
     var step = 1000 * 60 * 5;
 
-    var time      = date.getTime() - step;
-    var prev_time = 0;      // Doesn't matter
+    // Set time back one step, as it will be incremented in the do while loop below, before its used
+    var time = date.getTime() - step;
 
+    // Doesn't matter
+    var prev_time = 0;
+
+    // Loop until we've reduced the step to a single second
     while (step >= 1000)
     {
         do
         {
+            // Record previous iteration values
             prev_sep   = sep;
             prev_time  = time;
-            time      += step;
 
+            // Update time for the current step
+            time      += step;
             date.setTime(time);
 
+            // Compute sun and moon position and angular separation
             var pos = this._compute_sun_moon_pos(date);
             sep     = EclipseSimulator.compute_sun_moon_sep(pos.sun, pos.moon);
         }
-        while (sep < prev_sep);
+        while (sep < prev_sep);         // Loop until the sun/moon start getting further apart
 
         // Back off and reduce step
         time -= (2 * step);
@@ -1074,7 +1081,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
         sep = Math.PI * 2;
     }
 
-    // Compute eclipse azimuth
+    // Compute eclipse position
     var pos = this._compute_sun_moon_pos(date);
 
     // Save eclipse time in the model
@@ -1086,21 +1093,6 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
         alt:  pos.sun.alt,
     };
 };
-
-// Compute sun/moon angular seperation and moon radius
-// EclipseSimulator.Model.prototype._compute_sun_moon_sep = function(date)
-// {
-//     var pos = this._compute_sun_moon_pos(date);
-//
-//     var sun_vec   = EclipseSimulator.alt_az_to_vec3d(pos.sun.alt, pos.sun.az);
-//     var moon_vec  = EclipseSimulator.alt_az_to_vec3d(pos.moon.alt, pos.moon.az);
-//
-//     var norm_sun  = EclipseSimulator.normalize3d(sun_vec);
-//     var norm_moon = EclipseSimulator.normalize3d(moon_vec);
-//     var d         = EclipseSimulator.dot3d(norm_sun, norm_moon);
-//
-//     return Math.acos(d);
-// };
 
 EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
 {
