@@ -15,11 +15,11 @@
 \renewcommand*\contentsname{Table of Contents} % Rename ToC
 
 % Temp title and author
-\title{Progress Report}
+\title{Midterm Progress Report}
 \author{Totality AweSun \\
 		Bret~Lorimore, Jacob~Fenger, George~Harder \\
 		\textit{\today \\
-		CS 461 - Fall 2016}}
+		CS 462 - Winter 2017}}
 
 \begin{document}
 
@@ -130,47 +130,21 @@ piece of the project on the back burner for the time being.
 
 \subsection{Image Processor}
 
-%This part of the project is still in the design and planning phase, development
-%work has not begun. However, we have a clear design plan and have identified
-%several tools and technologies that we will use to build the image processor.
-
-%The image processor will use OpenCV and its built in Hough Transform as well as
-%an existing algorithm that we plan to modify and improve upon in order to
-%identify eclipses in images. We have chosen to use C++ to build the image
-%processor because it gives us better control over the speed at which this
-%application runs while still providing us with the ability to leverage the
-%OpenCV API. We have also clearly defined the inputs and outputs of the in order
-%to allow the parts of the system that interact with the image processor to
-%proceed independently with their development.
-
 Development of the Image Processor is currently on hold for a couple of reasons.
-First, the image processor relies on existing code from our project ponsor that
+First, the image processor relies on existing code from our project sponsor that
 needs to be open-sourced before we can work with it. Our project sponsor has
 been working on getting this code to us, however this process relies on approval
 from several levels on management at Google and is a slow moving process. Based
 on conversations with our sponsor we do not expect this code to become available
 until the end of February or beginning of March. Secondly and as mentioned above,
-there has been somewhatf a shift in priorities for our sponsor.
+there has been somewhat a shift in priorities for our sponsor.
 
 \subsection{Image Processor Manager}
 
-%Development has yet to start on the image processor manager, but we have a very good idea of how we
-%are going to build it. Additionally, we will have access to code that Bret wrote during his internship
-%this summer that we will be able to repurpose to handle large parts of the interactions with Google Cloud.
+The image processor manager is currently on hold for the same reasons as the image processor,
+outlined above.
 
 \subsection{Eclipse Simulator}
-
-%As it currently stands, progress has been made to create an initial working
-%demo of the simulator. We have worked with the Ephemeris library to see how
-%accurate its computations are. There was some variance when comparing the
-%values it returned to other 2017 solar eclipse predictions, but we have
-%decided that the variance is not large enough to warrant worry. Work has
-%been done to create a front end view for the simulator. Eventually Google
-%will be providing the sprites that the simulator will use, but we are currently
-%just using simple SVG circles to simulate the Sun and Moon. We also have the
-%code to render these Sun and Moon SVGs on the eclipse simulator window given
-%their altitude and azimuth (vertical/horizontal angular coordinates). We will
-%continue working on the eclipse simulator over winter break.
 
 As it currently stands, progress has been made to create an initial working
 demo of the simulator. Users of the simulator can perform all functionalities
@@ -194,19 +168,17 @@ the percentage passed into it.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems and Possible Solutions}
 
-%Around week 8 of the term, we found that some results differed in the Ephemeris
-%library calculations and eclipse predictions we found elsewhere. We brought
-%this issue up with our client, and he said to continue progress on the
-%simulator as the variance we were seeing was not very significant for the
-%simulator. Once further progress has been made on the simulator, it may be
-%necessary to dig into the Ephemeris codebase to determine any problems.
+Lorem
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Code               %
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Interesting Code}
 
-Below is our function to compute eclipse time for a given location: \\
+Below is a function to compute eclipse time for a given location. This function looks at sun/moon
+separation and finds the time of minimal separation with 1 second resolution. We have tested
+this function with locations across the United States as input. Over all tested locations, the
+eclipse time was computed in under 30ms with fewer than 60 iterations of the innermost loop. \\
 
 \begin{minted}{javascript}
 EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
@@ -405,7 +377,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 			  of altitude, but maintain a large sun/moon. See an illustration of this concept below:
 
 			  \begin{center}
-			  	\includegraphics[width=0.5\textwidth]{angle.eps}
+			  	\includegraphics[width=0.6\textwidth]{angle.eps}
 			  \end{center}
 
 		\end{itemize}
