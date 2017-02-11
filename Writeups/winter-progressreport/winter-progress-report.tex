@@ -120,7 +120,7 @@ development phase. The image processor and the image processor manager are both
 fully designed, while the eclipse simulator is farther along and has some existing proof of
 concept code.
 
-When this project was being planned
+When this project was being planned,
 the Image Processor was the main thrust of the project and the simulator was, in
 our minds, a secondary objective that could be completed quickly. However, the
 emphasis has shifted toward producing an extremely polished visualization of the
@@ -158,20 +158,25 @@ users to view the simulated eclipse from the beginning to end of a certain
 time range. Most recently, we have updated the user interface so it is more
 polished and fluid.
 
-Our next step is to create a darkening effect for when the moon starts to
-cover the sun. We have written functions to compute the percent of the eclipse
-at a certain time as well the ability to alter the background color based on
-the percentage passed into it. Additionally, our client and his associates
-are providing us with regular feedback for the user interface and other 
-components of the simulator.
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Problems           %
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems and Possible Solutions}
 
-Lorem
+At the start of January, we noticed that the computed eclipse
+times from the Ephemeris JavaScript library were a bit off from what other
+sources stated. Locations that were within the path of totality were merely
+seconds off the actual eclipse time, but as we deviated from the path of totality, 
+the computed times were up to 20 minutes off. We
+looked into several potential solutions to give more accurate results. One 
+of the options was to perform an interpolation with known data points from
+NASA to to compute eclipse times anywhere in the country. We implemented a
+test script in Python to test if this idea was realistic and the results
+reflected that it was. While looking into converting this Python interpolation
+to JavaScript, we discovered another library called MeeusJs. We found that 
+the eclipse times that this library computed were much more accurate than 
+Ephemeris. This prevented us from wasting time and energy to implement
+the interpolation in JavaScript.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,15 +186,32 @@ Lorem
 
 \subsection{Image Processor}
 
-Lorem
+As mentioned in the section 2.1, we are still waiting on certain items
+to be open sourced for development to begin on the image processor.
 
 \subsection{Image Processor Manager}
 
-Lorem
+The image processor manager is currently on hold for the same reasons as the image 
+processor, outlined above and in section 2.1.
 
 \subsection{Eclipse Simulator}
 
-Lorem
+While the simulator is fully functional, we are working on the optimization
+of the user interface and sun/moon displays. The user experience designer
+from Google who is helping us with improving the front end will be providing
+us with better landscape and sun/moon images. As it stands right now, we are 
+just using circles which do not provide the best looking visualization. Once this 
+gets done, the simulator will almost be ready for public release on the eclipsemega.movie 
+website.
+
+Another thing for us to do is to create a darkening effect for when the moon starts to
+cover the sun. We have written functions to compute the percent of the eclipse
+at a certain time as well the ability to alter the background color based on
+the percentage passed into it. We just need to polish the eclipse percent computation 
+a bit more to ensure the best visualization at totality. 
+
+Additionally, our client and his associates are providing us with regular feedback
+for the user interface and other components of the simulator.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -490,4 +512,4 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 \end{table}
 
 \end{document}
-                             
+\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
