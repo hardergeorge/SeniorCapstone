@@ -28,7 +28,7 @@
 \author{Totality AweSun \\
 		Bret~Lorimore, Jacob~Fenger, George~Harder \\
 		\textit{\today \\
-		Senior Capstone, Oregon State University}} 
+		Senior Capstone, Oregon State University}}
 
 \begin{document}
 
@@ -56,7 +56,7 @@ Google will contribute applications providing, among other things, backend image
 processing, photo upload capabilities, and static informational content. This
 senior capstone project will consist of three distinct sub-projects, specifically,
 implementing/modifying an image processing algorithm facilitating the
-classification and alignment of solar eclipse images before they are stitched into 
+classification and alignment of solar eclipse images before they are stitched into
 a movie, a manager to run this image processing app, and a location-based eclipse simulator.
 
 \end{abstract}
@@ -82,72 +82,70 @@ a movie, a manager to run this image processing app, and a location-based eclips
 
 \subsection{Purpose}
 The purpose of this software requirements specification (SRS) is to describe in
-detail the Eclipse Image Processor, Eclipse Image Processor Manager, and the Eclipse 
-Simulator that our group will 
-produce. By writing these requirements down and agreeing to them with our 
-sponsor both parties will have a clear understanding of what the finished 
-product will be and what it will be able to do. The intended audience for this 
+detail the Eclipse Image Processor, Eclipse Image Processor Manager, and the Eclipse
+Simulator that our group will
+produce. By writing these requirements down and agreeing to them with our
+sponsor both parties will have a clear understanding of what the finished
+product will be and what it will be able to do. The intended audience for this
 SRS is our sponsor, the Senior Capstone Instruction Team, and ourselves.
 
 \subsection{Scope}
-We are producing \sout{two} three products: an Eclipse Image Processor, Eclipse 
-Image Processor Manager, and an Eclipse 
-Simulator. The Eclipse Image Processor will ingest images \sout{find the Sun and the
-Moon in the images, crop the image around these bodies, and extract information 
-about the relative position of the Sun and the Moon in these images} and if
+We are producing  three products: an Eclipse Image Processor, Eclipse
+Image Processor Manager, and an Eclipse
+Simulator. The Eclipse Image Processor will ingest images and if
 they are of a total solar eclipse, align/crop these images consistantly. Images of non-total
 solar eclipses will marked as such and otherwise ignored. The Eclipse Image Processor Manager
 will download images to be processed by the Image Processor, run the Image Processor on these images,
-and collect the results of running the Image Processor and upload them to Google Cloud. The Eclipse 
-Simulator will provide users with a 2D visual representation of the eclipse from a 
+and collect the results of running the Image Processor and upload them to Google Cloud. The Eclipse
+Simulator will provide users with a 2D visual representation of the eclipse from a
 specified location from 12 hours before it occurs to 12 hours after.
 
 \subsection{Definitions, acronyms, and abbreviations}
-	
+
 	\textbf{Eclipse Megamovie Project:}
-	The Eclipse Megamovie Project is a collaboration between Google 
-	and scientists from Berkeley and several other institutions with the 
+	The Eclipse Megamovie Project is a collaboration between Google
+	and scientists from Berkeley and several other institutions with the
 	aim of collecting large quantities of observations of the solar eclipse
 	that will pass over the United States on August 21, 2017. The project
-	will crowdsource photos of the eclipse from photographers at various 
+	will crowdsource photos of the eclipse from photographers at various
 	points along the path of totality. \\
 
 	\noindent \textbf{EXIF:}
-	EXIF refers to the Exchangeable Image File Format, a standard 
-	media file format. Ancillary data tags associated with other media 
+	EXIF refers to the Exchangeable Image File Format, a standard
+	media file format. Ancillary data tags associated with other media
 	files are frequently referred to as "EXIF fields", "EXIF data", etc.
 	This is how "EXIF" will be used within the scope of this document. \\
 
 	\noindent \textbf{GPS:}
 	GPS stands for global positioning system. We will refer to the
-	latitude and longitude information obtained from a global positioning 
+	latitude and longitude information obtained from a global positioning
 	system as "GPS coordinates", "GPS data", etc. throughout this document. \\
 
 	\noindent \textbf{JPEG/JPG:}
 	JPEG is a lossy compression technique for images. When we refer
-	to JPEG/JPG files in this document we are referring to image files 
+	to JPEG/JPG files in this document we are referring to image files
 	compressed in this method with the .jpeg or .jpg file extension. \\
 
 	\noindent \textbf{PNG:}
-	PNG refers to the Portable Network Graphics image file format. 
-	Images in the PNG format are frequently referred to as "PNGs" and are 
-	saved with the .png file extension. 
+	PNG refers to the Portable Network Graphics image file format.
+	Images in the PNG format are frequently referred to as "PNGs" and are
+	saved with the .png file extension.
 
 
 \subsection{References}
 
-This SRS makes reference to a report by Larisza D. Krista and Scott W.  
-McIntosh titled "The Standardisation and Sequencing of Solar Eclipse Images for 
-the Eclipse Megamovie Project." This technical report was produced as a 
+This SRS makes reference to a report by Larisza D. Krista and Scott W.
+McIntosh titled "The Standardisation and Sequencing of Solar Eclipse Images for
+the Eclipse Megamovie Project." This technical report was produced as a
 collaboration between scientists at the University of Colorado at Boulder, the
-National Center for Atmospheric Research and the National Oceanic and 
+National Center for Atmospheric Research and the National Oceanic and
 Atmospheric Administration. This paper can be found on arxiv.org.
 
 \subsection{Overview}
 
 The remainder of this SRS contains an overall description of the Eclipse Image
-Processor, Eclipse Image Processor Manager, and Eclipse Simulator systems in 
-section 2. Following these descriptions are specific requirements for the 
+Processor, Eclipse Image Processor Manager, and Eclipse Simulator systems in
+section 2. Following these descriptions are specific requirements for the
 systems in section 3.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,26 +156,23 @@ systems in section 3.
 \subsection{Product perspective}
 	\begin{enumerate}
 		\item These products, the Eclipse Image Processor, Eclipse Image
-		Processor Manager, and the Eclipse Simulator, are all components of 
-		the larger Eclipse Megamovie Project. \sout{They are designed to operate as wholly 
-		independent modules that can be "plugged into" the existing 
-		Eclipse Megamovie codebase.} The Eclipse Image Processor will be
+		Processor Manager, and the Eclipse Simulator, are all components of
+		the larger Eclipse Megamovie Project. The Eclipse Image Processor will be
 		a binary that receives images from another application - the Eclipse
-		Image Processor Manager - processes them, and exports them. The Eclipse 
+		Image Processor Manager - processes them, and exports them. The Eclipse
 		Image Processor and its manager will work together and form a standalone module
 		that can be deployed to multiple Virtual Machines as a Docker container.
-		The Eclipse Simulator will be a standalone JavaScript module that can be added to an 
+		The Eclipse Simulator will be a standalone JavaScript module that can be added to an
 		existing webpage.
 
-		\item The Eclipse Image Processor and Image Processor Manager 
-		do not directly interface with the user, they are backend 
+		\item The Eclipse Image Processor and Image Processor Manager
+		do not directly interface with the user, they are backend
 		systems that will be running asynchronously in Google Cloud.
-		\sout{It resides behind the front-end of the Eclipse
-		Megamovie website}. The Eclipse Simulator does interface 
-		directly with the user. It should function on most modern 
-		internet browsers (Chrome, Firefox, Safari). The simulator 
-		will appear to the user as a 2D animated depiction of the 
-		Sun and the Moon as they appear at the specified time and 
+		The Eclipse Simulator does interface
+		directly with the user. It should function on most modern
+		internet browsers (Chrome, Firefox, Safari). The simulator
+		will appear to the user as a 2D animated depiction of the
+		Sun and the Moon as they appear at the specified time and
 		location. The simulator will also have background imagery in
 		addition to the Sun and the Moon. Besides the images, the
 		simulator will have a time slider, a location input, and a
@@ -185,64 +180,63 @@ systems in section 3.
 
 		\item This system does not interface with hardware.
 
-		\item The Eclipse Image Processor and Image Processor Manager 
-		will be designed to run on Ubuntu 16.04. It is necessary for these 
-		applications to be compatible with this operating system because 
-		the machines that will be running the them also run Ubuntu 16.04. The Eclipse 
-		Simulator is a JavaScript module that will work on modern 
-		browsers like Chrome, Firefox and Safari. We expect our 
-		users will use these popular browsers so it is necessary 
-		for our product to interface with them.      
+		\item The Eclipse Image Processor and Image Processor Manager
+		will be designed to run on Ubuntu 16.04. It is necessary for these
+		applications to be compatible with this operating system because
+		the machines that will be running the them also run Ubuntu 16.04. The Eclipse
+		Simulator is a JavaScript module that will work on modern
+		browsers like Chrome, Firefox and Safari. We expect our
+		users will use these popular browsers so it is necessary
+		for our product to interface with them.
 	\end{enumerate}
 
 \subsection{Product functions}
 	\begin{enumerate}
-		\item The Eclipse Simulator will be a standalone JavaScript 
-		module enabling users to "preview" the eclipse. It will be 
-		designed in a stylized, 2D manner. The simulator will 
-		incorporate a time slider that allows users to simulate the 
-		eclipse in a time window spanning from 12 hours before the 
-		eclipse to 12 hours after it. As users drag the time 
-		slider, the eclipse will animate in the simulator window. 
-		The view of the eclipse which users are presented will be 
+		\item The Eclipse Simulator will be a standalone JavaScript
+		module enabling users to "preview" the eclipse. It will be
+		designed in a stylized, 2D manner. The simulator will
+		incorporate a time slider that allows users to simulate the
+		eclipse in a time window spanning from 12 hours before the
+		eclipse to 12 hours after it. As users drag the time
+		slider, the eclipse will animate in the simulator window.
+		The view of the eclipse which users are presented will be
 		specific to the selected location.
 
-		\item The Eclipse Image Processor application will ingest 
-		photos of the eclipse, determine if they are images of a 
-		total solar eclipse, and if so, align them spatially
-		\sout{and categorize them to help recover temporal ordering}. 
-		These aligned \sout{and categorized}
-		images will be cropped so that the Sun 
-		occupies the same amount of space in each image and will be 
-		exported. All data that is required to take the raw input 
-		images and produce the exported images will be saved to a 
-		data file. Additionally, select EXIF information will be 
+		\item The Eclipse Image Processor application will ingest
+		photos of the eclipse, determine if they are images of a
+		total solar eclipse, and if so, align them spatially.
+		These aligned
+		images will be cropped so that the Sun
+		occupies the same amount of space in each image and will be
+		exported. All data that is required to take the raw input
+		images and produce the exported images will be saved to a
+		data file. Additionally, select EXIF information will be
 		extracted from the image files and included in this output
 		data file. Images that are deemed as being of "non-total" solar
 		eclipses will be marked as such and otherwise ignored.
 
-		\item The Eclipse Image Processor Manager will be responsible for 
-		managing the Eclipse Image Processor application. This includes 
+		\item The Eclipse Image Processor Manager will be responsible for
+		managing the Eclipse Image Processor application. This includes
 		collecting images from Google Cloud for the Image Processor to process,
-		invoking the Image Processor with these images as input, and collecting 
-		the output of the Image Processor and uploading it to Google Cloud. The 
-		Image Processor and Image Processor Manager will be deployed together 
+		invoking the Image Processor with these images as input, and collecting
+		the output of the Image Processor and uploading it to Google Cloud. The
+		Image Processor and Image Processor Manager will be deployed together
 		in a single docker container to Google Container Engine Clusters (of VMs).
-		An important role of the Image Processor Manager is that it will be responsible 
-		for ensuring that the compute resources on the host VMs are as saturated as 
-		possible. This means invoking multiple Image Processor processes concurrently, 
-		while at the same time downloading the next images to be processed and uploading 
+		An important role of the Image Processor Manager is that it will be responsible
+		for ensuring that the compute resources on the host VMs are as saturated as
+		possible. This means invoking multiple Image Processor processes concurrently,
+		while at the same time downloading the next images to be processed and uploading
 		the already processed images.
-		
-		
+
+
 	\end{enumerate}
 
 \subsection{User characteristics}
 	\begin{enumerate}
-		\item The Eclipse Image Processor application will be used by 
-			\sout{Google Engineers} the members of this project.
+		\item The Eclipse Image Processor application will be used by
+			 the members of this project.
 
-		\item The Eclipse Image Processor Manager application will be used by 
+		\item The Eclipse Image Processor Manager application will be used by
 			Google Engineers.
 
 		\item The Eclipse Simulator application will be used by the
@@ -257,14 +251,14 @@ None.
 \subsection{Assumptions and dependencies}
 	\begin{enumerate}
 		\item This SRS assumes the availability of Ubuntu 16.04.
-		
-		\item This SRS assumes the availability of Google Cloud Platform 
+
+		\item This SRS assumes the availability of Google Cloud Platform
 		n1-standard-4 virtual machines.
-		
+
 		\item This SRS assumes the ability to interface with Google Cloud from
 		Python, for example with the Google Cloud Client Library for Python.
-		
-		\item This SRS assumes the availability of the OpenCV computer 
+
+		\item This SRS assumes the availability of the OpenCV computer
 		vision library.
 	\end{enumerate}
 
@@ -285,16 +279,16 @@ See Gantt Chart in Appendix.
 		\item The simulator is a standalone JavaScript module that can
 		be included on an existing webpage.
 
-		\item Users can select the location from which to simulate the eclipse. 
+		\item Users can select the location from which to simulate the eclipse.
 		This can be entered at any point while using the simulator.
 		\begin{enumerate}
-			\item Location can be entered as: latitude/longitude, address, zip code, 
+			\item Location can be entered as: latitude/longitude, address, zip code,
 			city name, state name.
-			\item Initial simulator location can be programmatically set as 
+			\item Initial simulator location can be programmatically set as
 			initialization parameter.
 		\end{enumerate}
 
-		\item Users will be able to adjust the simulator time from 12 before 
+		\item Users will be able to adjust the simulator time from 12 before
 		the eclipse to 12 hours after it.
 		\begin{enumerate}
 			\item Time can be advanced via a draggable slider or clickable buttons.
@@ -305,7 +299,7 @@ See Gantt Chart in Appendix.
 \subsubsection{Eclipse Image Processor}
 	\begin{enumerate}
 		\item The Image Processor will be compatible with Ubuntu 16.04 and
-		 will include a script that to install all dependencies/build the 
+		 will include a script that to install all dependencies/build the
 		 binary.
 
 		 \item The application will accept the following input as command line
@@ -313,8 +307,8 @@ See Gantt Chart in Appendix.
 		 \begin{enumerate}
 		 	\item Required: image\_list\_file
 		 		\begin{enumerate}
-		 			\item Absolute or relative (to the directory the binary was 
-		 			invoked from) path to file containing a list of image filenames 
+		 			\item Absolute or relative (to the directory the binary was
+		 			invoked from) path to file containing a list of image filenames
 		 			with no directory prefix.
 		 		\end{enumerate}
 
@@ -326,78 +320,61 @@ See Gantt Chart in Appendix.
 		 	\item Optional: image\_path\_prefix
 		 		\begin{enumerate}
 		 			\item Absolute or relative (to the directory the binary was
-		 			 invoked from) path to prepend to each image filename in 
+		 			 invoked from) path to prepend to each image filename in
 		 			 image\_file\_list. Defaults to "./".
 		 		\end{enumerate}
 		 \end{enumerate}
 
-		 \item The application will accept JPEG (.jpeg/.jpg) and PNG (.png) 
+		 \item The application will accept JPEG (.jpeg/.jpg) and PNG (.png)
 		 image files.
 		 \begin{enumerate}
 		 	\item Images of an invalid format will be disregarded and an error
 		 	 message will be written to stderr.
 		 \end{enumerate}
 
-		 \item The application will write the following output to the 
+		 \item The application will write the following output to the
 		 output\_dir directory:
 		 \begin{enumerate}
 		 	\item image\_transformations.txt
 		 	\begin{enumerate}
-		 		\item File containing one line per image processed with the 
+		 		\item File containing one line per image processed with the
 		 		following values (comma separated):
 		 		\begin{enumerate}
 		 			\item processed\_image: processed image filename
 
-		 			\item \sout{image\_type: image type (FULL\_DISK/TOTALITY/etc.), see
-		 			requirement \#2 of 3.2.2}
-
-		 			\item \sout{rot\_angle: angle original image was rotated (degrees)}
-
-		 			\item crop\_topl\_x: x coordinate of top left corner of 
+		 			\item crop\_topl\_x: x coordinate of top left corner of
 		 			cropped image (refers to rotated image)
 
-		 			\item crop\_topl\_y: y coordinate of top left corner of 
+		 			\item crop\_topl\_y: y coordinate of top left corner of
 		 			cropped image (refers to rotated image)
 
-		 			\item crop\_botr\_x: x coordinate of bottom right corner of 
+		 			\item crop\_botr\_x: x coordinate of bottom right corner of
 		 			cropped image (refers to rotated image)
 
 		 			\item crop\_botr\_y: y coordinate of bottom right corner of
 		 			 cropped image (refers to rotated image)
 
-		 			\item \sout{rel\_center\_offset: relative offset of solar/lunar
-		 			 disk centers, see requirement \#3 of 3.2.2  (optional, only included
-		 			  for CRESCENT type images)}
+		 			\item timestamp: timestamp at which image was taken
 
-		 			\item \sout{diamond\_rel\_size: size of “diamond” relative to the 
-		 			size of the solar disk, see requirement \#4 of 3.2.2 
-		 			(optional, only for DIAMOND\_RING type images)}
-
-		 			\item timestamp: timestamp at which image was taken \sout{(optional, 
-		 			only included when images have an EXIF timestamp 
-		 			field)}
-
-		 			\item eclipse\_path\_percent: percentage through eclipse 
+		 			\item eclipse\_path\_percent: percentage through eclipse
 		 			totality path at which image was taken, see requirement \#8
-		 			 of 3.2.2 \sout{(optional, only included for images with GPS 
-		 			 coordinate EXIF field)}
+		 			 of 3.2.2
 
-		 			 \item rejected\_reason: reason a particular image was rejected, 
+		 			 \item rejected\_reason: reason a particular image was rejected,
 		 			 see requirement \#10 of 3.2.2.
 		 		\end{enumerate}
 		 	\end{enumerate}
 			\item Processed image files
 				\begin{enumerate}
 					 \item Processed image files will be saved into a sub-directory
-					 of output\_dir called "images" and will be named as follows: 
+					 of output\_dir called "images" and will be named as follows:
 					 *\_pp.[png$\vert$jpeg$\vert$jpg].
 				\end{enumerate}
 		 \end{enumerate}
 
-		 \item Images that are rejected will \sout{not} be added to the 
+		 \item Images that are rejected will  be added to the
 		 image\_transformations.txt file but will not be cropped/exported to
-		 the images directory. \sout{When an image is rejected a message with this 
-		 information will be printed to stdout.}
+		 the images directory.
 
 		 \item The application will format all log messages as follows:
 		 \begin{enumerate}
@@ -414,10 +391,10 @@ See Gantt Chart in Appendix.
 	\begin{enumerate}
 		\item The Eclipse Image Processor Manager will collect images to be processed
 		from Google Cloud Storage. It will obtain lists of files to download and their
-		respective metadata from Google Cloud Datastore. It will be aware of the scheme 
+		respective metadata from Google Cloud Datastore. It will be aware of the scheme
 		of the Datastore NoSQL database in order to read/write image metadata.
-		
-		\item The Eclipse Image Processor Manager will invoke instances of the Eclipse 
+
+		\item The Eclipse Image Processor Manager will invoke instances of the Eclipse
 		Image Processor and communicate with them via a command-line interface as well
 		as data files. The format of these data files, as well as the command-line interface
 		is described in 3.1.2.
@@ -428,103 +405,53 @@ See Gantt Chart in Appendix.
 
 \subsubsection{Eclipse Simulator}
 	\begin{enumerate}
-		\item Displayed solar/lunar placement will be based on location and 
-		time and will account for edge cases like when the location is not in 
-		the path of totality. \sout{For example, if the location is on the opposite 
-		side of the world as the eclipse, the simulator should shift to a night
-		time display.}
+		\item Displayed solar/lunar placement will be based on location and
+		time and will account for edge cases like when the location is not in
+		the path of totality.
 
 		\item The simulator location will be restricted to North America as this is where
 		the eclipse will be visible from.
 
 		\item The Simulator will display a timestamp indicating the time that the simulator
-		is set to. 
-		\sout{Simulator will display the local time that the simulator is set 
-		to, e.g. there is a well defined time associated with the user 
-		selecting Corvallis, Oregon as their location and a simulator time of 
-		-3:13 (3 hours 13 minutes) before the eclipse. This time should be 
-		displayed on the simulator.}
+		is set to.
 	\end{enumerate}
 
 \subsubsection{Eclipse Image Processor}
 	\begin{enumerate}
-		\item Invalid JPEG and PNG files (e.g. cannot be opened by OpenCV, 
-		width/height equal to 0px, etc.) will be ignored and an error message 
+		\item Invalid JPEG and PNG files (e.g. cannot be opened by OpenCV,
+		width/height equal to 0px, etc.) will be ignored and an error message
 		will be written to stderr.
-
-		\item \sout{The application will classify the input images as being one of
-			the following types:}
-		\begin{enumerate}
-			\item \sout{FULL\_DISK}
-			\begin{enumerate}
-				\item \sout{Image of an unobscured solar disk.}
-			\end{enumerate}
-
-			\item \sout{TOTALITY}
-			\begin{enumerate}
-				\item \sout{Image of a total solar eclipse.}
-			\end{enumerate}
-
-			\item \sout{CRESCENT}
-			\begin{enumerate}
-				\item \sout{Image of a partially eclipsed Sun, creating a "crescent" 
-					shape.}
-			\end{enumerate}
-
-			\item \sout{DIAMOND\_RING}
-			\begin{enumerate}
-				\item \sout{Image of a nearly fully eclipsed Sun where there is one 
-					"hot spot" on the Sun's perimeter. This hot spot along with the 
-					Sun's perimeter have the shape of a diamond ring.}
-			\end{enumerate}
-		\end{enumerate}
-
-		\item \sout{For images of type CRESCENT, the application will compute/export 
-		a delta of the position of the center of the Sun and the 
-		Moon relative to the size of the solar disk. This delta will be a 
-		signed value based on the Sun's position, i.e. if the Moon is to 
-		the left of the Sun (in the cropped/rotated image) the delta will 
-		be negative and conversely, if the Moon is to the right of the Sun 
-		the delta value will be positive.}
-
-		\item \sout{For images of type DIAMOND\_RING, the application will 
-		compute/export the size of the "diamond" relative to the size of 
-		the solar disk.}
 
 		\item Images where the solar disk has a radius of less than 50px
 		will be rejected (see requirement \#5 in 3.1.2).
 
-		\item The application will crop the images to be square with the 
+		\item The application will crop the images to be square with the
 		Sun centered. The images will be cropped so that there is a 100px
-		pad between the solar perimeter and the edge of the image on all 
+		pad between the solar perimeter and the edge of the image on all
 		sides.
 		\begin{enumerate}
-			\item Images that do not have enough room around the Sun to 
+			\item Images that do not have enough room around the Sun to
 			allow for the pad described above will be rejected, see requirement \#5 in 3.1.2.
 		\end{enumerate}
 
-		\item \sout{The application will rotate DIAMOND\_RING and CRESCENT type 
-		images so that they are aligned horizontally, as described by 
-		Krista et al.}
-
-		\item \sout{For images with GPS EXIF information,} Based on images' GPS EXIF information, the application will 
-		compute/export the percentage through the eclipse's path of 
-		totality at which the image was taken. 0\% will be defined as the 
-		westmost point on that path of totality that is over land, this 
-		point is on the west coast of Oregon. 100\% will be defined as the 
-		eastmost point on the path of totality that is over land, this 
+		\item Based on images' GPS EXIF information, the application will
+		compute/export the percentage through the eclipse's path of
+		totality at which the image was taken. 0\% will be defined as the
+		westmost point on that path of totality that is over land, this
+		point is on the west coast of Oregon. 100\% will be defined as the
+		eastmost point on the path of totality that is over land, this
 		point is on the east coast of South Carolina. The application will
-		compute the point on the path of totality nearest the point where 
-		the image was taken. This point will be used to compute the 
-		percentage through the path of totality at which the image was 
+		compute the point on the path of totality nearest the point where
+		the image was taken. This point will be used to compute the
+		percentage through the path of totality at which the image was
 		taken.
 
-		\item Images \sout{with GPS EXIF information that are} that were not taken on the path of
+		\item Images  that were not taken on the path of
 		totality will be rejected, see requirement \#5 in 3.1.2.
 
 		\item Images can be rejected by the Image Processor. When an image is rejected,
 		the reason it was rejected will be noted and exported, see requirement \#5 in 3.1.2.
-		The possible reasons for which an image can be rejected will include at least the 
+		The possible reasons for which an image can be rejected will include at least the
 		following:
 		\begin{enumerate}
 			\item Invalid image file, e.g. image file is corrupted and cannot be opened.
@@ -550,22 +477,22 @@ See Gantt Chart in Appendix.
 		delinquent.
 
 		\item The application will group files/metadata downloaded from Google
-		Cloud into directories corresponding to individual workloads that will be 
+		Cloud into directories corresponding to individual workloads that will be
 		delegated to distinct Image Processor instances.
 
-		\item When an Image Processor instance completes its workload, its output data 
-		will be collected by its parent Image Processor Manager and uploaded to Google 
-		Cloud. This will include processed image files and metadata that is saved to 
+		\item When an Image Processor instance completes its workload, its output data
+		will be collected by its parent Image Processor Manager and uploaded to Google
+		Cloud. This will include processed image files and metadata that is saved to
 		Datastore.
 
 		\item The application will kill delinquent Image Processor Instances and upload
 		the results of processing any images that were processed successfully. Images that
-		were not processed successfully will be marked as such in Datastore. 
-		
+		were not processed successfully will be marked as such in Datastore.
+
 		\item The application will be highly parallel. Multiple Eclipse Image Processor
-		application instances will be launched concurrently, and while these are working, 
-		the next images to be processed will be downloaded and previous results will be 
-		uploaded. 
+		application instances will be launched concurrently, and while these are working,
+		the next images to be processed will be downloaded and previous results will be
+		uploaded.
 		\begin{enumerate}
 			\item The number of Image Processor instances launched will be determined by
 			the number of cores on the host VM. \textit{Note: this does not mean that
@@ -594,14 +521,14 @@ See Gantt Chart in Appendix.
 \subsubsection{Eclipse Image Processor Manager}
 	\begin{enumerate}
 		\item The Image Processor Manager will saturate either the CPUs or network interface of
-		the host VM to which it is deployed. 
+		the host VM to which it is deployed.
 		\begin{itemize}
-			\item The reason for the "or" in the above statement is that either the time to process 
-			images, or the time to download them and upload their processed counterparts will be a 
-			bottleneck depending on the VM configuration. The goal here is to get as close to network 
-			saturation and 100\% utilization of all CPU cores as possible. If all CPU cores are running 
-			at nearly 100\% but the network interface is not saturated, then VMs with more cores should 
-			be used. Conversely, if the network interface is saturated but not all cores are running at 
+			\item The reason for the "or" in the above statement is that either the time to process
+			images, or the time to download them and upload their processed counterparts will be a
+			bottleneck depending on the VM configuration. The goal here is to get as close to network
+			saturation and 100\% utilization of all CPU cores as possible. If all CPU cores are running
+			at nearly 100\% but the network interface is not saturated, then VMs with more cores should
+			be used. Conversely, if the network interface is saturated but not all cores are running at
 			100\%, VMs with fewer cores should be used.
 		\end{itemize}
 	\end{enumerate}
@@ -615,7 +542,7 @@ See Gantt Chart in Appendix.
 \subsection{Appendix}
 
 \begin{enumerate}
-	\item Figure 1. Project Gantt Chart 
+	\item Figure 1. Project Gantt Chart
 \end{enumerate}
 
 \begin{center}
