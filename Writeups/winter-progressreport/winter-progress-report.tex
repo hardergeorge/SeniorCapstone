@@ -163,20 +163,54 @@ polished and fluid.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems and Possible Solutions}
 
-At the start of January, we noticed that the computed eclipse
-times from the Ephemeris JavaScript library were a bit off from what other
-sources stated. Locations that were within the path of totality were merely
-seconds off the actual eclipse time, but as we deviated from the path of totality, 
-the computed times were up to 20 minutes off. We
-looked into several potential solutions to give more accurate results. One 
-of the options was to perform an interpolation with known data points from
-NASA to to compute eclipse times anywhere in the country. We implemented a
-test script in Python to test if this idea was realistic and the results
-reflected that it was. While looking into converting this Python interpolation
-to JavaScript, we discovered another library called MeeusJs. We found that 
-the eclipse times that this library computed were much more accurate than 
-Ephemeris. This prevented us from wasting time and energy to implement
-the interpolation in JavaScript.
+\subsection{Ephemeris Computations \textit{Resolved}} \label{ephem_prob}
+At the start of January we noticed that our computed eclipse
+times did not line up with the times computed by other (trusted)
+sources stated. Locations that were within the path of totality
+were merely seconds off the actual eclipse time, but as we deviated
+from the path of totality, the computed times were up to 20 minutes
+off. At the time, we were computing eclipse time by computing the
+Sun/Moon position at a series of times, and finding when they were
+closest together. We determined that the reason this code was not
+working was because the Sun/Moon positions we computed, using the
+EphemerisJS library were not accurate. At the time, we did not know
+of any more accurate JavaScript libraries for computing the positions
+of celestial objects. We looked into several other possible solutions
+to give more accurate results. One option was to perform a 2D interpolation
+over known data points from NASA and elsewhere to to approximate eclipse
+times anywhere in the country. We implemented a test script in Python to
+see if this was a viable solution and the results reflected that it was.
+We also considered setting up a basic REST service which clients could
+query for eclipse times and Sun/Moon positions. While continuing to evaluate
+these potential solutions, we became aware of another JavaScript ephemeris
+library called MeeusJs. We found that the Sun/Moon positions that this library
+computed were much more accurate than EphemerisJS. After feeding these more
+accurate data points into our elclipse time computation code, we achieved
+much more accurate results. Our eclipse times are now computed with \(< 1\)
+minute error across the United States.
+
+\subsection{Percetage of Eclipse \textit{Ongoing}}
+One of the desired features of the simulator is to darken as the Sun eclipses
+the Moon. In order to do this accurately, we need to compute the percentage of
+eclipse at a given time. This is somewhat non-trivial but is done using the
+angular separation between the Sun and Moon, and their respective angular radii.
+We are currently seeing a bug in this code, as it will occasionally report the Sun
+being up to ~15\% eclipsed when it looks like the Moon is not overlapping it
+at all. We have looked into this issue, and it is arising because at the times
+that the incorrect eclipse percentages are showing up, the angular separation between
+the Sun and Moon being computed reflects that they are in fact overlapping.
+There are several things that could be going on here. One, the angular separation
+code could be right, and the rendering of the eclipse could be innacurate.
+We believe this is not the case after extensive debugging, code review of our
+rendering code, and heuristic evaluations of the specifics of the scenario. Second,
+the Sun/Moon positions could be innacurate. This is not likely the case as we have
+been seeing good results with the MeeusJS library, as described above in \ref{ephem_prob}.
+Third, there could be an error in our angular separation code. This seems unlikely,
+as this piece of code is critical to the eclipse time computations we do, which
+work well. That being said, this does seem like it is the most likely place for the
+error to be of the three possibilities outlined above. The bottom line is,
+we have looked into this issue extensively, and we are really not sure what is
+going on. We will continue to explore this issue further.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -191,24 +225,24 @@ to be open sourced for development to begin on the image processor.
 
 \subsection{Image Processor Manager}
 
-The image processor manager is currently on hold for the same reasons as the image 
+The image processor manager is currently on hold for the same reasons as the image
 processor, outlined above and in section 2.1.
 
 \subsection{Eclipse Simulator}
 
 While the simulator is fully functional, we are working on the optimization
-of the user interface and sun/moon displays. The user experience designer
+of the user interface and Sun/Moon displays. The user experience designer
 from Google who is helping us with improving the front end will be providing
-us with better landscape and sun/moon images. As it stands right now, we are 
-just using circles which do not provide the best looking visualization. Once this 
-gets done, the simulator will almost be ready for public release on the eclipsemega.movie 
+us with better landscape and Sun/Moon images. As it stands right now, we are
+just using circles which do not provide the best looking visualization. Once this
+gets done, the simulator will almost be ready for public release on the eclipsemega.movie
 website.
 
-Another thing for us to do is to create a darkening effect for when the moon starts to
-cover the sun. We have written functions to compute the percent of the eclipse
+Another thing for us to do is to create a darkening effect for when the Moon starts to
+cover the Sun. We have written functions to compute the percent of the eclipse
 at a certain time as well the ability to alter the background color based on
-the percentage passed into it. We just need to polish the eclipse percent computation 
-a bit more to ensure the best visualization at totality. 
+the percentage passed into it. We just need to polish the eclipse percent computation
+a bit more to ensure the best visualization at totality.
 
 Additionally, our client and his associates are providing us with regular feedback
 for the user interface and other components of the simulator.
@@ -219,7 +253,7 @@ for the user interface and other components of the simulator.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Interesting Code}
 
-Below is a function to compute eclipse time for a given location. This function looks at sun/moon
+Below is a function to compute eclipse time for a given location. This function looks at Sun/Moon
 separation and finds the time of minimal separation with 1 second resolution. We have tested
 this function with locations across the United States as input. Over all tested locations, the
 eclipse time was computed in under 30ms with fewer than 60 iterations of the innermost loop. \\
@@ -257,11 +291,11 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
             time      += step;
             date.setTime(time);
 
-            // Compute sun and moon position and angular separation
+            // Compute Sun and Moon position and angular separation
             var pos = this._compute_sun_moon_pos(date);
             sep     = EclipseSimulator.compute_sun_moon_sep(pos.sun, pos.moon);
 
-        }	// Loop until the sun/moon start getting further apart
+        }	// Loop until the Sun/Moon start getting further apart
         while (sep < prev_sep);
 
         // Back off and reduce step
@@ -321,7 +355,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
     \item Tuned basic simulator UI (non-functional).
 
-	\item Began implementing simulator model using ephemeris JS to perform sun/moon
+	\item Began implementing simulator model using ephemeris JS to perform Sun/Moon
 		  position computations. Verified that these computations can be done
 		  quickly enough for our purposes.
 
@@ -431,18 +465,18 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
 		\begin{itemize}
 
-		\item The hills are quite tall, if left as-is, the sun/moon will not become
+		\item The hills are quite tall, if left as-is, the Sun/Moon will not become
 			  visible until they are at a non-negligible altitude. To solve this,
 			  I proposed define 0 degrees of altitude at a point towards the top of the
 			  hills. This would mean that the bottom of the hills correspond to an altitude
 			  value of less than 0. This should not cause any problems.
 
-		\item The sun/moon in the mocks are very large, much more so than in the current
+		\item The Sun/Moon in the mocks are very large, much more so than in the current
 			  simulator, at least in wide mode. If left as-is, this will make the simulator
 			  show the eclipse starting much earlier than it is supposed to. To solve this, I
-			  proposed that we "stretch" degrees at the altitudes around the sun. This would
+			  proposed that we "stretch" degrees at the altitudes around the Sun. This would
 			  potentially enable us to still have a field of view where there are 80 degrees
-			  of altitude, but maintain a large sun/moon. See an illustration of this concept below:
+			  of altitude, but maintain a large Sun/Moon. See an illustration of this concept below:
 
 			  \begin{center}
 			  	\includegraphics[width=0.6\textwidth]{angle.eps}
@@ -454,8 +488,8 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
           the simulator is currently at until the end of the time range. The play function has
           adjustable speed.
 
-    \item Replaced the epehemeris.js library with meuus.js to fix the accuracy issues with sun and
-          moon position.
+    \item Replaced the epehemeris.js library with meuus.js to fix the accuracy issues with Sun and
+          Moon position.
 
     \end{itemize}
 
