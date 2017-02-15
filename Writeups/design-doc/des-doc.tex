@@ -135,8 +135,12 @@ images.\\
     user entered location information. \\
 
     \subsubsection{}
-    Users will be able to adjust simulator time via a
-    draggable slider or clickable buttons. \\
+    Users will be able to view the eclipse via a
+    draggable slider, clickable time step buttons, and a play functionality. \\
+
+    \subsection{}
+    The user interface should be visually appealing, easy to navigate, and align
+    with the theme of the larger project's site. \\
 
     \subsubsection{}
     Simulator will only support locations within continental
@@ -207,7 +211,9 @@ design document. \\
   \textbf{Concerns:} 1.3.1, 1.3.2 \\
   \textbf{Elements:} 4.3.1, 4.3.2, 4.3.4, 4.3.7 \\
   \textbf{Analytical Methods:} Interface should be appealing
-  to the user as well as being responsive and fast. \\
+  to the user as well as being responsive and fast. The look and feel of the user
+  interface will be evaluated by the sponsor and deemed complete when it meets their
+  desired specifications. \\
   \textbf{Viewpoint source:} Jacob Fenger \\
 
   \subsubsection{Loading Performance}
@@ -330,12 +336,12 @@ processed images and their metadata in a specific format to an output file.\\
 
   \subsubsection{User Interface View [Governed by Viewpoint 2.3.1 ]}
   The user interface shall utilize 2D animated depictions of
-  the Sun and the Moon as they appear at a user specified
-  time and location. In addition, the user interface will
-  contain background imagery such as a city or hillside
-  landscape. There will also be a time slider, a location
-  input, and a time display for users to interact with or
-  view. \\
+  the Sun and the Moon positioned based on the time the simulator is set to. In addition
+  to the Sun and Moon, the user interface will contain stylized background imagery of a hillside. The
+  simulator's controls will be split into a top bar and bottom bar. The top bar
+  will have a location entry box, an expandable map, and a zoom button. The
+  bottom bar will have a time slider, time up and down buttons, a play button,
+  and a menu to select the play speed.  \\
 
   \subsubsection{Operating Performance View [Governed by Viewpoint 2.3.2]}
   The simulator will have low loading times to ensure fast
@@ -479,10 +485,10 @@ will be basing part of the image processor off of this algorithm. \\
   \textbf{Purpose:} CSS helps with the front-end display of
   the simulator by helping produce better looking output.
 
-  \subsubsection{Ephemeris JavaScript Library}
+  \subsubsection{Meuus JavaScript Library}
   \textbf{Type:} Library \\
-  \textbf{Purpose:} This library is used to compute eclipse
-  information to be used for displaying the Sun and Moon.
+  \textbf{Purpose:} This library is used to compute the position of the Sun and
+  Moon in the sky.
 
   \subsubsection{View}
   \textbf{Type:} Component \\
@@ -493,7 +499,7 @@ will be basing part of the image processor off of this algorithm. \\
   \textbf{Type:} Component \\
   \textbf{Purpose:} Backend library in JavaScript used for
   computing eclipse information which will be passed to the
-  controller. This entity utilized the Ephemeris JavaScript
+  controller. This entity utilizes the Meuus JavaScript
   library for support.
 
   \subsubsection{Controller}
@@ -595,9 +601,10 @@ components interact with each other to update the system.
 In the technology review, we compared two libraries: Suncalc
 and Ephemeris. Initially, we chose SunCalc as the better
 library due to better documentation and ease of use. After
-further testing, the results that Ephemeris was providing
-were much better which spurred the change to utilizing
-Ephemeris as our support in ephemeris computations. \\
+further testing, we determined that the results of both of these libraries were
+unsatisfactorily accurate and opted for another choice: meuus.js. The Meuus library
+provides us with Sun/Moon positions that meet the requirements for accuracy of
+this simulator.  \\
 
 Additionally, we chose to utilize a scalar vector graphics
 format due to sub-element event processing and being easily
@@ -653,7 +660,8 @@ offered from Google, optimized for storing/accessing large files.\\
 upload speeds.\\
 
 \noindent \textbf{Ephemeris:} An ephemeris is used to give positional information
-about astronomical objects\\
+about astronomical objects. We are using a JavaScript library, meuus.js, as our
+ephemeris.\\
 
 \noindent \textbf{Machine:} The term machine is used throughout this document in
 reference to a particular VM instance.\\
