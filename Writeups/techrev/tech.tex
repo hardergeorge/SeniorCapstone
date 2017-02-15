@@ -79,7 +79,7 @@ which option is the best in the context of this project.\\
 
 The image classification and manipulation portion of the eclipse image processor
 encapsulates a few key requirements for this project. For our project to be
-functionally complete it must determine temporal ordering of the images, align
+functionally complete it must determine whether the sun/moon are in a state of totality, align
 them spatially, and crop them such that the sun is the same size in all of the
 images. This process requires the use of a computer vision application
 programming interface (API). Three possible options of APIs are: OpenCV,
@@ -738,7 +738,7 @@ roads, zip codes, or other options. This data would then be geocoded and will
 result in the latitude and longitude. \\
 
 \textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake2}]:
-Overall, geocoding user entered addresses will provide the
+Overall, reverse geocoding user entered addresses will provide the
 best functionality. The Google Maps Geocoding API can easily convert these
 addresses to latitude and longitude coordinates for computing the Sun and
 Moon's location. While dropping a pin on a map is simple, it requires
@@ -785,18 +785,22 @@ based off location and time \cite{SunCalc}. This backend library is based off
 of an article about positions of the Sun as seen from a planet \cite{AST}.
 The documentation is also well written, which makes it very easy to use. \\
 
-For the last method, another JavaScript library exists called Ephemeris
+Another JavaScript library exists called Ephemeris
 \cite{Ephem}. This is very similar to the previous method except that this
 can be used for ephemeris calculations for a wider range of celestial objects.
 Additionally, the documentation for this library is very lackluster compared
 to the SunCalc library. \\
 
-\textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake3}]: 
-In conclusion, the SunCalc library seems to be the best
-choice. There are several examples for how to use this library located on
-the readme of the page \cite{SunCalc}. Additionally, utilizing this backend to
-compute the Sun or the Moon's altitude and azimuth at a certain location
-and time requires very few function calls. \\
+During the work for the simulator, we noticed that Ephemeris was providing
+some inaccurate results in our computation. We stumbled upon another JavaScript
+library called MeeusJs \cite{MeeusJs}. Although it was not documented too well,
+it provied much more accurate computations for sun/moon positioning.
+
+\textit{Conclusion} [See summary of previous discussion in Table \ref{table:Jake3}]:
+In conclusion, the MeeusJs library is now the library we are using for our
+computation. Ephemeris and SunCalc both proved to be too inaccurate for what
+we needed on the simulator. The simulator is working well after replacing
+Ephemeris with the MeeusJs library. \\
 
 \begin{table}[h]
 \centering
