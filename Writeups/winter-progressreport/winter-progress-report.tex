@@ -256,6 +256,7 @@ interface should look like.
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Code               %
 %%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{Interesting Code}
 
 Below is a function to compute eclipse time for a given location. This function looks at Sun/Moon
@@ -325,6 +326,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 };
 \end{minted}
 
+\newpage
 \section{Screenshots}
 
 \begin{figure}[!h]
@@ -529,14 +531,15 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
     \item Completed midterm progress report
 
-    \item Met with sponsor, discussed project timeline for the rest of the 
+    \item Met with sponsor, discussed project timeline for the rest of the
           year.
 
     \end{itemize}
 
+\newpage
 \section{Retrospectives}
 
-\begin{table}[h]
+\begin{table}[!h]
     \centering
     \begin{tabular}{|p{.3\linewidth}|p{.3\linewidth}|p{.3\linewidth}|}
 
@@ -544,11 +547,14 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 
     \hline \textbf{Positives} & \textbf{Deltas} & \textbf{Actions} \\ \hline
 
-    lorem & lorem & lorem \\ \hline
-    lorem & lorem & lorem \\ \hline
-    lorem & lorem & lorem \\ \hline
-    lorem & lorem & lorem \\ \hline
-    lorem & lorem & lorem \\ \hline
+    Completed nearly feature complete alpha release of eclipse simulator &  &  \\ \hline
+    Revised (and continue to revise) simulator UI based on sponsor feedback & Current simulator does not sponsor's design mocks & More work/revision required \\ \hline
+	Simulator is functional on mobile & Simulator does not work \textit{well} on mobile & Make simulator work well on mobile \\ \hline
+	 & Simulator suffered from accuracy issues for much of the development process & Sought advice from sponsor and found a JavaScript library that meets accuracy requirements \\ \hline
+	Integrated the Google Maps API into our simulator to handle location entries & & \\ \hline
+     & Image processor development not started & Begin image processor development once sponsor has opportunity to open source the relevant code (end of Feb. 2017) \\ \hline
+     & Image processor manager development not started & Begin image processor manager development once sponsor has opportunity to open source the relevant code (end of Feb. 2017) \\ \hline
+	Development has been a fast moving and continually shifting process & Requirements and priority shifts have caused some difficulties & Team has remained committed to frequent communication and teamwork to adapt to shifting circumstances \\ \hline
 
     \end{tabular}
 \end{table}
