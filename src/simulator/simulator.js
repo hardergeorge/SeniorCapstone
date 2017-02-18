@@ -198,8 +198,8 @@ var EclipseSimulator = {
         wide: 0.3,
     },
 
-    VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_OPEN:   372,
-    VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_CLOSED: 428,
+    VIEW_PHONE_WMAX: 600,
+
     VIEW_MAP_MAX_W: 800,
 
     VIEW_BG_COLOR_MAX:   [3,  39,  53],
@@ -327,49 +327,10 @@ EclipseSimulator.View.prototype.init = function()
     // Toggles the visibility of the map on click
     $(this.mapbutton).click(function() {
         view.playing = false;
-
-        var center_map = function() {
-            var center = view.map.getCenter();
-            google.maps.event.trigger(view.map, "resize");
-            view.map.setCenter(center);
-        }
-
-        // Reposition the map and zoom buttons
-        $(view.mapbutton).toggleClass('push-left', 200);
-        $(view.mapbutton).toggleClass('push-down');
-        $(view.zoombutton).toggleClass('push-down');
-        if (!view.map_visible)
-        {
-            // Set the width so that everything along the top lines up
-            var width = view.get_environment_size().width;
-            var map_w = width - EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_OPEN;
-            map_w     = Math.min(map_w, EclipseSimulator.VIEW_MAP_MAX_W);
-
-            $(view.mapcanvas).css('width', map_w + 'px');
-
-            var top_bar_w = EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_OPEN + map_w;
-        }
-        else
-        {
-            var top_bar_w = EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_CLOSED;
-        }
-        $(view.topbar).animate({'width': top_bar_w + 'px'}, 200);
-
-        // Show the map and center it
-        $(view.mapcanvas).toggle(200, center_map);
-
-        // Toggle the map button icon
-        var icon = view.map_visible ? 'map' : 'arrow_back';
-        $(view.mapbutton).find('i').text(icon);
-        view.map_visible = !view.map_visible;
+        view.toggle_map();
     });
 
-    // Initialize top bar width
-    $(this.topbar).css({
-        'width': EclipseSimulator.VIEW_TOP_BAR_BTN_AND_SEARCH_W_MAP_CLOSED + 'px'},
-        200
-    );
-
+    this._init_top_bar();
     this.initialize_location_entry();
 
     // Rescale the window when the parent iframe changes size
@@ -907,6 +868,91 @@ EclipseSimulator.View.prototype._compute_lune_area = function(sun_r, moon_r, sep
                     (moon_r2 * Math.acos((moon_r2 - sun_r2 + sep2) / (2 * moon_r * sep)));
 
     return lune_area;
+};
+
+EclipseSimulator.View.prototype.is_phone = function()
+{
+    return this.get_environment_size().width < EclipseSimulator.VIEW_PHONE_WMAX;
+};
+
+EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
+{
+    var width = this._top_bar_control_w(map_open);
+    if (map_open)
+    {
+        width += this._map_w(true);
+    }
+
+    return width;
+};
+
+EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
+{
+    var control_width = $(this.search_input).outerWidth(true) + $(this.zoombutton).outerWidth(true);
+
+    if (!map_open)
+    {
+        // This is kind of a hack. The zoom button and map button are the same size.
+        // The reason we don't just use the map button here, is because when the map
+        // is open and the map button is actually over the map,
+        // $(this.mapbutton).outerWidth(true) returns -8
+        control_width += $(this.zoombutton).outerWidth(true);
+    }
+
+    return control_width;
+};
+
+EclipseSimulator.View.prototype._map_w = function(include_margin = false)
+{
+    var control_width = this._top_bar_control_w(true);
+    var width         = this.get_environment_size().width - control_width;
+    width             = Math.min(width, EclipseSimulator.VIEW_MAP_MAX_W);
+
+    if (!include_margin)
+    {
+        var left_margin   = $(this.mapcanvas).css('margin-left');
+        left_margin       = parseInt(left_margin.substr(0, left_margin.indexOf('px')));
+        width            -= left_margin;
+    }
+
+    return width;
+};
+
+EclipseSimulator.View.prototype._init_top_bar = function()
+{
+    // Initialize top bar width
+    $(this.topbar).css('width', this._top_bar_w());
+};
+
+EclipseSimulator.View.prototype.toggle_map = function()
+{
+    var view = this;
+
+    var center_map = function() {
+        var center = view.map.getCenter();
+        google.maps.event.trigger(view.map, "resize");
+        view.map.setCenter(center);
+    }
+
+    // Reposition the map and zoom buttons
+    $(view.mapbutton).toggleClass('push-left', 200);
+    $(view.mapbutton).toggleClass('push-down');
+    $(view.zoombutton).toggleClass('push-down');
+
+    if (!view.map_visible)
+    {
+        $(view.mapcanvas).css('width', this._map_w());
+    }
+
+    $(view.topbar).animate({'width': this._top_bar_w(!this.map_visible) + 'px'}, 200);
+
+    // Show the map and center it
+    $(view.mapcanvas).toggle(200, center_map);
+
+    // Toggle the map button icon
+    var icon = view.map_visible ? 'map' : 'arrow_back';
+    $(view.mapbutton).find('i').text(icon);
+    view.map_visible = !view.map_visible;
 };
 
 
