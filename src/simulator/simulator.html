@@ -1,6 +1,6 @@
 <script type="text/javascript" src="jquery.min.js"></script>
 <script type="text/javascript" src="jquery-ui.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_API_KEY&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_KEY&libraries=places"></script>
 <script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
 <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
 <script defer type="text/javascript" src="simulator.js"></script>
@@ -70,19 +70,25 @@
         background-color: #fff;
     }
     .slider-label {
-        height: 20px; 
-        width: 40px; 
-        float: left; 
+        height: 20px;
+        width: 40px;
+        float: left;
         margin-left: calc(25% - 50px);
     }
     .control-bar {
-        height: 80px; 
-        padding: 0px 15px 0px 15px; 
+        height: 80px;
+        padding: 0px 15px 0px 15px;
         background-color: #fff
     }
     .floating-bar.bottom .mdl-button {
         float: left;
         margin-top: 20px
+    }
+    svg#container {
+        background-image: url("img/background.png");
+        background-size: cover;
+        background-position: 50% 50%;
+        display: none
     }
 </style>
 </head>
@@ -129,11 +135,11 @@
                         </div>
                     </div>
 
-                    <!-- Time down button -->                    
+                    <!-- Time down button -->
                     <button class="mdl-button mdl-js-button" id="downbutton">
                         <i class="material-icons">skip_previous</i>
                     </button>
-                    
+
 
                     <!-- Time up button -->
                     <button class="mdl-button mdl-js-button" id ="upbutton">
@@ -145,8 +151,8 @@
         </div>
 
     <div id="sim" style="display: none;">
-        <svg id="container" style="background-color: #03A9F4; display: none">
-
+        <svg id="container">
+          <!-- background-color: #03A9F4; -->
             <defs>
                 <filter id="blur" x="-1" y="-1" width="300%" height="300%">
                     <feOffset result="offOut" in="SourceAlpha" dx="2" dy="2" />
@@ -162,10 +168,13 @@
             </defs>
 
             <!-- Sun/Moon -->
+
+
             <circle id="sun" cx="0" cy="0" r="40" fill="#FFEB3B" filter="url(#blur)" style="display: none"/>
             <circle id="moon" cx="0" cy="0" r="40" fill="#333" filter="url(#blur)" style="display: none"/>
 
             <!-- Hills -->
+            <!-- <div id="hill" style="background-image: url("img/hills.png");"/> -->
             <circle id="hill1" data-cxtow-ratio="0.0902" data-rtoh-ratio="2.7692" data-cy-offset="2.6692"
                     fill="#4CAF50" filter="url(#blur)" style="display: none"/>
             <circle id="hill2" data-cxtow-ratio="0.7291" data-rtoh-ratio="2.7692" data-cy-offset="2.6692"

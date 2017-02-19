@@ -693,12 +693,19 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_ZOOM;
         this.current_fov = this.zoomed_fov;
         this.hills.hide();
+        /* Remove the landscape backgroundw when in zoom mode */
+        this.window.style.background = "none";
+        this.window.style.backgroundColor = "#03A9F4";
         var label = 'zoom_out';
     }
     else
     {
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_WIDE;
         this.current_fov = this.wide_fov;
+        /* Add in the landscape when in zoom wide mode */
+        this.window.style.backgroundImage = "url('./img/background.png')";
+        this.window.style.backgroundSize = "cover";
+        this.window.style.backgroundPosition = "50% 50%";
         this.hills.show();
         var label = 'zoom_in';
     }
