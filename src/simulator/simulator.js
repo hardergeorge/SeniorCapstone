@@ -13,7 +13,7 @@ var EclipseSimulator = {
         this.controls       = $('#controls').get(0);
         this.sun            = $('#sun').get(0);
         this.moon           = $('#moon').get(0);
-        this.hills          = $('[id^=hill]');
+        this.hills          = $('#hill');
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.mapbutton      = $('#mapbutton').get(0);
@@ -338,13 +338,13 @@ EclipseSimulator.View.prototype.init = function()
         view._update_sim_size();
         view.update_fov();
         view.refresh();
-        view._refresh_hills();
+        //view._refresh_hills();
     });
 
     this.set_play_speed_label();
     this.update_fov();
     this.refresh();
-    this._refresh_hills();
+    //this._refresh_hills();
 };
 
 EclipseSimulator.View.prototype.initialize_location_entry = function()
@@ -695,7 +695,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.hills.hide();
         /* Remove the landscape backgroundw when in zoom mode */
         this.window.style.background = "none";
-        this.window.style.backgroundColor = "#03A9F4";
+        this.window.style.backgroundColor = "#66ccff";
         var label = 'zoom_out';
     }
     else
@@ -716,7 +716,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     this.set_play_speed_label();
     this.update_fov();
     this.refresh();
-    this._refresh_hills();
+    //this._refresh_hills();
 };
 
 EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
