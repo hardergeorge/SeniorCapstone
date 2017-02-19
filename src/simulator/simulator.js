@@ -7,13 +7,12 @@ var EclipseSimulator = {
 
     View: function(location)
     {
-        this.sim            = $('#sim').get(0);
-        this.window         = $('#container').get(0);
+        this.svg_container  = $('#svg-container').get(0);
+        this.background     = $('.background');
         this.loading        = $('#loading').get(0);
         this.controls       = $('#controls').get(0);
         this.sun            = $('#sun').get(0);
         this.moon           = $('#moon').get(0);
-        this.hills          = $('#hill');
         this.upbutton       = $('#upbutton').get(0);
         this.downbutton     = $('#downbutton').get(0);
         this.mapbutton      = $('#mapbutton').get(0);
@@ -40,8 +39,8 @@ var EclipseSimulator = {
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
-        this.moonpos = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: 0.65 * Math.PI / 180};
+        this.moonpos = {x: 0, y: 0, r: 0.50 * Math.PI / 180};
 
         // Wide field of view in radians
         this.wide_fov = {
@@ -198,14 +197,14 @@ var EclipseSimulator = {
         wide: 0.3,
     },
 
+    VIEW_BG_HILL_VALLEY_HEIGHT_PERCENT: 0.1888466413,
+
     VIEW_PHONE_WMAX: 600,
 
     VIEW_MAP_MAX_W: 800,
 
     VIEW_BG_COLOR_MAX:   [3,  39,  53],
     VIEW_BG_COLOR_MIN:   [3,  169, 244],
-    VIEW_HILL_COLOR_MAX: [76, 55,  26],
-    VIEW_HILL_COLOR_MIN: [76, 175, 80],
 
     VIEW_SLIDER_NSTEPS: 720,
 
@@ -338,13 +337,11 @@ EclipseSimulator.View.prototype.init = function()
         view._update_sim_size();
         view.update_fov();
         view.refresh();
-        //view._refresh_hills();
     });
 
     this.set_play_speed_label();
     this.update_fov();
     this.refresh();
-    //this._refresh_hills();
 };
 
 EclipseSimulator.View.prototype.initialize_location_entry = function()
@@ -443,19 +440,50 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     this.search_input.value = this.location_name;
 };
 
-EclipseSimulator.View.prototype._update_sim_size = function()
+EclipseSimulator.View.prototype._update_sim_size = function(zoomed = false)
 {
-    var window_height = $(window).height();
+    var h = $(window).height();
+    var w = $(window).width();
 
-    $(this.window).attr('height', window_height);
-    $(this.window).attr('width', $(window).width());
+    var svg_margin_top = 0;
+    var svg_h          = h;
+    if (!zoomed)
+    {
+        // Add buffer zone where searchbox is - do not want sun/moon
+        // to disappear behid the search box
+        svg_margin_top = this.search_input.getBoundingClientRect().bottom;
+        svg_h         -= svg_margin_top;
 
-    $(this.window).show();
+        // Add bottom buffer - define altitude 0 to be the bottom of the hill valleys
+        svg_h -= h * EclipseSimulator.VIEW_BG_HILL_VALLEY_HEIGHT_PERCENT;
+    }
 
-    $(this.loading).css('height', window_height + 'px');
+    $(this.svg_container).css({
+        'height': svg_h,
+        'width':  w,
+        'top':    svg_margin_top,
+    });
+    this.background.css({
+        'height': h,
+        'width':  w,
+    });
+
+    $(this.loading).css('height', w + 'px');
+
+    return {
+        height: h,
+        width:  w,
+        svg_h:  svg_h,
+    }
 };
 
-EclipseSimulator.View.prototype.refresh = function()
+EclipseSimulator.View.prototype.show = function()
+{
+    this.background.show();
+    $([this.svg_container, this.sun, this.moon]).show();
+};
+
+EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined)
 {
     if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
     {
@@ -475,7 +503,8 @@ EclipseSimulator.View.prototype.refresh = function()
             x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
             y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
             r: this.get_ratio_from_body_angular_r(this.sunpos.r, this.sunpos.alt, alt_center),
-        }
+        },
+        env_size_override
     );
     this.position_body_at_percent_coords(
         this.moon,
@@ -483,24 +512,23 @@ EclipseSimulator.View.prototype.refresh = function()
             x: this.get_ratio_from_altaz(this.moonpos.az,  az_center,  this.current_fov.x, this.moonpos.r),
             y: this.get_ratio_from_altaz(this.moonpos.alt, alt_center, this.current_fov.y, this.moonpos.r),
             r: this.get_ratio_from_body_angular_r(this.moonpos.r, this.moonpos.alt, alt_center),
-        }
+        },
+        env_size_override
     );
-
-    $(this.sun).show();
-    $(this.moon).show();
 };
 
 EclipseSimulator.View.prototype.get_environment_size = function()
 {
     return {
-        width:  this.window.width.baseVal.value,
-        height: this.window.height.baseVal.value,
+        width:  this.svg_container.width.baseVal.value,
+        height: this.svg_container.height.baseVal.value,
     };
 };
 
-EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos)
+EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos, env_size_override = undefined)
 {
-    var env_size = this.get_environment_size();
+    var env_size = env_size_override === undefined ? this.get_environment_size()
+                                                   : env_size_override;
 
     // Adjust radius
     target.style.r = env_size.height * pos.r;
@@ -626,30 +654,6 @@ EclipseSimulator.View.prototype.reset_controls = function()
     this.slider.MaterialSlider.change(0);
 };
 
-// Made this its own function, as we dont want to do it every time
-// the sun and moon are moved
-EclipseSimulator.View.prototype._refresh_hills = function()
-{
-    if (this.zoom_level === EclipseSimulator.VIEW_ZOOM_ZOOM)
-    {
-        return;
-    }
-
-    var env_size = this.get_environment_size();
-
-    for (var i = 0; i < this.hills.length; i++)
-    {
-        var hill = this.hills.get(i);
-
-        // Accessing the data attribute auto converts it to a float
-        hill.style.cx = $(hill).data('cxtow-ratio') * env_size.width;
-        hill.style.cy = $(hill).data('cy-offset')   * env_size.height + env_size.height;
-        hill.style.r  = $(hill).data('rtoh-ratio')  * env_size.height;
-
-        $(hill).show();
-    }
-};
-
 EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, timeout)
 {
     error_msg = error_msg === undefined ? EclipseSimulator.DEFAULT_USER_ERR_MSG
@@ -692,31 +696,37 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     {
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_ZOOM;
         this.current_fov = this.zoomed_fov;
-        this.hills.hide();
-        /* Remove the landscape backgroundw when in zoom mode */
-        this.window.style.background = "none";
-        this.window.style.backgroundColor = "#66ccff";
-        var label = 'zoom_out';
+        var label        = 'zoom_out';
+
+        var new_env_size = this._update_sim_size(true);
+
+        // Hide the hills/clouds/people/etc
+        $(this.background[1]).hide();
     }
     else
     {
         this.zoom_level  = EclipseSimulator.VIEW_ZOOM_WIDE;
         this.current_fov = this.wide_fov;
-        /* Add in the landscape when in zoom wide mode */
-        this.window.style.backgroundImage = "url('./img/background.png')";
-        this.window.style.backgroundSize = "cover";
-        this.window.style.backgroundPosition = "50% 50%";
-        this.hills.show();
-        var label = 'zoom_in';
+        var label        = 'zoom_in';
+        var zooming_in   = false;
+
+        var new_env_size = this._update_sim_size(false);
+
+        // Show the hills/clouds/people/etc
+        $(this.background[1]).show();
     }
     $(this.zoombutton).find('i').text(label);
 
     // Update the slider labels and bounds
     this.update_slider();
     this.set_play_speed_label();
-    this.update_fov();
-    this.refresh();
-    //this._refresh_hills();
+
+    // Here we have to override the environment size, as the call to _update_sim_size
+    // does not take immediately - the amount of time it takes in undefined, so to be sure
+    // update_fov and refresh work correctly we must override with the new values.
+    new_env_size.height = new_env_size.svg_h;
+    this.update_fov(new_env_size);
+    this.refresh(new_env_size);
 };
 
 EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
@@ -724,9 +734,10 @@ EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
     this.eclipse_az = az;
 };
 
-EclipseSimulator.View.prototype.update_fov = function()
+EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefined)
 {
-    var env_size  = this.get_environment_size();
+    var env_size  = env_size_override === undefined ? this.get_environment_size()
+                                                    : env_size_override;
     var ratio     = env_size.width / env_size.height;
     var desired_x = this.current_fov._y * ratio;
 
@@ -997,12 +1008,12 @@ EclipseSimulator.Controller.prototype.init = function()
         $(controller.view).on('EclipseView_location_updated', function(event, location) {
             // Call the location event handler with new location info
             controller.update_simulator_location(location);
-        })
+        });
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
         // a partially rendered view to start (e.g. height not set, etc). This only needs
         // to be shown once, so we do it manually
-        $(controller.view.sim).show();
+        controller.view.show();
 
         controller.update_simulator_time_with_offset(0);
 
@@ -1212,7 +1223,7 @@ $(document).ready(function() {
     // Demo
     // setTimeout(function() {
     //     controller.view.update_object_color(
-    //         0.5, function(c) { controller.view.window.style.backgroundColor = c; },
+    //         0.5, function(c) { controller.view.svg_container.style.backgroundColor = c; },
     //         EclipseSimulator.VIEW_BG_COLOR_MIN, EclipseSimulator.VIEW_BG_COLOR_MAX
     //     );
     // }, 1000);
