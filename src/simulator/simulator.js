@@ -39,7 +39,7 @@ var EclipseSimulator = {
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.65 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: 0.50 * Math.PI / 180};
         this.moonpos = {x: 0, y: 0, r: 0.50 * Math.PI / 180};
 
         // Wide field of view in radians
@@ -108,35 +108,6 @@ var EclipseSimulator = {
         this.eclipse_time = new Date(EclipseSimulator.ECLIPSE_DAY);
     },
 
-    alt_az_to_vec3d: function(alt, az)
-    {
-        var z   = Math.sin(alt);
-        var hyp = Math.cos(alt);
-        var y   = hyp * Math.cos(az);
-        var x   = hyp * Math.sin(az);
-
-        return [x, y, z];
-    },
-
-    dot3d: function(v1, v2)
-    {
-        return ((v1[0] * v2[0]) +
-                (v1[1] * v2[1]) +
-                (v1[2] * v2[2]));
-    },
-
-    normalize3d: function(v)
-    {
-        // Magnitude
-        var m = Math.sqrt((v[0] * v[0]) +
-                          (v[1] * v[1]) +
-                          (v[2] * v[2]));
-
-        return [v[0] / m,
-                v[1] / m,
-                v[2] / m];
-    },
-
     // Convert degrees to radians
     deg2rad: function(v)
     {
@@ -203,8 +174,9 @@ var EclipseSimulator = {
 
     VIEW_MAP_MAX_W: 800,
 
-    VIEW_BG_COLOR_MAX:   [3,  39,  53],
-    VIEW_BG_COLOR_MIN:   [3,  169, 244],
+    VIEW_BG_COLOR_MAX: [54,  69,  75],
+    VIEW_BG_COLOR_MIN: [181, 227, 248],
+    VIEW_MOON_OPACITY: 0.65,
 
     VIEW_SLIDER_NSTEPS: 720,
 
@@ -515,6 +487,31 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
         },
         env_size_override
     );
+
+    // Update background and moon color
+    var view            = this;
+    var percent_eclipse = 1 - this.compute_percent_eclipse();
+
+    // background
+    this.update_object_color(
+        percent_eclipse,
+        function(c) {
+            $(view.background[0]).css('background-color', c);
+        },
+        EclipseSimulator.VIEW_BG_COLOR_MIN,
+        EclipseSimulator.VIEW_BG_COLOR_MAX
+    );
+
+    // moon
+    this.update_object_color(
+        percent_eclipse,
+        function(c) {
+            $(view.moon).attr('fill', c);
+        },
+        EclipseSimulator.VIEW_BG_COLOR_MIN,
+        EclipseSimulator.VIEW_BG_COLOR_MAX,
+        EclipseSimulator.VIEW_MOON_OPACITY
+    );
 };
 
 EclipseSimulator.View.prototype.get_environment_size = function()
@@ -765,7 +762,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
 // min:           The min color value. This is a 3 element array with numeric values corresponding
 //                to the red, green, and blue color values. These numbers should be in [0, 255].
 // max:           The min color value. Format is the same as min.
-EclipseSimulator.View.prototype.update_object_color = function(color_percent, change_func, min, max)
+EclipseSimulator.View.prototype.update_object_color = function(color_percent, change_func, min, max, a = 1)
 {
     // new values to be set to default minimum
     var new_rgb = [0, 0, 0];
@@ -778,7 +775,7 @@ EclipseSimulator.View.prototype.update_object_color = function(color_percent, ch
     }
 
     // Create rgb str in std css format
-    var rgb_str = "rgb(" + new_rgb[0] + "," + new_rgb[1] + "," + new_rgb[2] + ")";
+    var rgb_str = "rgba(" + new_rgb[0] + "," + new_rgb[1] + "," + new_rgb[2] + "," + a + ")";
 
     change_func(rgb_str);
 };
