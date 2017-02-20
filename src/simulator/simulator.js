@@ -174,9 +174,10 @@ var EclipseSimulator = {
 
     VIEW_MAP_MAX_W: 800,
 
-    VIEW_BG_COLOR_MAX: [54,  69,  75],
-    VIEW_BG_COLOR_MIN: [181, 227, 248],
-    VIEW_MOON_OPACITY: 0.65,
+    VIEW_BG_COLOR_MAX:     [54,  69,  75],
+    VIEW_BG_COLOR_MIN:     [181, 227, 248],
+    VIEW_MOON_OPACITY:     0.65,
+    VIEW_HILL_MIN_OPACITY: 0.5,
 
     VIEW_SLIDER_NSTEPS: 720,
 
@@ -489,14 +490,15 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
     );
 
     // Update background and moon color
-    var view            = this;
-    var percent_eclipse = 1 - this.compute_percent_eclipse();
+    var view = this;
+    var p    = 1 - this.compute_percent_eclipse();
 
     // background
     this.update_object_color(
-        percent_eclipse,
+        p,
         function(c) {
             $(view.background[0]).css('background-color', c);
+            $(view.background[1]).css('opacity', Math.max(1.1 * p, EclipseSimulator.VIEW_HILL_MIN_OPACITY));
         },
         EclipseSimulator.VIEW_BG_COLOR_MIN,
         EclipseSimulator.VIEW_BG_COLOR_MAX
@@ -504,7 +506,7 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
 
     // moon
     this.update_object_color(
-        percent_eclipse,
+        p,
         function(c) {
             $(view.moon).attr('fill', c);
         },
