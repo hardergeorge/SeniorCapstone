@@ -529,6 +529,12 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
     var env_size = env_size_override === undefined ? this.get_environment_size()
                                                    : env_size_override;
 
+    // This happens early on in initialization
+    if (isNaN(pos.r) || isNaN(pos.x) || isNaN(pos.y))
+    {
+        return;
+    }
+
     // Adjust radius
     $(target).attr('r', (env_size.height * pos.r));
 
@@ -852,7 +858,10 @@ EclipseSimulator.View.prototype._compute_lune_delta = function(sun_r, moon_r, se
 {
     var lune_delta = -1;
 
-    console.log('sep: ' + sep + ' sun_r + moon_r: ' + (sun_r + moon_r));
+    if (EclipseSimulator.DEBUG)
+    {
+        console.log('sep: ' + sep + ' sun_r + moon_r: ' + (sun_r + moon_r));
+    }
 
     if (sep < (sun_r + moon_r))
     {
