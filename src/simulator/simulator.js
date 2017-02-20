@@ -519,8 +519,8 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
 EclipseSimulator.View.prototype.get_environment_size = function()
 {
     return {
-        width:  this.svg_container.width.baseVal.value,
-        height: this.svg_container.height.baseVal.value,
+        width:  this.svg_container.getBoundingClientRect().width,
+        height: this.svg_container.getBoundingClientRect().height,
     };
 };
 
@@ -530,11 +530,13 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
                                                    : env_size_override;
 
     // Adjust radius
-    target.style.r = env_size.height * pos.r;
+    $(target).attr('r', (env_size.height * pos.r));
 
     // with SVG, (0, 0) is top left corner
-    target.style.cy = env_size.height * (1 - pos.y);
-    target.style.cx = env_size.width * pos.x;
+    $(target).attr('cy', (env_size.height * (1 - pos.y)));
+
+    $(target).attr('cx', (env_size.width * pos.x));
+
 };
 
 EclipseSimulator.View.prototype.get_ratio_from_body_angular_r = function(r, alt, center)
