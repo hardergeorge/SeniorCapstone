@@ -21,9 +21,6 @@
         background-color: white;
         z-index: 10;
     }
-    .map-container {
-        height: 400px;
-    }
     .floating-bar {
         position: absolute;
         left: 50%;
@@ -46,15 +43,41 @@
     .floating-bar.bottom .inner {
         bottom: 10px;
     }
-    .floating-bar .mdl-button, .floating-bar .map-container {
+    .floating-bar .mdl-button, .floating-bar.top .map-container {
         margin-left: 8px;
         float: left;
     }
-    .floating-bar .mdl-button.push-down {
-        margin-top: 4px;
+    .slider-container {
+        float: left;
+        margin-top: 20px
     }
-    .floating-bar.top .mdl-button.push-left {
-        margin-left: -64px;
+    @media screen and (max-width: 599px) {
+        .floating-bar .map-container {
+            position: relative;
+            margin-top: 10px;
+            margin-left: 0px;
+            left: -50%;
+        }
+        .slider-container {
+            width: calc(100% - 72px);
+        }
+        .floating-bar.bottom .mdl-button {
+            margin-left: 0;
+        }
+        .floating-bar.bottom .slider-labels div {
+            margin-left: calc(25% - 11px);
+        }
+    }
+    @media screen and (min-width: 600px) {
+        .floating-bar.top .mdl-button.map-open {
+            margin-top: 4px;
+        }
+        .floating-bar.top .mdl-button.map-open#mapbutton {
+            margin-left: -64px;
+        }
+        .slider-container {
+            width: calc(100% - 300px);
+        }
     }
     .floating-bar.top input {
         height: 56px;
@@ -144,7 +167,7 @@
                 </ul>
 
                 <!-- Time slider -->
-                <div style="width: calc(100% - 300px); float: left; margin-top: 20px">
+                <div class="slider-container">
                     <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
                     <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
 
@@ -205,6 +228,7 @@
         </div>
     </div>
 
+    <div id="mobile-map-container" class="floating-bar" style="top: 70px"></div>
 
     <!-- Error message box -->
     <div id="error-snackbar" class="mdl-js-snackbar mdl-snackbar" style="z-index: 11">

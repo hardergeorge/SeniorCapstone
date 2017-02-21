@@ -9,6 +9,7 @@ var EclipseSimulator = {
     {
         this.svg_container  = $('#svg-container').get(0);
         this.background     = $('.background');
+        this.mobile_mapcont = $('#mobile-map-container').get(0);
         this.loading        = $('#loading').get(0);
         this.controls       = $('#controls').get(0);
         this.sun            = $('#sun').get(0);
@@ -19,6 +20,7 @@ var EclipseSimulator = {
         this.speed_btn_slow = $('#speed-button-slow').get(0);
         this.speed_btn_fast = $('#speed-button-fast').get(0);
         this.speed_selector = $('#speed-menu').get(0);
+        this.speeddropdown  = $('#speed-menu-button').get(0);
         this.zoombutton     = $('#zoom').get(0);
         this.playbutton     = $('#play').get(0);
         this.slider         = $('#tslider').get(0);
@@ -158,6 +160,12 @@ var EclipseSimulator = {
                 (Math.cos(sun.alt) * Math.cos(moon.alt) * Math.cos(sun.az - moon.az));
         return Math.acos(a);
     },
+
+    VIEW_MAP_MAX_H: 400,
+
+    VIEW_MAP_TMARGIN: 70,
+
+    VIEW_MAP_LMARGIN: 8,
 
     VIEW_ZOOM_WIDE: 'wide',
 
@@ -308,10 +316,14 @@ EclipseSimulator.View.prototype.init = function()
     // Rescale the window when the parent iframe changes size
     $(window).resize(function() {
         view._update_sim_size();
+        view._adjust_size_based_control_ui();
+        view._adjust_size_based_map_ui(0);
         view.update_fov();
         view.refresh();
     });
 
+    view._adjust_size_based_control_ui();
+    view._adjust_size_based_map_ui(0);
     this.set_play_speed_label();
     this.update_fov();
     this.refresh();
@@ -906,7 +918,7 @@ EclipseSimulator.View.prototype.is_phone = function()
 EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
 {
     var width = this._top_bar_control_w(map_open);
-    if (map_open)
+    if (map_open && !this.is_phone())
     {
         width += this._map_w(true);
     }
@@ -916,9 +928,15 @@ EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
 
 EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
 {
-    var control_width = $(this.search_input).outerWidth(true) + $(this.zoombutton).outerWidth(true);
+    var control_width = $(this.search_input).outerWidth(true);
+    var is_phone = this.is_phone();
 
-    if (!map_open)
+    if (!is_phone)
+    {
+        control_width += $(this.zoombutton).outerWidth(true);
+    }
+
+    if (!map_open || is_phone)
     {
         // This is kind of a hack. The zoom button and map button are the same size.
         // The reason we don't just use the map button here, is because when the map
@@ -932,15 +950,20 @@ EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
 
 EclipseSimulator.View.prototype._map_w = function(include_margin = false)
 {
+    var width = this.get_environment_size().width;
+
+    if (this.is_phone())
+    {
+        return width;
+    }
+
     var control_width = this._top_bar_control_w(true);
-    var width         = this.get_environment_size().width - control_width;
+    width            -= control_width;
     width             = Math.min(width, EclipseSimulator.VIEW_MAP_MAX_W);
 
     if (!include_margin)
     {
-        var left_margin   = $(this.mapcanvas).css('margin-left');
-        left_margin       = parseInt(left_margin.substr(0, left_margin.indexOf('px')));
-        width            -= left_margin;
+        width -= EclipseSimulator.VIEW_MAP_LMARGIN;
     }
 
     return width;
@@ -950,12 +973,82 @@ EclipseSimulator.View.prototype._init_top_bar = function()
 {
     // Initialize top bar width
     $(this.topbar).css('width', this._top_bar_w());
+
+    if (this.is_phone())
+    {
+        $(this.zoombutton).hide();
+    }
+};
+
+EclipseSimulator.View.prototype._adjust_size_based_control_ui = function()
+{
+    if (this.is_phone())
+    {
+        $(this.speeddropdown).hide();
+        $(this.upbutton).hide();
+        $(this.downbutton).hide();
+
+        for (var i = 0; i < this.slider_labels.length; i++)
+        {
+            if (i % 2 == 1) {
+                $(this.slider_labels[i]).hide();
+            }
+        }
+    }
+    else
+    {
+        $(this.slider_labels).show();
+        $(this.speeddropdown).show();
+        $(this.upbutton).show();
+        $(this.downbutton).show();
+    }
+};
+
+EclipseSimulator.View.prototype._adjust_size_based_map_ui = function(timeout = 200)
+{
+    // Adjust map button icon and map width, if it is open
+    if (this.map_visible)
+    {
+        $(this.mapcanvas).css('width', this._map_w());
+        var icon = this.is_phone() ? 'arrow_upward' : 'arrow_back';
+    }
+    else
+    {
+        var icon = 'map';
+    }
+    $(this.mapbutton).find('i').text(icon);
+
+    // Show/hide zoom button, restructure top bar DOM as needed
+    if (this.is_phone())
+    {
+        if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
+        {
+            this.toggle_zoom();
+        }
+        $(this.zoombutton).hide();
+        this.mobile_mapcont.appendChild(this.mapcanvas);
+    }
+    else
+    {
+        $(this.zoombutton).show();
+        this.mapbutton.parentNode.insertBefore(this.mapcanvas, this.mapbutton);
+    }
+
+    var map_height = Math.min(
+        $(window).height() - EclipseSimulator.VIEW_MAP_TMARGIN,
+        EclipseSimulator.VIEW_MAP_MAX_H
+    );
+    $(this.mapcanvas).css('height', map_height + 'px');
+
+    // Adjust top bar width
+    $(this.topbar).animate({'width': this._top_bar_w(this.map_visible) + 'px'}, timeout);
 };
 
 EclipseSimulator.View.prototype.toggle_map = function()
 {
-    var view = this;
+    this.map_visible = !this.map_visible;
 
+    var view = this;
     var center_map = function() {
         var center = view.map.getCenter();
         google.maps.event.trigger(view.map, "resize");
@@ -963,24 +1056,13 @@ EclipseSimulator.View.prototype.toggle_map = function()
     }
 
     // Reposition the map and zoom buttons
-    $(view.mapbutton).toggleClass('push-left', 200);
-    $(view.mapbutton).toggleClass('push-down');
-    $(view.zoombutton).toggleClass('push-down');
+    $(this.mapbutton).toggleClass('map-open', 200);
+    $(this.zoombutton).toggleClass('map-open');
 
-    if (!view.map_visible)
-    {
-        $(view.mapcanvas).css('width', this._map_w());
-    }
-
-    $(view.topbar).animate({'width': this._top_bar_w(!this.map_visible) + 'px'}, 200);
+    this._adjust_size_based_map_ui();
 
     // Show the map and center it
-    $(view.mapcanvas).toggle(200, center_map);
-
-    // Toggle the map button icon
-    var icon = view.map_visible ? 'map' : 'arrow_back';
-    $(view.mapbutton).find('i').text(icon);
-    view.map_visible = !view.map_visible;
+    $(this.mapcanvas).toggle(200, center_map);
 };
 
 
