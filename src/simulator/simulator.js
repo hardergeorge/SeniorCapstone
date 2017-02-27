@@ -182,10 +182,10 @@ var EclipseSimulator = {
 
     VIEW_MAP_MAX_W: 800,
 
-    VIEW_BG_COLOR_MAX:     [54,  69,  75],
-    VIEW_BG_COLOR_MIN:     [181, 227, 248],
+    VIEW_BG_COLOR_NIGHT:   [0,   0,   0],
+    VIEW_BG_COLOR_DAY:     [181, 227, 248],
     VIEW_MOON_OPACITY:     0.65,
-    VIEW_HILL_MIN_OPACITY: 0.5,
+    VIEW_BG_IMG_MAX_GRAY:  0.75,
 
     VIEW_SLIDER_NSTEPS: 720,
 
@@ -501,31 +501,20 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
         env_size_override
     );
 
-    // Update background and moon color
-    var view = this;
-    var p    = 1 - this.compute_percent_eclipse();
+    // === Update background and moon color === //
 
-    // background
-    this.update_object_color(
-        p,
-        function(c) {
-            $(view.background[0]).css('background-color', c);
-            $(view.background[1]).css('opacity', Math.max(1.1 * p, EclipseSimulator.VIEW_HILL_MIN_OPACITY));
-        },
-        EclipseSimulator.VIEW_BG_COLOR_MIN,
-        EclipseSimulator.VIEW_BG_COLOR_MAX
-    );
+    // Compute percent of eclipse and raise it to the 4th power
+    // this achieves the "sudden darkness" effect
+    var p = this.compute_percent_eclipse();
+    p     = Math.pow(p, 4);
 
-    // moon
-    this.update_object_color(
-        p,
-        function(c) {
-            $(view.moon).attr('fill', c);
-        },
-        EclipseSimulator.VIEW_BG_COLOR_MIN,
-        EclipseSimulator.VIEW_BG_COLOR_MAX,
-        EclipseSimulator.VIEW_MOON_OPACITY
-    );
+    // Compute sky color - this is the same color used for the moon
+    var rgba_str = this.get_rgba_string(p, EclipseSimulator.VIEW_BG_COLOR_DAY,
+                                        EclipseSimulator.VIEW_BG_COLOR_NIGHT);
+
+    // Update background and moon lightness
+    this.update_bg_lightness(p, rgba_str);
+    this.update_moon_lightness(rgba_str);
 };
 
 EclipseSimulator.View.prototype.get_environment_size = function()
@@ -775,16 +764,21 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
 };
 
 // Computes an intermediate color between min and max, converts this color to an rgb string,
-// and passes this string to change_func. This string is of the form 'rgb(x, y, z)' where x, y, and
-// z are numbers in [0, 255]
+// This string is of the form 'rgba(x, y, z, a)' where x, y, and z are numbers in [0, 255]
+// and a is an alpha value in [0, 1]. alpha is not computed, just returned.
 //
 // color_percent: Percentage min and max for the intermediate value - this value should be on the
 //                interval [0, 1]
-// change_func:   The function to pass the new rgb string to
-// min:           The min color value. This is a 3 element array with numeric values corresponding
-//                to the red, green, and blue color values. These numbers should be in [0, 255].
-// max:           The min color value. Format is the same as min.
-EclipseSimulator.View.prototype.update_object_color = function(color_percent, change_func, min, max, a = 1)
+//
+// start:         The starting color value, i.e. if percent 0 is passed in, start will be returned.
+//                This is a 3 element array with numeric values corresponding to the red, green,
+//                and blue color values. These numbers should be in [0, 255].
+//
+// end:           The ending color value, i.e., if percent 1 in passed in, end will be returned.
+//                Format is the same as min.
+//
+// a:             Optional alpha - not changed, just added to rgba string
+EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start, end, a = 1)
 {
     // new values to be set to default minimum
     var new_rgb = [0, 0, 0];
@@ -792,14 +786,32 @@ EclipseSimulator.View.prototype.update_object_color = function(color_percent, ch
     // Compute new color value based on percent and floor to integer
     for (var i = 0; i < 3; i++)
     {
-        var diff   = max[i] - min[i];
-        new_rgb[i] = Math.floor((1 - color_percent) * diff + min[i]);
+        var diff   = end[i] - start[i];
+        new_rgb[i] = Math.floor(color_percent * diff + start[i]);
     }
 
     // Create rgb str in std css format
-    var rgb_str = "rgba(" + new_rgb[0] + "," + new_rgb[1] + "," + new_rgb[2] + "," + a + ")";
+    return "rgba(" + new_rgb[0] + "," + new_rgb[1] + "," + new_rgb[2] + "," + a + ")";
+};
 
-    change_func(rgb_str);
+EclipseSimulator.View.prototype.update_bg_lightness = function(p, rgba_str)
+{
+    $(this.background[0]).css('background-color', rgba_str);
+
+    // Convert to percent
+    p  = Math.min(p, EclipseSimulator.VIEW_BG_IMG_MAX_GRAY);
+    p *= 100;
+    var filter_str = 'grayscale(' + p + '%) brightness(' + (100 - p) + '%)';
+
+    $(this.background[1]).css({
+        'filter': filter_str,
+        '-webkit-filter': filter_str,
+    });
+};
+
+EclipseSimulator.View.prototype.update_moon_lightness = function(rgba_str)
+{
+    $(this.moon).attr('fill', rgba_str);
 };
 
 EclipseSimulator.View.prototype.update_slider = function()
@@ -1311,12 +1323,4 @@ $(document).ready(function() {
     {
         global_controller = controller;
     }
-
-    // Demo
-    // setTimeout(function() {
-    //     controller.view.update_object_color(
-    //         0.5, function(c) { controller.view.svg_container.style.backgroundColor = c; },
-    //         EclipseSimulator.VIEW_BG_COLOR_MIN, EclipseSimulator.VIEW_BG_COLOR_MAX
-    //     );
-    // }, 1000);
 });
