@@ -503,10 +503,10 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
 
     // === Update background and moon color === //
 
-    // Compute percent of eclipse and raise it to the 4th power
+    // Compute percent of eclipse and raise it to the 6th power
     // this achieves the "sudden darkness" effect
     var p = this.compute_percent_eclipse();
-    p     = Math.pow(p, 4);
+    p     = Math.pow(p, 6);
 
     // Compute sky color - this is the same color used for the moon
     var rgba_str = this.get_rgba_string(p, EclipseSimulator.VIEW_BG_COLOR_DAY,
