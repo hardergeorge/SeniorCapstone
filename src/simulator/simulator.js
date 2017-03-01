@@ -43,8 +43,8 @@ var EclipseSimulator = {
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.50 * Math.PI / 180};
-        this.moonpos = {x: 0, y: 0, r: 0.50 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: 0.5 * Math.PI / 180, apparant_r: 0.62 * Math.PI / 180};
+        this.moonpos = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
 
         // Wide field of view in radians
         this.wide_fov = {
@@ -563,7 +563,7 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
         {
             x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
             y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
-            r: this.get_ratio_from_body_angular_r(this.sunpos.r, this.sunpos.alt, alt_center),
+            r: this.get_ratio_from_body_angular_r(this.sunpos.apparant_r, this.sunpos.alt, alt_center),
         },
         env_size_override
     );
@@ -607,7 +607,7 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
                                                    : env_size_override;
 
     // This happens early on in initialization
-    if (isNaN(pos.r) || isNaN(pos.x) || isNaN(pos.y))
+    if (isNaN(pos.r) || isNaN(pos.x) || isNaN(pos.y) || pos.r < 0)
     {
         return;
     }
@@ -825,6 +825,14 @@ EclipseSimulator.View.prototype.update_eclipse_info = function(info)
     };
     this.eclipse_time.setTime(info.time.getTime());
 };
+
+EclipseSimulator.View.prototype.update_sun_moon_pos = function(sunpos, moonpos)
+{
+    this.sunpos.alt  = sunpos.alt;
+    this.sunpos.az   = sunpos.az;
+    this.moonpos.alt = moonpos.alt;
+    this.moonpos.az  = moonpos.az;
+}
 
 EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefined)
 {
@@ -1315,15 +1323,14 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
     var pos  = this.model.get_sun_moon_position();
-    var sun  = pos.sun;
-    var moon = pos.moon;
-
-    sun.r    = this.view.sunpos.r;
-    moon.r   = this.view.moonpos.r;
+    // var sun  = pos.sun;
+    // var moon = pos.moon;
+    //
+    // sun.r    = this.view.sunpos.r;
+    // moon.r   = this.view.moonpos.r;
 
     // Update the view
-    this.view.sunpos  = sun;
-    this.view.moonpos = moon;
+    this.view.update_sun_moon_pos(pos.sun, pos.moon);
     this.view.refresh();
 
     if (EclipseSimulator.DEBUG)
@@ -1356,14 +1363,9 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
     // Get new position of sun/moon
     var pos  = this.model.get_sun_moon_position();
-    var sun  = pos.sun;
-    var moon = pos.moon;
-    sun.r    = this.view.sunpos.r;
-    moon.r   = this.view.moonpos.r;
 
     // Update the view
-    this.view.sunpos       = sun;
-    this.view.moonpos      = moon;
+    this.view.update_sun_moon_pos(pos.sun, pos.moon);
     this.view.update_eclipse_info(res);
     this.view.reset_controls();
     this.view.update_slider();
