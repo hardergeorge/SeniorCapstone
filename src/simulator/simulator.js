@@ -379,7 +379,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
                             view.maps_place = results[0];
 
-                            console.log(view.maps_place)
                             view.marker.setVisible(false);
 
                             // Update location name
