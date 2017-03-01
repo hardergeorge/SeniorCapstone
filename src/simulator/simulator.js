@@ -37,6 +37,8 @@ var EclipseSimulator = {
         this.map_visible    = false;
         this.search_box     = undefined;
         this.marker         = undefined;
+        this.maps_place     = undefined;
+        this.geocoder       = undefined;
 
         this.end_of_slider = false;
 
@@ -354,10 +356,10 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 {
     var view = this;
 
-    var options = {
+    var autocomplete_options = {
         componentRestrictions: {country: 'us'}
     };
-    view.search_box = new google.maps.places.Autocomplete(this.search_input, options);
+    view.search_box = new google.maps.places.Autocomplete(this.search_input, autocomplete_options);
 
     view.marker = new google.maps.Marker({
         map: this.map,
@@ -366,7 +368,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
     view.marker.setVisible(true);
 
-    var geocoder = new google.maps.Geocoder;
+    view.geocoder = new google.maps.Geocoder;
 
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
@@ -375,38 +377,90 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
         view.playing = false;
 
         view.marker.setVisible(false);
-        var place = view.search_box.getPlace();
+        view.maps_place = view.search_box.getPlace();
 
-        if (!place.geometry)
+        if (!view.maps_place.geometry)
         {
-            view.display_error_to_user('Location not found!');
+            var service = new google.maps.places.AutocompleteService();
+
+            var service_options = {
+                input: view.maps_place.name,
+                componentRestrictions: {country: 'us'}
+            };
+
+            service.getPlacePredictions(service_options, function(predictions, status) {
+                if (status != google.maps.places.PlacesServiceStatus.OK) {
+                    view.display_error_to_user("Location not found");
+                    return;
+                }
+
+                view.geocoder.geocode({'placeId': predictions[0].place_id}, function(results, status) {
+                    if (status === 'OK') {
+                        if (results[0].formatted_address.includes('USA')) {
+
+                            view.maps_place = results[0];
+
+                            view.marker.setVisible(false);
+
+                            // Update location name
+                            view.name = results[0].formatted_address;
+                            view.search_input.value = results[0].formatted_address;
+
+                            if (!view.maps_place)
+                            {
+                                view.display_error_to_user("No details available for: " + view.maps_place.name);
+                                return;
+                            }
+
+                            view.map.setCenter(view.maps_place.geometry.location);
+                            view.map.setZoom(11);
+
+                            view.marker.setPosition(view.maps_place.geometry.location);
+                            view.marker.setVisible(true);
+
+                            // Update location name
+                            view.name = view.maps_place;
+
+                            $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
+
+                        } else {
+                            view.display_error_to_user("Simulator is restricted to the United States");
+                            return;
+                        }
+                    } else {
+                        view.display_error_to_user("Location not found");
+                        return;
+                    }
+                });
+
+            });
             return;
-        }
-
-        // If the place has a geometry, then present it on a map.
-        if (place.geometry.viewport) {
-            view.map.fitBounds(place.geometry.viewport);
-            view.map.setZoom(11);
         } else {
-            view.map.setCenter(place.geometry.location);
-            view.map.setZoom(11);
+
+            // If the place has a geometry, then present it on a map.
+            if (view.maps_place.geometry.viewport != undefined) {
+                view.map.fitBounds(view.maps_place.geometry.viewport);
+                view.map.setZoom(11);
+            } else {
+                view.map.setCenter(view.maps_place.geometry.location);
+                view.map.setZoom(11);
+            }
+            view.marker.setPosition(view.maps_place.geometry.location);
+            view.marker.setVisible(true);
+
+            // Update location name
+            view.name = view.maps_place.formatted_address;
+            $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
         }
-        view.marker.setPosition(place.geometry.location);
-        view.marker.setVisible(true);
-
-        // Update location name
-        view.name = place.formatted_address;
-
-        $(view).trigger('EclipseView_location_updated', place.geometry.location);
     });
 
     google.maps.event.addListener(view.map, 'click', function(event) {
 
-        var place = event.latLng;
+        view.maps_place = event.latLng;
 
-        var latlng = {lat: place.lat(), lng: place.lng()};
+        var latlng = {lat: view.maps_place.lat(), lng: view.maps_place.lng()};
 
-        geocoder.geocode({'location': latlng}, function(results, status) {
+        view.geocoder.geocode({'location': latlng}, function(results, status) {
             if (status === 'OK') {
                 if (results[1].formatted_address.includes('USA')) {
 
@@ -416,19 +470,19 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     view.name = results[1].formatted_address;
                     view.search_input.value = results[1].formatted_address;
 
-                    if (!place)
+                    if (!view.maps_place)
                     {
-                        view.display_error_to_user("No details available for: " + place.name);
+                        view.display_error_to_user("No details available for: " + view.maps_place.name);
                         return;
                     }
 
-                    view.marker.setPosition(place);
+                    view.marker.setPosition(view.maps_place);
                     view.marker.setVisible(true);
 
                     // Update location name
-                    view.name = place;
+                    view.name = view.maps_place;
 
-                    $(view).trigger('EclipseView_location_updated', place);
+                    $(view).trigger('EclipseView_location_updated', view.maps_place);
 
                 } else {
                     view.display_error_to_user("Simulator is restricted to the United States");
