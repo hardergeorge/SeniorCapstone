@@ -54,10 +54,14 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y: 80 * Math.PI / 180,
+            _y: 13 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
+
+            // Desired y REFERENCE FOV - this is what we use to enable the sun tracking in wide mode
+            _y_ref: 90 * Math.PI / 180,
+            _x_ref: undefined,
         };
 
         // Zoomed field of view in radians
@@ -74,21 +78,38 @@ var EclipseSimulator = {
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
+
+            // Desired y REFERENCE FOV - this is what we use to enable the sun tracking in wide mode
+            // this is never actually used for this fov, since it is the zoom fov but is included to
+            // simplify the View.update_fov code
+            _y_ref: 10 * Math.PI / 180,
+            _x_ref: undefined,
         };
 
-        this.zoom_level  = EclipseSimulator.VIEW_ZOOM_WIDE;
-        this.current_fov = this.wide_fov;
+        this.zoom_level    = EclipseSimulator.VIEW_ZOOM_WIDE;
+        this.current_fov   = this.wide_fov;
 
-        // Used to center frame on eclipse
-        this.eclipse_az = 0;
+        // Eclipse info
+        this.eclipse_pos   = {
+            alt: 0,
+            az:  0,
+        };
+        this.eclipse_time  = new Date();
+        this.current_time  = new Date();
 
-        // Time of the eclipse - used to toggle between zoomed/not zoomed mode
-        this.eclipse_time = undefined;
+        this.sun_beg_pos   = {
+            alt: 0,
+            az:  0,
+        };
+        this.sun_end_pos   = {
+            alt: 0,
+            az:  0,
+        };
 
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
 
-        this.playing    = false;
-        this.play_speed = EclipseSimulator.VIEW_PLAY_SPEED_SLOW;
+        this.playing       = false;
+        this.play_speed    = EclipseSimulator.VIEW_PLAY_SPEED_SLOW;
     },
 
     Controller: function(location)
@@ -477,8 +498,9 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
     }
     else
     {
-        var az_center  = this.eclipse_az;
-        var alt_center = this.current_fov.y / 2;
+        var centers    = this.compute_wide_mode_altaz_centers();
+        var az_center  = centers.az;
+        var alt_center = centers.alt;
     }
 
     // Position sun/moon. Cannot do this until window is displayed
@@ -659,7 +681,11 @@ EclipseSimulator.View.prototype.toggle_loading = function()
 
 EclipseSimulator.View.prototype.reset_controls = function()
 {
-    this.slider.MaterialSlider.change(0);
+    // Need this check in case MDL has not finished initializing
+    if (this.slider.MaterialSlider !== undefined)
+    {
+        this.slider.MaterialSlider.change(0);
+    }
 };
 
 EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, timeout)
@@ -737,17 +763,22 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     this.refresh(new_env_size);
 };
 
-EclipseSimulator.View.prototype.update_eclipse_pos = function(alt, az)
+EclipseSimulator.View.prototype.update_eclipse_info = function(info)
 {
-    this.eclipse_az = az;
+    this.eclipse_pos = {
+        alt: info.alt,
+        az:  info.az,
+    };
+    this.eclipse_time.setTime(info.time.getTime());
 };
 
 EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefined)
 {
     var env_size  = env_size_override === undefined ? this.get_environment_size()
                                                     : env_size_override;
-    var ratio     = env_size.width / env_size.height;
-    var desired_x = this.current_fov._y * ratio;
+    var ratio         = env_size.width / env_size.height;
+    var desired_x     = this.current_fov._y * ratio;
+    var desired_x_ref = this.current_fov._y_ref * ratio;
 
     // Window aspect ratio prevents desired y fov. Using the desired y fov, this.current_fov._y
     // would result in an x fov that is greater than the max allowed.
@@ -760,6 +791,17 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     {
         this.current_fov.x = desired_x;
         this.current_fov.y = this.current_fov._y;
+    }
+
+    if (desired_x_ref > this.current_fov._x_max)
+    {
+        this.current_fov._x_ref = this.current_fov._x_max
+        this.current_fov._y_ref = this.current_fov._x_max / ratio;
+    }
+    else
+    {
+        this.current_fov._x_ref = desired_x_ref;
+        this.current_fov._y_ref = this.current_fov._y_ref;
     }
 };
 
@@ -1077,6 +1119,86 @@ EclipseSimulator.View.prototype.toggle_map = function()
     $(this.mapcanvas).toggle(200, center_map);
 };
 
+EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
+{
+    var ref_x = this.current_fov._x_ref;
+    var ref_y = this.current_fov._y_ref;
+
+    var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
+                             EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
+    // range is [-1, 1]. -1 corresponds to start of slider range, 0 corresponds to time of maximal
+    // eclipse, and 1 corresponds to end of slider range.
+    var time_ratio = (this.current_time.getTime() - this.eclipse_time.getTime()) / max_time_offset_ms;
+
+    var ratios = {
+        x: {
+            start: EclipseSimulator.rad_diff(this.sun_beg_pos.az, this.eclipse_pos.az) / ref_x,
+            end:   EclipseSimulator.rad_diff(this.sun_end_pos.az, this.eclipse_pos.az) / ref_x,
+        },
+        y: {
+            start: EclipseSimulator.rad_diff(this.sun_beg_pos.alt, this.eclipse_pos.alt) / ref_y,
+            end:   EclipseSimulator.rad_diff(this.sun_end_pos.alt, this.eclipse_pos.alt) / ref_y,
+        },
+    };
+
+    return {
+        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, ratios.x) * this.current_fov.x),
+        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, ratios.y) * this.current_fov.y),
+    };
+};
+
+// Polynomial to enable smooth tracking of sun when in wide mode.
+// This is an interpolating polynomial of the following points:
+//
+//      p0 = (-1, ratios.start)
+//      p1 = (0, 0)
+//      p2 = (1, -ratios.end)
+//
+// We compute the polynomial at a given point t by computing the Lagrange basis
+// polynomials l0, l1, l2 and returning (p0.y * l0(t)) + (p1.y * l1(t)) + (p2.y * l2(t))
+//
+// Note: we ignore since p1.y is 0
+//
+// For more information, see https://en.wikipedia.org/wiki/Lagrange_polynomial
+//
+EclipseSimulator.View.prototype._wide_fov_tracking_poly = function(t, ratios)
+{
+    var l0 = (t - 0) * (t - 1) / ((-1 - 0) * (-1 - 1));
+    var l2 = (t + 1) * (t - 0) / (( 1 + 1) * ( 1 - 0));
+    return (ratios.start * l0) + (-ratios.end * l2);
+};
+
+// Returns boundary times for slider. Currently only returns wide mode boundaries
+// as these are the only ones we need sun positions for - these positions are used for tracking
+// in wide mode - see EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers
+//
+// ***NOTE:*** It is critical the the order of the times returned here i.e.
+// [wide_mode_slider_start, wide_mode_slider_end] is the same as the order that the sun positions
+// are digested by EclipseSimulator.View.prototype._set_slider_bound_positions
+EclipseSimulator.View.prototype._get_slider_bound_times = function()
+{
+    var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
+                             EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
+
+    return [
+        new Date(this.eclipse_time.getTime() - max_time_offset_ms),
+        new Date(this.eclipse_time.getTime() + max_time_offset_ms),
+    ];
+};
+
+// Used in concert with EclipseSimulator.View.prototype._get_slider_bound_times by the controller.
+// The controller calls _get_slider_bound_times, computes the sun positions at these times, and
+// passes these positions to this function to set them in the view.
+//
+// ***NOTE:*** It is critical the the order in which positions are processed here i.e.
+// [wide_mode_slider_start, wide_mode_slider_end] is the same as the order that the times are
+// returned by EclipseSimulator.View.prototype._get_slider_bound_times
+EclipseSimulator.View.prototype._set_slider_bound_positions = function(positions)
+{
+    this.sun_beg_pos = positions[0];
+    this.sun_end_pos = positions[1];
+};
+
 
 // ===================================
 //
@@ -1097,13 +1219,6 @@ EclipseSimulator.Controller.prototype.init = function()
 
         controller.model.init();
 
-        var res  = controller.model.compute_eclipse_time_and_pos();
-
-        controller.view.update_eclipse_pos(res.alt, res.az);
-        controller.view.eclipse_time = res.time;
-        controller.view.update_slider();
-        controller.view.refresh();
-
         $(controller.view).on('EclipseView_time_updated', function(event, val) {
             // Call the handler, converting the val from minutes to milliseconds
             controller.update_simulator_time_with_offset(parseFloat(val) * 60 * 1000);
@@ -1113,6 +1228,9 @@ EclipseSimulator.Controller.prototype.init = function()
             // Call the location event handler with new location info
             controller.update_simulator_location(location);
         });
+
+        // Sets initial simulator location
+        controller.update_simulator_location();
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
         // a partially rendered view to start (e.g. height not set, etc). This only needs
@@ -1127,7 +1245,6 @@ EclipseSimulator.Controller.prototype.init = function()
         // Signal that initilization is complete, as this function completes asynchronously
         $(controller).trigger('EclipseController_init_complete');
     }, 1);
-
 };
 
 // Handler for when the slider gets changed
@@ -1139,6 +1256,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
 
     // Update the displayed time by adding the slider value to the eclipse time
     this.model.date.setTime(new_sim_time_ms);
+    this.view.current_time.setTime(new_sim_time_ms);
 
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
@@ -1166,12 +1284,15 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     }
 };
 
-EclipseSimulator.Controller.prototype.update_simulator_location = function(location)
+EclipseSimulator.Controller.prototype.update_simulator_location = function(location = undefined)
 {
-    this.model.coords = {
-        lat: location.lat(),
-        lng: location.lng()
-    };
+    if (location !== undefined)
+    {
+        this.model.coords = {
+            lat: location.lat(),
+            lng: location.lng()
+        };
+    }
 
     // This will set the model's eclipse_time attribute
     var res = this.model.compute_eclipse_time_and_pos();
@@ -1179,23 +1300,29 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     // Set model displayed date to eclipse time
     this.model.date.setTime(res.time.getTime());
 
-    // Set view center
-    this.view.update_eclipse_pos(res.alt, res.az);
-
     // Get new position of sun/moon
     var pos  = this.model.get_sun_moon_position();
     var sun  = pos.sun;
     var moon = pos.moon;
-
     sun.r    = this.view.sunpos.r;
     moon.r   = this.view.moonpos.r;
 
     // Update the view
-    this.view.reset_controls();
     this.view.sunpos       = sun;
     this.view.moonpos      = moon;
-    this.view.eclipse_time = res.time;
+    this.view.update_eclipse_info(res);
+    this.view.reset_controls();
     this.view.update_slider();
+
+    // Set the view slider bound sun positions
+    var times     = this.view._get_slider_bound_times();
+    var positions = [];
+    for (var i = 0; i < times.length; i++)
+    {
+        positions.push(this.model._compute_sun_moon_pos(times[i]).sun);
+    }
+    this.view._set_slider_bound_positions(positions);
+
     this.view.refresh();
 };
 
@@ -1268,7 +1395,7 @@ EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
     this.eclipse_time.setTime(time);
 
     return {
-        time: date,
+        time: this.eclipse_time,
         az:   pos.sun.az,
         alt:  pos.sun.alt,
     };
