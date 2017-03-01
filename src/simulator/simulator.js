@@ -1367,6 +1367,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     // Update the view
     this.view.update_sun_moon_pos(pos.sun, pos.moon);
     this.view.update_eclipse_info(res);
+    this.view.current_time.setTime(res.time.getTime());
     this.view.reset_controls();
     this.view.update_slider();
 
@@ -1378,7 +1379,6 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
         positions.push(this.model._compute_sun_moon_pos(times[i]).sun);
     }
     this.view._set_slider_bound_positions(positions);
-
     this.view.refresh();
 };
 
