@@ -62,8 +62,9 @@ var EclipseSimulator = {
             _x_max: 160 * Math.PI / 180,
 
             // Desired y REFERENCE FOV - this is what we use to enable the sun tracking in wide mode
-            _y_ref: 90 * Math.PI / 180,
-            _x_ref: undefined,
+            _y_ref_desired: 90 * Math.PI / 180,
+            _y_ref:         undefined,
+            _x_ref:         undefined,
         };
 
         // Zoomed field of view in radians
@@ -84,8 +85,9 @@ var EclipseSimulator = {
             // Desired y REFERENCE FOV - this is what we use to enable the sun tracking in wide mode
             // this is never actually used for this fov, since it is the zoom fov but is included to
             // simplify the View.update_fov code
-            _y_ref: 10 * Math.PI / 180,
-            _x_ref: undefined,
+            _y_ref_desired: 10 * Math.PI / 180,
+            _y_ref:         undefined,
+            _x_ref:         undefined,
         };
 
         this.zoom_level    = EclipseSimulator.VIEW_ZOOM_WIDE;
@@ -840,7 +842,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
                                                     : env_size_override;
     var ratio         = env_size.width / env_size.height;
     var desired_x     = this.current_fov._y * ratio;
-    var desired_x_ref = this.current_fov._y_ref * ratio;
+    var desired_x_ref = this.current_fov._y_ref_desired * ratio;
 
     // Window aspect ratio prevents desired y fov. Using the desired y fov, this.current_fov._y
     // would result in an x fov that is greater than the max allowed.
