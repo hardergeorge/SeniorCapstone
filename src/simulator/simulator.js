@@ -866,7 +866,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     else
     {
         this.current_fov._x_ref = desired_x_ref;
-        this.current_fov._y_ref = this.current_fov._y_ref;
+        this.current_fov._y_ref = this.current_fov._y_ref_desired;
     }
 };
 
