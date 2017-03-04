@@ -154,8 +154,15 @@ var EclipseSimulator = {
         return a - (pi2 * Math.floor(a / pi2));
     },
 
-    // Compute positive distance in radians between two angles
+    // Compute a1 - a2. return value in [0, 2pi)
     rad_diff: function(a1, a2)
+    {
+        var diff = EclipseSimulator.rad_abs_diff(a1, a2);
+        return EclipseSimulator.rad_gt(a1, a2) ? diff : -diff;
+    },
+
+    // Compute positive distance in radians between two angles
+    rad_abs_diff: function(a1, a2)
     {
         a1 = EclipseSimulator.normalize_rad(a1);
         a2 = EclipseSimulator.normalize_rad(a2);
@@ -627,7 +634,7 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
 
 EclipseSimulator.View.prototype.get_ratio_from_body_angular_r = function(r, alt, center)
 {
-    var x = EclipseSimulator.rad_diff(alt, center);
+    var x = EclipseSimulator.rad_abs_diff(alt, center);
     return (Math.sin(x + r) - Math.sin(x)) / (2 * Math.sin(this.current_fov.y / 2));
 };
 
@@ -647,7 +654,7 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
 EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_r)
 {
     var bound = center + (fov / 2);
-    var dist  = EclipseSimulator.rad_diff(bound, altaz);
+    var dist  = EclipseSimulator.rad_abs_diff(bound, altaz);
 
     // Body off screen in positive direction
     if (EclipseSimulator.rad_gt(altaz, bound) && dist > body_r)
@@ -656,7 +663,7 @@ EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_
     }
 
     bound = center - (fov / 2);
-    dist  = EclipseSimulator.rad_diff(bound, altaz);
+    dist  = EclipseSimulator.rad_abs_diff(bound, altaz);
 
     // Body off screen in negative direction
     if (EclipseSimulator.rad_gt(bound, altaz) && dist > body_r)
@@ -1214,12 +1221,12 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
 
     var ratios = {
         x: {
-            start: EclipseSimulator.rad_diff(this.sun_beg_pos.az, this.eclipse_pos.az) / ref_x,
-            end:   EclipseSimulator.rad_diff(this.sun_end_pos.az, this.eclipse_pos.az) / ref_x,
+            start: EclipseSimulator.rad_diff(this.eclipse_pos.az, this.sun_beg_pos.az) / ref_x,
+            end:   EclipseSimulator.rad_diff(this.eclipse_pos.az, this.sun_end_pos.az) / ref_x,
         },
         y: {
-            start: EclipseSimulator.rad_diff(this.sun_beg_pos.alt, this.eclipse_pos.alt) / ref_y,
-            end:   EclipseSimulator.rad_diff(this.sun_end_pos.alt, this.eclipse_pos.alt) / ref_y,
+            start: EclipseSimulator.rad_diff(this.eclipse_pos.alt, this.sun_beg_pos.alt) / ref_y,
+            end:   EclipseSimulator.rad_diff(this.eclipse_pos.alt, this.sun_end_pos.alt) / ref_y,
         },
     };
 
@@ -1234,7 +1241,7 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
 //
 //      p0 = (-1, ratios.start)
 //      p1 = (0, 0)
-//      p2 = (1, -ratios.end)
+//      p2 = (1, ratios.end)
 //
 // We compute the polynomial at a given point t by computing the Lagrange basis
 // polynomials l0, l1, l2 and returning (p0.y * l0(t)) + (p1.y * l1(t)) + (p2.y * l2(t))
@@ -1247,7 +1254,7 @@ EclipseSimulator.View.prototype._wide_fov_tracking_poly = function(t, ratios)
 {
     var l0 = (t - 0) * (t - 1) / ((-1 - 0) * (-1 - 1));
     var l2 = (t + 1) * (t - 0) / (( 1 + 1) * ( 1 - 0));
-    return (ratios.start * l0) + (-ratios.end * l2);
+    return (ratios.start * l0) + (ratios.end * l2);
 };
 
 // Returns boundary times for slider. Currently only returns wide mode boundaries
