@@ -861,7 +861,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     var env_size  = env_size_override === undefined ? this.get_environment_size()
                                                     : env_size_override;
     var ratio         = env_size.width / env_size.height;
-    var desired_x     = this.current_fov._y_desired * ratio;
+    var desired_x     = this._compute_fov_angle_for_screen_aspect_ratio(this.current_fov._y_desired, 1 / ratio);
 
     // Compute reference field of view needed to fit sun path in field of view - X DIRECTION
     var d1            = EclipseSimulator.rad_abs_diff(this.sun_beg_pos.az, this.eclipse_pos.az);
@@ -881,7 +881,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     if (desired_x > this.current_fov._x_max)
     {
         this.current_fov.x = this.current_fov._x_max
-        this.current_fov.y = this.current_fov._x_max / ratio;
+        this.current_fov.y = this._compute_fov_angle_for_screen_aspect_ratio(this.current_fov._x_max, ratio);
     }
     else
     {
@@ -890,16 +890,26 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     }
 
     // Choosing desired_x_ref as fov in x direction would result in sun leaving view in y direction
-    if ((desired_x_ref / ratio) < desired_y_ref)
+    if (this._compute_fov_angle_for_screen_aspect_ratio(desired_x_ref, ratio) < desired_y_ref)
     {
-        desired_x_ref = ratio * desired_y_ref;
+        desired_x_ref = this._compute_fov_angle_for_screen_aspect_ratio(desired_y_ref, 1 / ratio);
     }
     if (desired_x_ref > this.current_fov._x_max)
     {
         desired_x_ref = this.current_fov._x_max;
     }
     this.current_fov._x_ref = desired_x_ref;
-    this.current_fov._y_ref = desired_x_ref / ratio;
+    this.current_fov._y_ref = this._compute_fov_angle_for_screen_aspect_ratio(desired_x_ref, ratio);
+};
+
+// Given the field of view in one direction (angle), this function computes the necessary field
+// of view in the other direction necessary to achieve a screen aspect ratio of ratio. WHEN ratio IS
+// COMPUTED, THE SCREEN SIZE IN THE DIMENSION CORRESPONDING TO ANGLE MUST BE ON THE TOP OF THE FRACTION
+// This function maxs out at pi, so if an angle greater than pi is needed, pi will be returned
+EclipseSimulator.View.prototype._compute_fov_angle_for_screen_aspect_ratio = function(angle, ratio)
+{
+    var inner = Math.min(1, Math.sin(angle / 2) / ratio);
+    return 2 * Math.asin(inner);
 };
 
 // Computes an intermediate color between min and max, converts this color to an rgb string,
