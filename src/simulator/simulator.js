@@ -56,13 +56,12 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y: 13 * Math.PI / 180,
+            _y_desired: 13 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
 
             // Desired y REFERENCE FOV - this is what we use to enable the sun tracking in wide mode
-            _y_ref_desired: 90 * Math.PI / 180,
             _y_ref:         undefined,
             _x_ref:         undefined,
         };
@@ -77,7 +76,7 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y: 10 * Math.PI / 180,
+            _y_desired: 10 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
@@ -85,7 +84,6 @@ var EclipseSimulator = {
             // Desired y REFERENCE FOV - this is what we use to enable the sun tracking in wide mode
             // this is never actually used for this fov, since it is the zoom fov but is included to
             // simplify the View.update_fov code
-            _y_ref_desired: 10 * Math.PI / 180,
             _y_ref:         undefined,
             _x_ref:         undefined,
         };
@@ -192,6 +190,16 @@ var EclipseSimulator = {
                 (Math.cos(sun.alt) * Math.cos(moon.alt) * Math.cos(sun.az - moon.az));
         return Math.acos(a);
     },
+
+    // Target amount of the field of view that is "filled" by the sun's path -
+    // i.e. we attempt to make the sun's path start 10% from the left of the canvas
+    // and end 10% from the right of the canvas - of course, this is idealized, as
+    // we must consider the sun's position in the y direction as well.
+    VIEW_TARGET_FOV_FILL: 0.9,
+
+    // 15 degree top/botton buffer on target fov fill in the y direction - this prevents
+    // the sun from falling below the hills
+    VIEW_TARGET_FOV_FILL_Y_BUFF: 15 * Math.PI / 180,
 
     VIEW_MAP_MAX_H: 400,
 
@@ -853,8 +861,20 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     var env_size  = env_size_override === undefined ? this.get_environment_size()
                                                     : env_size_override;
     var ratio         = env_size.width / env_size.height;
-    var desired_x     = this.current_fov._y * ratio;
-    var desired_x_ref = this.current_fov._y_ref_desired * ratio;
+    var desired_x     = this.current_fov._y_desired * ratio;
+
+    // Compute reference field of view needed to fit sun path in field of view - X DIRECTION
+    var d1            = EclipseSimulator.rad_abs_diff(this.sun_beg_pos.az, this.eclipse_pos.az);
+    var d2            = EclipseSimulator.rad_abs_diff(this.sun_end_pos.az, this.eclipse_pos.az);
+    var diff          = Math.max(d1, d2);
+    var desired_x_ref = 2 * diff / EclipseSimulator.VIEW_TARGET_FOV_FILL;
+
+    // Compute reference field of view needed to fit sun path in field of view - Y DIRECTION
+    d1                  = EclipseSimulator.rad_abs_diff(this.sun_beg_pos.alt, this.eclipse_pos.alt);
+    d2                  = EclipseSimulator.rad_abs_diff(this.sun_end_pos.alt, this.eclipse_pos.alt);
+    diff                = Math.max(d1, d2);
+    // Just want to keep the sun in view with this desired_y_ref
+    var desired_y_ref   = (2 * diff) + EclipseSimulator.VIEW_TARGET_FOV_FILL_Y_BUFF;
 
     // Window aspect ratio prevents desired y fov. Using the desired y fov, this.current_fov._y
     // would result in an x fov that is greater than the max allowed.
@@ -866,19 +886,20 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     else
     {
         this.current_fov.x = desired_x;
-        this.current_fov.y = this.current_fov._y;
+        this.current_fov.y = this.current_fov._y_desired;
     }
 
+    // Choosing desired_x_ref as fov in x direction would result in sun leaving view in y direction
+    if ((desired_x_ref / ratio) < desired_y_ref)
+    {
+        desired_x_ref = ratio * desired_y_ref;
+    }
     if (desired_x_ref > this.current_fov._x_max)
     {
-        this.current_fov._x_ref = this.current_fov._x_max
-        this.current_fov._y_ref = this.current_fov._x_max / ratio;
+        desired_x_ref = this.current_fov._x_max;
     }
-    else
-    {
-        this.current_fov._x_ref = desired_x_ref;
-        this.current_fov._y_ref = this.current_fov._y_ref_desired;
-    }
+    this.current_fov._x_ref = desired_x_ref;
+    this.current_fov._y_ref = desired_x_ref / ratio;
 };
 
 // Computes an intermediate color between min and max, converts this color to an rgb string,
@@ -1229,7 +1250,7 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
 
     var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
                              EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
-                             
+
     // range is [-1, 1]. -1 corresponds to start of slider range, 0 corresponds to time of maximal
     // eclipse, and 1 corresponds to end of slider range.
     var time_ratio = (this.current_time.getTime() - this.eclipse_time.getTime()) / max_time_offset_ms;
@@ -1375,11 +1396,6 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
     var pos  = this.model.get_sun_moon_position();
-    // var sun  = pos.sun;
-    // var moon = pos.moon;
-    //
-    // sun.r    = this.view.sunpos.r;
-    // moon.r   = this.view.moonpos.r;
 
     // Update the view
     this.view.update_sun_moon_pos(pos.sun, pos.moon);
@@ -1391,8 +1407,8 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
             this.model.date.toUTCString()
             + '\nlat: ' + this.model.coords.lat
             + '\nlng: ' + this.model.coords.lng
-            + '\nS(alt: ' + sun.alt + ' az: ' + sun.az + ')'
-            + '\nM(alt: ' + moon.alt + ' az: ' + moon.az + ')'
+            + '\nS(alt: ' + pos.sun.alt + ' az: ' + pos.sun.az + ')'
+            + '\nM(alt: ' + pos.moon.alt + ' az: ' + pos.moon.az + ')'
         );
     }
 };
@@ -1431,6 +1447,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
         positions.push(this.model._compute_sun_moon_pos(times[i]).sun);
     }
     this.view._set_slider_bound_positions(positions);
+    this.view.update_fov();
     this.view.refresh();
 };
 
