@@ -1220,7 +1220,7 @@ EclipseSimulator.View.prototype._create_polygon_map = function()
 
   // Add the polygon to the map
   eclipsePath.setMap(this.map);
-}
+};
 
 EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
 {
@@ -1229,18 +1229,19 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
 
     var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
                              EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
+                             
     // range is [-1, 1]. -1 corresponds to start of slider range, 0 corresponds to time of maximal
     // eclipse, and 1 corresponds to end of slider range.
     var time_ratio = (this.current_time.getTime() - this.eclipse_time.getTime()) / max_time_offset_ms;
 
     var ratios = {
         x: {
-            start: EclipseSimulator.rad_diff(this.eclipse_pos.az, this.sun_beg_pos.az) / ref_x,
-            end:   EclipseSimulator.rad_diff(this.eclipse_pos.az, this.sun_end_pos.az) / ref_x,
+            start: this._compute_offset_ratio(this.eclipse_pos.az, this.sun_beg_pos.az, ref_x),
+            end:   this._compute_offset_ratio(this.eclipse_pos.az, this.sun_end_pos.az, ref_x),
         },
         y: {
-            start: EclipseSimulator.rad_diff(this.eclipse_pos.alt, this.sun_beg_pos.alt) / ref_y,
-            end:   EclipseSimulator.rad_diff(this.eclipse_pos.alt, this.sun_end_pos.alt) / ref_y,
+            start: this._compute_offset_ratio(this.eclipse_pos.alt, this.sun_beg_pos.alt, ref_y),
+            end:   this._compute_offset_ratio(this.eclipse_pos.alt, this.sun_end_pos.alt, ref_y),
         },
     };
 
@@ -1248,6 +1249,16 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
         az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, ratios.x) * this.current_fov.x),
         alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, ratios.y) * this.current_fov.y),
     };
+};
+
+// Computes offset ratio in field of view (centered at center_angle) with fov width fov_width.
+// i.e. if position_angle is at the left edge of the field of view, -0.5 is returned, and
+// if position_angle is at the right edge of the field of view, 0.5 is returned.
+EclipseSimulator.View.prototype._compute_offset_ratio = function(position_angle, center_angle, fov_width)
+{
+    var diff = EclipseSimulator.rad_diff(position_angle, center_angle);
+    var mult = diff > 0 ? 1 : -1;
+    return mult * Math.sin(Math.abs(diff)) / (2 * Math.sin(fov_width / 2));
 };
 
 // Polynomial to enable smooth tracking of sun when in wide mode.
