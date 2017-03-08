@@ -107,6 +107,16 @@ var EclipseSimulator = {
             alt: 0,
             az:  0,
         };
+        this.sun_moon_position_ratios = {
+            x: {
+                start: 0,
+                end:   0,
+            },
+            y: {
+                start: 0,
+                end:   0,
+            },
+        };
 
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
 
@@ -900,6 +910,18 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     }
     this.current_fov._x_ref = desired_x_ref;
     this.current_fov._y_ref = this._compute_fov_angle_for_screen_aspect_ratio(desired_x_ref, ratio);
+
+    // Update sun/moon position ratios
+    this.sun_moon_position_ratios = {
+        x: {
+            start: this._compute_offset_ratio(this.eclipse_pos.az, this.sun_beg_pos.az, this.current_fov._x_ref),
+            end:   this._compute_offset_ratio(this.eclipse_pos.az, this.sun_end_pos.az, this.current_fov._x_ref),
+        },
+        y: {
+            start: this._compute_offset_ratio(this.eclipse_pos.alt, this.sun_beg_pos.alt, this.current_fov._y_ref),
+            end:   this._compute_offset_ratio(this.eclipse_pos.alt, this.sun_end_pos.alt, this.current_fov._y_ref),
+        },
+    };
 };
 
 // Given the field of view in one direction (angle), this function computes the necessary field
@@ -1255,9 +1277,6 @@ EclipseSimulator.View.prototype._create_polygon_map = function()
 
 EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
 {
-    var ref_x = this.current_fov._x_ref;
-    var ref_y = this.current_fov._y_ref;
-
     var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
                              EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
 
@@ -1265,20 +1284,9 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
     // eclipse, and 1 corresponds to end of slider range.
     var time_ratio = (this.current_time.getTime() - this.eclipse_time.getTime()) / max_time_offset_ms;
 
-    var ratios = {
-        x: {
-            start: this._compute_offset_ratio(this.eclipse_pos.az, this.sun_beg_pos.az, ref_x),
-            end:   this._compute_offset_ratio(this.eclipse_pos.az, this.sun_end_pos.az, ref_x),
-        },
-        y: {
-            start: this._compute_offset_ratio(this.eclipse_pos.alt, this.sun_beg_pos.alt, ref_y),
-            end:   this._compute_offset_ratio(this.eclipse_pos.alt, this.sun_end_pos.alt, ref_y),
-        },
-    };
-
     return {
-        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, ratios.x) * this.current_fov.x),
-        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, ratios.y) * this.current_fov.y),
+        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, this.sun_moon_position_ratios.x) * this.current_fov.x),
+        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, this.sun_moon_position_ratios.y) * this.current_fov.y),
     };
 };
 
