@@ -1,0 +1,24 @@
+# On flip
+wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-146.0.0-linux-x86_64.tar.gz
+tar -xf google-cloud-sdk-146.0.0-linux-x86_64.tar.gz
+./google-cloud-sdk/install.sh
+
+
+# On Google Compute Engine VM
+
+sudo apt-get install packagekit-gtk3-module
+sudo apt-get install xauth
+
+# Edit the ssh config:
+sudo vim /etc/ssh/ssh_config
+# uncomment lines below and replace 'no' with 'yes'
+# ForwardX11 no
+# ForwardX11Trusted yes
+# 
+# add 'X11UseLocalhost no' on new line below the above 2 lines
+
+# Reboot
+sudo reboot
+
+# Now reconnect using gcloud command from Google Cloud Console, 
+# but add the flag: --ssh-flag=-Y
