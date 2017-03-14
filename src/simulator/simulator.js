@@ -311,6 +311,7 @@ var EclipseSimulator = {
 
 EclipseSimulator.View.prototype.init = function()
 {
+
     // Needs to be called the first time as this will set the simulator size
     this._update_sim_size();
 
@@ -818,7 +819,7 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
         var mins = "" + date.getMinutes();
         mins     = mins.length == 1 ? "0" + mins : mins;
 
-        $(this.slider_labels[i]).text(date.getUTCHours() + ':' + mins);
+        $(this.slider_labels[i]).text(date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
         date.setTime(date.getTime() + tick_sep_ms);
     }
 };
@@ -1397,6 +1398,7 @@ EclipseSimulator.Controller.prototype.init = function()
         // to be shown once, so we do it manually
         controller.view.show();
 
+
         controller.update_simulator_time_with_offset(0);
 
         // Hide loading view - this starts out visible
@@ -1472,6 +1474,8 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
         positions.push(this.model._compute_sun_moon_pos(times[i]).sun);
     }
     this.view._set_slider_bound_positions(positions);
+
+
     this.view.update_fov();
     this.view.refresh();
 };
