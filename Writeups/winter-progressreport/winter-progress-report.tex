@@ -10,6 +10,12 @@
 \usepackage{url}
 \usepackage{minted}
 
+% Macro for the signatures
+\newcommand*{\SignatureAndDate}[1]{%
+    \par\noindent\makebox[2.5in]{\hrulefill} \hfill\makebox[2.0in]{\hrulefill}%
+    \par\noindent\makebox[2.5in][l]{#1}      \hfill\makebox[2.0in][l]{Date}%
+}
+
 \graphicspath{ {images/} }
 
 \renewcommand*\contentsname{Table of Contents} % Rename ToC
@@ -18,7 +24,7 @@
 \title{Midterm Progress Report}
 \author{Totality AweSun \\
 		Bret~Lorimore, Jacob~Fenger, George~Harder \\
-		\textit{\today \\
+		\textit{Febuary 17, 2017 \\
 		CS 462 - Winter 2017}}
 
 \begin{document}
@@ -33,6 +39,15 @@ encountered throughout the term, shows some of the code that has been produced t
 a week-by-week outline of progress throughout the term, and reflects over the term in the
 retrospectives section at the end.
 \end{abstract}
+
+\vspace{10mm}
+\noindent \SignatureAndDate{David Konerding, Project Sponsor}
+\vspace{8mm}
+\noindent \SignatureAndDate{Bret Lorimore}
+\vspace{8mm}
+\noindent \SignatureAndDate{George Harder}
+\vspace{8mm}
+\noindent \SignatureAndDate{Jacob Fenger}
 
 \newpage
 

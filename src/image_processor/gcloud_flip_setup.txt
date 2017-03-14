@@ -23,6 +23,9 @@ sudo reboot
 # Now reconnect using gcloud command from Google Cloud Console,
 # but add the flag: --ssh-flag=-Y
 
+#to install the Jinja2 python library
+sudo pip3 install Jinja2 
+
 # To get opencv setup on the VM
 git clone https://github.com/opencv/opencv
 git clone https://github.com/opencv/opencv_contrib
