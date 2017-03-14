@@ -118,6 +118,26 @@ var EclipseSimulator = {
             },
         };
 
+        // Acting SVG size - we set the SVG canvas to be the entire width of the window,
+        // but we don't want to report this to the simulator, as this results in too wide of an
+        // aspect ratio that makes it difficult to keep the sun in view vertically without
+        // exceeding 180 degrees of horizontal field of view, which doesn't even make sense.
+        // Therefore, we report the environment size using the variable below, which is set by the
+        // update_sim_size function.
+        this.acting_svg_size = {
+            height: 0,
+            width: 0,
+        };
+        // This is the offset of the "acting SVG canvas" from the left side of the actual SVG canvas
+        // This value is computed as (actual_svg_w - acting_svg_w)/2
+        this.svg_horizontal_offset = 0;
+
+        // True simulator window size
+        this.environment_size = {
+            height: 0,
+            width: 0,
+        };
+
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
 
         this.playing       = false;
@@ -201,15 +221,8 @@ var EclipseSimulator = {
         return Math.acos(a);
     },
 
-    // Target amount of the field of view that is "filled" by the sun's path -
-    // i.e. we attempt to make the sun's path start 10% from the left of the canvas
-    // and end 10% from the right of the canvas - of course, this is idealized, as
-    // we must consider the sun's position in the y direction as well.
+    // Target amount of the field of view that is "filled" by the sun's path
     VIEW_TARGET_FOV_FILL: 0.9,
-
-    // 15 degree top/botton buffer on target fov fill in the y direction - this prevents
-    // the sun from falling below the hills
-    VIEW_TARGET_FOV_FILL_Y_BUFF: 15 * Math.PI / 180,
 
     VIEW_MAP_MAX_H: 400,
 
@@ -226,7 +239,12 @@ var EclipseSimulator = {
         wide: 0.3,
     },
 
-    VIEW_BG_HILL_VALLEY_HEIGHT_PERCENT: 0.1888466413,
+    VIEW_BG_IMAGE_W:             1397,
+    VIEW_BG_IMAGE_H:             789,
+    VIEW_BG_IMAGE_HILL_CREST_H:  242,
+    VIEW_BG_IMAGE_HILL_VALLEY_H: 151,
+
+    VIEW_ACTING_SVG_MAX_ASPECT_RATIO: 1.5,
 
     VIEW_PHONE_WMAX: 600,
 
@@ -331,8 +349,8 @@ EclipseSimulator.View.prototype.init = function()
         if(view.end_of_slider)
         {
           // Restart the slider at the beginning
-          view.slider.value = -1*EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
-                           * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
+          view.slider.value = (-1) * EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
+                              * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
         }
 
         view.playing = !view.playing;
@@ -537,24 +555,32 @@ EclipseSimulator.View.prototype._update_sim_size = function(zoomed = false)
     var h = $(window).height();
     var w = $(window).width();
 
-    var svg_margin_top = 0;
-    var svg_h          = h;
+    var svg_margin_left = 0;
+    var svg_w           = w;
+    var svg_h           = h;
     if (!zoomed)
     {
-        // Add buffer zone where searchbox is - do not want sun/moon
-        // to disappear behid the search box
-        svg_margin_top = this.search_input.getBoundingClientRect().bottom;
-        svg_h         -= svg_margin_top;
+        // Add bottom buffer - define altitude 0 to be the bottom of the hill crests - using the valleys
+        // can result in the sun falling below the hills
+        svg_h -= h * this.compute_y_percetage_of_frame(EclipseSimulator.VIEW_BG_IMAGE_HILL_CREST_H);
 
-        // Add bottom buffer - define altitude 0 to be the bottom of the hill valleys
-        svg_h -= h * EclipseSimulator.VIEW_BG_HILL_VALLEY_HEIGHT_PERCENT;
+        if ((svg_w / svg_h) > EclipseSimulator.VIEW_ACTING_SVG_MAX_ASPECT_RATIO)
+        {
+            svg_w = svg_h * EclipseSimulator.VIEW_ACTING_SVG_MAX_ASPECT_RATIO;
+            svg_margin_left = (w - svg_w) / 2;
+        }
     }
 
+    this.acting_svg_size.height = svg_h;
+    this.acting_svg_size.width  = svg_w;
+    this.svg_horizontal_offset  = (w - svg_w) / 2;
     $(this.svg_container).css({
         'height': svg_h,
         'width':  w,
-        'top':    svg_margin_top,
     });
+
+    this.environment_size.height = h;
+    this.environment_size.width  = w;
     this.background.css({
         'height': h,
         'width':  w,
@@ -575,7 +601,7 @@ EclipseSimulator.View.prototype.show = function()
     $([this.svg_container, this.sun, this.moon]).show();
 };
 
-EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined)
+EclipseSimulator.View.prototype.refresh = function()
 {
     if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
     {
@@ -596,8 +622,7 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
             x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
             y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
             r: this.get_ratio_from_body_angular_r(this.sunpos.apparant_r, this.sunpos.alt, alt_center),
-        },
-        env_size_override
+        }
     );
     this.position_body_at_percent_coords(
         this.moon,
@@ -605,8 +630,7 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
             x: this.get_ratio_from_altaz(this.moonpos.az,  az_center,  this.current_fov.x, this.moonpos.r),
             y: this.get_ratio_from_altaz(this.moonpos.alt, alt_center, this.current_fov.y, this.moonpos.r),
             r: this.get_ratio_from_body_angular_r(this.moonpos.r, this.moonpos.alt, alt_center),
-        },
-        env_size_override
+        }
     );
 
     // === Update background and moon color === //
@@ -625,19 +649,31 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
     this.update_moon_lightness(rgba_str);
 };
 
-EclipseSimulator.View.prototype.get_environment_size = function()
+// Computes percentage of frame (in the y direction) that is occupied by an object
+// (say a hill on the background) that is ref_height pixels high in the original background
+// image. This is variable since the background scales with the window size
+EclipseSimulator.View.prototype.compute_y_percetage_of_frame = function(ref_height)
 {
-    return {
-        width:  this.svg_container.getBoundingClientRect().width,
-        height: this.svg_container.getBoundingClientRect().height,
-    };
+    var ratio                   = this.environment_size.width / this.environment_size.height;
+    var image_ratio             = EclipseSimulator.VIEW_BG_IMAGE_W / EclipseSimulator.VIEW_BG_IMAGE_H;
+    var overall_hill_percentage = ref_height / EclipseSimulator.VIEW_BG_IMAGE_H;
+    var hidden_bottom           = 0;
+
+    // Window aspect ratio is greater than image aspect ratio => top/bottom of background image are
+    // cut off
+    if (ratio > image_ratio)
+    {
+        var rel_img_height      = this.environment_size.width / image_ratio;
+        var rel_hill_height     = rel_img_height * (ref_height / EclipseSimulator.VIEW_BG_IMAGE_H);
+        hidden_bottom           = (rel_img_height - this.environment_size.height) / 2;
+        overall_hill_percentage = (rel_hill_height - hidden_bottom) / this.environment_size.height;
+    }
+
+    return Math.max(0, overall_hill_percentage);
 };
 
-EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos, env_size_override = undefined)
+EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos)
 {
-    var env_size = env_size_override === undefined ? this.get_environment_size()
-                                                   : env_size_override;
-
     // This happens early on in initialization
     if (isNaN(pos.r) || isNaN(pos.x) || isNaN(pos.y) || pos.r < 0)
     {
@@ -645,12 +681,12 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
     }
 
     // Adjust radius
-    $(target).attr('r', (env_size.height * pos.r));
+    $(target).attr('r', (this.acting_svg_size.height * pos.r));
 
     // with SVG, (0, 0) is top left corner
-    $(target).attr('cy', (env_size.height * (1 - pos.y)));
+    $(target).attr('cy', (this.acting_svg_size.height * (1 - pos.y)));
 
-    $(target).attr('cx', (env_size.width * pos.x));
+    $(target).attr('cx', this.svg_horizontal_offset + (this.acting_svg_size.width * pos.x));
 
 };
 
@@ -665,35 +701,12 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
     var dist_from_center = Math.sin(altaz - center);
     var half_fov_width   = Math.sin(fov / 2);
 
-    if (this.out_of_view(altaz, center, fov, body_r))
+    if (EclipseSimulator.rad_abs_diff(altaz, center) > (Math.PI / 2))
     {
         return -0.5;
     }
 
     return 0.5 + (0.5 * dist_from_center / half_fov_width);
-};
-
-EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_r)
-{
-    var bound = center + (fov / 2);
-    var dist  = EclipseSimulator.rad_abs_diff(bound, altaz);
-
-    // Body off screen in positive direction
-    if (EclipseSimulator.rad_gt(altaz, bound) && dist > body_r)
-    {
-        return true;
-    }
-
-    bound = center - (fov / 2);
-    dist  = EclipseSimulator.rad_abs_diff(bound, altaz);
-
-    // Body off screen in negative direction
-    if (EclipseSimulator.rad_gt(bound, altaz) && dist > body_r)
-    {
-        return true;
-    }
-
-    return false;
 };
 
 EclipseSimulator.View.prototype.slider_change = function(direction)
@@ -818,7 +831,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.current_fov = this.zoomed_fov;
         var label        = 'zoom_out';
 
-        var new_env_size = this._update_sim_size(true);
+        this._update_sim_size(true);
 
         // Hide the hills/clouds/people/etc
         $(this.background[1]).hide();
@@ -830,7 +843,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         var label        = 'zoom_in';
         var zooming_in   = false;
 
-        var new_env_size = this._update_sim_size(false);
+        this._update_sim_size(false);
 
         // Show the hills/clouds/people/etc
         $(this.background[1]).show();
@@ -841,12 +854,8 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     this.update_slider();
     this.set_play_speed_label();
 
-    // Here we have to override the environment size, as the call to _update_sim_size
-    // does not take immediately - the amount of time it takes in undefined, so to be sure
-    // update_fov and refresh work correctly we must override with the new values.
-    new_env_size.height = new_env_size.svg_h;
-    this.update_fov(new_env_size);
-    this.refresh(new_env_size);
+    this.update_fov();
+    this.refresh();
 };
 
 EclipseSimulator.View.prototype.update_eclipse_info = function(info)
@@ -866,11 +875,9 @@ EclipseSimulator.View.prototype.update_sun_moon_pos = function(sunpos, moonpos)
     this.moonpos.az  = moonpos.az;
 }
 
-EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefined)
+EclipseSimulator.View.prototype.update_fov = function()
 {
-    var env_size  = env_size_override === undefined ? this.get_environment_size()
-                                                    : env_size_override;
-    var ratio         = env_size.width / env_size.height;
+    var ratio         = this.acting_svg_size.width / this.acting_svg_size.height;
     var desired_x     = this._compute_fov_angle_for_screen_aspect_ratio(this.current_fov._y_desired, 1 / ratio);
 
     // Compute reference field of view needed to fit sun path in field of view - X DIRECTION
@@ -884,7 +891,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     d2                  = EclipseSimulator.rad_abs_diff(this.sun_end_pos.alt, this.eclipse_pos.alt);
     diff                = Math.max(d1, d2);
     // Just want to keep the sun in view with this desired_y_ref
-    var desired_y_ref   = (2 * diff) + EclipseSimulator.VIEW_TARGET_FOV_FILL_Y_BUFF;
+    var desired_y_ref   = 2 * diff;
 
     // Window aspect ratio prevents desired y fov. Using the desired y fov, this.current_fov._y
     // would result in an x fov that is greater than the max allowed.
@@ -1095,7 +1102,7 @@ EclipseSimulator.View.prototype._compute_lune_area = function(sun_r, moon_r, sep
 
 EclipseSimulator.View.prototype.is_phone = function()
 {
-    return this.get_environment_size().width < EclipseSimulator.VIEW_PHONE_WMAX;
+    return this.environment_size.width < EclipseSimulator.VIEW_PHONE_WMAX;
 };
 
 EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
@@ -1133,7 +1140,7 @@ EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
 
 EclipseSimulator.View.prototype._map_w = function(include_margin = false)
 {
-    var width = this.get_environment_size().width;
+    var width = this.environment_size.width;
 
     if (this.is_phone())
     {
