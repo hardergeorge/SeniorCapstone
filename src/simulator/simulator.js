@@ -41,6 +41,7 @@ var EclipseSimulator = {
         this.geocoder       = undefined;
         // set default place_id to Corvallis (Used to timezone computation)
         this.place_id = ' ';
+        this.offset = -420; // pacific local offset from UTC in minutes
 
         this.end_of_slider = false;
 
@@ -819,7 +820,8 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
 
 EclipseSimulator.View.prototype.update_slider_labels = function()
 {
-    this.compute_timezone(); // compute the correct timezone
+    console.log("test");
+    this.compute_local_time(); // compute the correct timezone
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
                           * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     var tick_sep_ms     = (slider_range_ms / (this.slider_labels.length - 1));
@@ -837,23 +839,34 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 
 };
 
-EclipseSimulator.View.prototype.compute_timezone = function()
+// Computes the timezone
+EclipseSimulator.View.prototype.compute_offset = function()
 {
+    var view = this;
 
-  // this.place_id corresponds to the location the user sets the simulator to
-  // this is needed to find the utc_offset
-  var request = {
-    placeId: this.place_id
-  };
+    // this.place_id corresponds to the location the user sets the simulator to
+    // this is needed to find the utc_offset
+    var request = {
+      placeId: this.place_id
+    };
 
-  var service = new google.maps.places.PlacesService(this.map);
-  var place_result = service.getDetails(request, callback);
+    var service = new google.maps.places.PlacesService(this.map);
+    var place_result = service.getDetails(request, callback);
 
-  function callback(place, status) {
-    if (status == google.maps.places.PlacesServiceStatus.OK) {
-      console.log(place.utc_offset);
+    function callback(place, status) {
+      if (status == google.maps.places.PlacesServiceStatus.OK) {
+        view.offset = place.utc_offset;
+      }
     }
-  }
+}
+
+EclipseSimulator.View.prototype.compute_local_time = function()
+{
+    this.compute_offset(); // find the UTC offset based on a certain location
+    console.log("OFFSET: " + this.offset);
+
+    var hours_off = -1* (this.offset/60); // get the hours off of utc
+    console.log(hours_off);
 }
 
 EclipseSimulator.View.prototype.toggle_zoom = function()
