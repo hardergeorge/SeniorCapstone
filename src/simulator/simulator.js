@@ -39,6 +39,8 @@ var EclipseSimulator = {
         this.marker         = undefined;
         this.maps_place     = undefined;
         this.geocoder       = undefined;
+        // set default place_id to Corvallis (Used to timezone computation)
+        this.place_id = ' ';
 
         this.end_of_slider = false;
 
@@ -445,6 +447,8 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     return;
                 }
 
+                view.place_id = predictions[0].place_id;
+
                 view.geocoder.geocode({'placeId': predictions[0].place_id}, function(results, status) {
                     if (status === 'OK') {
                         if (results[0].formatted_address.includes('USA')) {
@@ -488,6 +492,8 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             return;
         } else {
 
+            view.place_id = view.maps_place.place_id;
+
             // If the place has a geometry, then present it on a map.
             if (view.maps_place.geometry.viewport != undefined) {
                 view.map.fitBounds(view.maps_place.geometry.viewport);
@@ -513,11 +519,14 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
         view.geocoder.geocode({'location': latlng}, function(results, status) {
             if (status === 'OK') {
+
                 if (results[1].formatted_address.includes('USA')) {
 
                     view.marker.setVisible(false);
 
                     // Update location name
+                    view.place_id = results[1].place_id;
+
                     view.name = results[1].formatted_address;
                     view.search_input.value = results[1].formatted_address;
 
@@ -604,6 +613,7 @@ EclipseSimulator.View.prototype.show = function()
 
 EclipseSimulator.View.prototype.refresh = function()
 {
+
     if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
     {
         var az_center  = this.sunpos.az;
@@ -648,6 +658,7 @@ EclipseSimulator.View.prototype.refresh = function()
     // Update background and moon lightness
     this.update_bg_lightness(p, rgba_str);
     this.update_moon_lightness(rgba_str);
+
 };
 
 // Computes percentage of frame (in the y direction) that is occupied by an object
@@ -808,6 +819,7 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
 
 EclipseSimulator.View.prototype.update_slider_labels = function()
 {
+    this.compute_timezone(); // compute the correct timezone
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
                           * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     var tick_sep_ms     = (slider_range_ms / (this.slider_labels.length - 1));
@@ -819,10 +831,30 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
         var mins = "" + date.getMinutes();
         mins     = mins.length == 1 ? "0" + mins : mins;
 
-        $(this.slider_labels[i]).text(date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+        $(this.slider_labels[i]).text(date.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'}));
         date.setTime(date.getTime() + tick_sep_ms);
     }
+
 };
+
+EclipseSimulator.View.prototype.compute_timezone = function()
+{
+
+  // this.place_id corresponds to the location the user sets the simulator to
+  // this is needed to find the utc_offset
+  var request = {
+    placeId: this.place_id
+  };
+
+  var service = new google.maps.places.PlacesService(this.map);
+  var place_result = service.getDetails(request, callback);
+
+  function callback(place, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      console.log(place.utc_offset);
+    }
+  }
+}
 
 EclipseSimulator.View.prototype.toggle_zoom = function()
 {
