@@ -110,7 +110,7 @@ var EclipseSimulator = {
             alt: 0,
             az:  0,
         };
-        this.sun_moon_position_ratios = {
+        this.sun_pos_ratios = {
             x: {
                 start: 0,
                 end:   0,
@@ -964,7 +964,7 @@ EclipseSimulator.View.prototype.update_fov = function()
     this.current_fov._y_ref = this._compute_fov_angle_for_screen_aspect_ratio(desired_x_ref, ratio);
 
     // Update sun/moon position ratios
-    this.sun_moon_position_ratios = {
+    this.sun_pos_ratios = {
         x: {
             start: this._compute_offset_ratio(this.eclipse_pos.az, this.sun_beg_pos.az, this.current_fov._x_ref),
             end:   this._compute_offset_ratio(this.eclipse_pos.az, this.sun_end_pos.az, this.current_fov._x_ref),
@@ -1338,8 +1338,8 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
     var time_ratio = (this.current_time.getTime() - this.eclipse_time.getTime()) / max_time_offset_ms;
 
     return {
-        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, this.sun_moon_position_ratios.x) * this.current_fov.x),
-        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, this.sun_moon_position_ratios.y) * this.current_fov.y),
+        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, this.sun_pos_ratios.x) * this.current_fov.x),
+        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, this.sun_pos_ratios.y) * this.current_fov.y),
     };
 };
 
