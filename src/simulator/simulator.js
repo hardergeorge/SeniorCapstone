@@ -857,8 +857,6 @@ EclipseSimulator.View.prototype.compute_local_time = function()
       placeId: this.place_id
     };
 
-    console.log(request);
-
     var service = new google.maps.places.PlacesService(this.map);
     var place_result = service.getDetails(request, callback);
 
