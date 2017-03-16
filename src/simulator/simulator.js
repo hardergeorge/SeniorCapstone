@@ -40,7 +40,7 @@ var EclipseSimulator = {
         this.maps_place     = undefined;
         this.geocoder       = undefined;
         // set default place_id to Corvallis (Used to timezone computation)
-        this.place_id = ' ';
+        this.place_id = 'ChIJfdcUqp1AwFQRvsC9Io-ADdc';
         this.offset = -420; // pacific local offset from UTC in minutes
 
         this.end_of_slider = false;
@@ -820,8 +820,12 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
 
 EclipseSimulator.View.prototype.update_slider_labels = function()
 {
-    console.log("test");
-    this.compute_local_time(); // compute the correct timezone
+    this.compute_local_time();
+
+    // Convert UTC offset in minutes to hours
+    var hour_offset = this.offset/60;
+    var local_hour;
+
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
                           * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     var tick_sep_ms     = (slider_range_ms / (this.slider_labels.length - 1));
@@ -833,14 +837,17 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
         var mins = "" + date.getMinutes();
         mins     = mins.length == 1 ? "0" + mins : mins;
 
-        $(this.slider_labels[i]).text(date.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'}));
+        // compute local hour relative to UTC time
+        local_hour = date.getUTCHours() + hour_offset;
+
+        $(this.slider_labels[i]).text(local_hour + ":" + mins);
         date.setTime(date.getTime() + tick_sep_ms);
     }
 
 };
 
-// Computes the timezone
-EclipseSimulator.View.prototype.compute_offset = function()
+
+EclipseSimulator.View.prototype.compute_local_time = function()
 {
     var view = this;
 
@@ -850,23 +857,17 @@ EclipseSimulator.View.prototype.compute_offset = function()
       placeId: this.place_id
     };
 
+    console.log(request);
+
     var service = new google.maps.places.PlacesService(this.map);
     var place_result = service.getDetails(request, callback);
 
     function callback(place, status) {
       if (status == google.maps.places.PlacesServiceStatus.OK) {
         view.offset = place.utc_offset;
+        console.log("UTC Offset: " + view.offset);
       }
     }
-}
-
-EclipseSimulator.View.prototype.compute_local_time = function()
-{
-    this.compute_offset(); // find the UTC offset based on a certain location
-    console.log("OFFSET: " + this.offset);
-
-    var hours_off = -1* (this.offset/60); // get the hours off of utc
-    console.log(hours_off);
 }
 
 EclipseSimulator.View.prototype.toggle_zoom = function()
@@ -1042,6 +1043,7 @@ EclipseSimulator.View.prototype.update_slider = function()
 {
     var slider_minmax = EclipseSimulator.VIEW_SLIDER_NSTEPS
                         * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] / 2;
+
 
     // If the current slider position is out of bounds, reset the time to eclipse time
     if (this.slider.value > slider_minmax || this.slider.value < -slider_minmax)
