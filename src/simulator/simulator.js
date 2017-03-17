@@ -572,6 +572,8 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             view.update_slider_labels();
                         }
                     }
+
+
                 } else {
                     view.display_error_to_user("Simulator is restricted to the United States");
                     return;
@@ -854,9 +856,10 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 {
     // Convert UTC offset in minutes to hours
     var hour_offset = this.offset/60;
-    console.log(this.eclipse_time.getTime());
+    var milis = this.offset * 60 * 1000;
 
     var local_hour;
+    var am_pm_string;
 
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
                           * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
@@ -870,11 +873,18 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
         mins     = mins.length == 1 ? "0" + mins : mins;
 
         // compute local hour relative to UTC time
-        local_hour = date.getUTCHours() + hour_offset;
+        local_hour = (date.getUTCHours() + hour_offset + 11) % 12 + 1;
 
-        console.log("LOCAL: " + local_hour);
+        if(date.getUTCHours() + hour_offset >= 12){
+            am_pm_string = "PM";
+        }
+        else{
+            am_pm_string = "AM";
+        }
 
-        $(this.slider_labels[i]).text(local_hour + ":" + mins);
+        var label_string = local_hour + ":" + mins + " " + am_pm_string;
+
+        $(this.slider_labels[i]).text(label_string);
         date.setTime(date.getTime() + tick_sep_ms);
     }
 
