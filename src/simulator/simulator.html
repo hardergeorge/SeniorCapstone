@@ -65,7 +65,10 @@
             margin-left: 0;
         }
         .floating-bar.bottom .slider-labels div {
-            margin-left: calc(25% - 11px);
+            margin-left: calc(50% - 96px);
+        }
+        .floating-bar.bottom .slider-labels.even div {
+            display: none;
         }
     }
     @media screen and (min-width: 600px) {
@@ -173,9 +176,9 @@
 
                     <div class="slider-labels">
                         <div id="slabel1" style="margin-left: 0px;"></div>
-                        <div id="slabel2"></div>
+                        <div id="slabel2" class="even"></div>
                         <div id="slabel3"></div>
-                        <div id="slabel4"></div>
+                        <div id="slabel4" class="even"></div>
                         <div id="slabel5"></div>
                     </div>
                 </div>
