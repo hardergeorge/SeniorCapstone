@@ -856,7 +856,6 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 {
     // Convert UTC offset in minutes to hours
     var hour_offset = this.offset/60;
-    var milis = this.offset * 60 * 1000;
 
     var local_hour;
     var am_pm_string;
@@ -1080,8 +1079,6 @@ EclipseSimulator.View.prototype.update_slider = function()
     {
         this.slider.MaterialSlider.boundChangeHandler();
     }
-
-    //this.update_slider_labels();
 };
 
 // Compute the percent of the eclipse
