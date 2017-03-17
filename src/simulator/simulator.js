@@ -110,7 +110,7 @@ var EclipseSimulator = {
             alt: 0,
             az:  0,
         };
-        this.sun_pos_ratios = {
+        this.sun_moon_position_ratios = {
             x: {
                 start: 0,
                 end:   0,
@@ -448,8 +448,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     return;
                 }
 
-                view.place_id = predictions[0].place_id;
-
                 view.geocoder.geocode({'placeId': predictions[0].place_id}, function(results, status) {
                     if (status === 'OK') {
                         if (results[0].formatted_address.includes('USA')) {
@@ -477,7 +475,23 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             // Update location name
                             view.name = view.maps_place;
 
+                            var request = {
+                                placeId: predictions[0].place_id
+                            };
+
                             $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
+
+                            var service = new google.maps.places.PlacesService(view.map);
+                            service.getDetails(request, callback);
+
+                            function callback(place, status) {
+                                if (status == google.maps.places.PlacesServiceStatus.OK) {
+                                    view.offset = place.utc_offset;
+                                    view.update_slider_labels();
+                                }
+                            }
+
+
 
                         } else {
                             view.display_error_to_user("Simulator is restricted to the United States");
@@ -493,7 +507,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             return;
         } else {
 
-            view.place_id = view.maps_place.place_id;
+            view.offset = view.maps_place.utc_offset
 
             // If the place has a geometry, then present it on a map.
             if (view.maps_place.geometry.viewport != undefined) {
@@ -508,7 +522,9 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
             // Update location name
             view.name = view.maps_place.formatted_address;
+
             $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
+            view.update_slider_labels();
         }
     });
 
@@ -525,8 +541,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
                     view.marker.setVisible(false);
 
-                    // Update location name
-                    view.place_id = results[1].place_id;
 
                     view.name = results[1].formatted_address;
                     view.search_input.value = results[1].formatted_address;
@@ -543,8 +557,21 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     // Update location name
                     view.name = view.maps_place;
 
+                    var request = {
+                        placeId: results[1].place_id
+                    };
+
                     $(view).trigger('EclipseView_location_updated', view.maps_place);
 
+                    var service = new google.maps.places.PlacesService(view.map);
+                    service.getDetails(request, callback);
+
+                    function callback(place, status) {
+                        if (status == google.maps.places.PlacesServiceStatus.OK) {
+                            view.offset = place.utc_offset;
+                            view.update_slider_labels();
+                        }
+                    }
                 } else {
                     view.display_error_to_user("Simulator is restricted to the United States");
                     return;
@@ -791,12 +818,17 @@ EclipseSimulator.View.prototype.toggle_loading = function()
     $(this.loading).toggle();
 };
 
+// resets the slider to the start
 EclipseSimulator.View.prototype.reset_controls = function()
 {
+    // compute the minimum slider value
+    var min_slider_val = (-1) * EclipseSimulator.VIEW_SLIDER_NSTEPS
+        * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] / 2;
+
     // Need this check in case MDL has not finished initializing
     if (this.slider.MaterialSlider !== undefined)
     {
-        this.slider.MaterialSlider.change(0);
+        this.slider.MaterialSlider.change(min_slider_val);
     }
 };
 
@@ -820,10 +852,10 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
 
 EclipseSimulator.View.prototype.update_slider_labels = function()
 {
-    this.compute_local_time();
-
     // Convert UTC offset in minutes to hours
     var hour_offset = this.offset/60;
+    console.log(this.eclipse_time.getTime());
+
     var local_hour;
 
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
@@ -840,33 +872,13 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
         // compute local hour relative to UTC time
         local_hour = date.getUTCHours() + hour_offset;
 
+        console.log("LOCAL: " + local_hour);
+
         $(this.slider_labels[i]).text(local_hour + ":" + mins);
         date.setTime(date.getTime() + tick_sep_ms);
     }
 
 };
-
-
-EclipseSimulator.View.prototype.compute_local_time = function()
-{
-    var view = this;
-
-    // this.place_id corresponds to the location the user sets the simulator to
-    // this is needed to find the utc_offset
-    var request = {
-      placeId: this.place_id
-    };
-
-    var service = new google.maps.places.PlacesService(this.map);
-    var place_result = service.getDetails(request, callback);
-
-    function callback(place, status) {
-      if (status == google.maps.places.PlacesServiceStatus.OK) {
-        view.offset = place.utc_offset;
-        console.log("UTC Offset: " + view.offset);
-      }
-    }
-}
 
 EclipseSimulator.View.prototype.toggle_zoom = function()
 {
@@ -964,7 +976,7 @@ EclipseSimulator.View.prototype.update_fov = function()
     this.current_fov._y_ref = this._compute_fov_angle_for_screen_aspect_ratio(desired_x_ref, ratio);
 
     // Update sun/moon position ratios
-    this.sun_pos_ratios = {
+    this.sun_moon_position_ratios = {
         x: {
             start: this._compute_offset_ratio(this.eclipse_pos.az, this.sun_beg_pos.az, this.current_fov._x_ref),
             end:   this._compute_offset_ratio(this.eclipse_pos.az, this.sun_end_pos.az, this.current_fov._x_ref),
@@ -1042,7 +1054,6 @@ EclipseSimulator.View.prototype.update_slider = function()
     var slider_minmax = EclipseSimulator.VIEW_SLIDER_NSTEPS
                         * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] / 2;
 
-
     // If the current slider position is out of bounds, reset the time to eclipse time
     if (this.slider.value > slider_minmax || this.slider.value < -slider_minmax)
     {
@@ -1060,7 +1071,7 @@ EclipseSimulator.View.prototype.update_slider = function()
         this.slider.MaterialSlider.boundChangeHandler();
     }
 
-    this.update_slider_labels();
+    //this.update_slider_labels();
 };
 
 // Compute the percent of the eclipse
@@ -1338,8 +1349,8 @@ EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
     var time_ratio = (this.current_time.getTime() - this.eclipse_time.getTime()) / max_time_offset_ms;
 
     return {
-        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, this.sun_pos_ratios.x) * this.current_fov.x),
-        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, this.sun_pos_ratios.y) * this.current_fov.y),
+        az:  this.sunpos.az  + (this._wide_fov_tracking_poly(time_ratio, this.sun_moon_position_ratios.x) * this.current_fov.x),
+        alt: this.sunpos.alt + (this._wide_fov_tracking_poly(time_ratio, this.sun_moon_position_ratios.y) * this.current_fov.y),
     };
 };
 
@@ -1441,10 +1452,20 @@ EclipseSimulator.Controller.prototype.init = function()
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
         // a partially rendered view to start (e.g. height not set, etc). This only needs
         // to be shown once, so we do it manually
+        controller.view.update_slider_labels();
         controller.view.show();
 
+        var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
+            EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
 
-        controller.update_simulator_time_with_offset(0);
+        // set simulator to start from the beginning
+        controller.update_simulator_time_with_offset(0 - max_time_offset_ms);
+
+        var min_slider_val = (-1) * EclipseSimulator.VIEW_SLIDER_NSTEPS
+            * EclipseSimulator.VIEW_SLIDER_STEP_MIN[controller.view.zoom_level] / 2;
+
+        // set slider to beginning
+        controller.view.slider.value = min_slider_val;
 
         // Hide loading view - this starts out visible
         controller.view.toggle_loading();
@@ -1452,6 +1473,7 @@ EclipseSimulator.Controller.prototype.init = function()
         // Signal that initilization is complete, as this function completes asynchronously
         $(controller).trigger('EclipseController_init_complete');
     }, 1);
+
 };
 
 // Handler for when the slider gets changed
@@ -1483,6 +1505,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
             + '\nM(alt: ' + pos.moon.alt + ' az: ' + pos.moon.az + ')'
         );
     }
+
 };
 
 EclipseSimulator.Controller.prototype.update_simulator_location = function(location = undefined)
@@ -1495,11 +1518,18 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
         };
     }
 
+    // compute the max time to be displayed on simulator
+    var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
+        EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
+
     // This will set the model's eclipse_time attribute
     var res = this.model.compute_eclipse_time_and_pos();
+    //this.view.eclipse_time = res.getTime();
 
     // Set model displayed date to eclipse time
-    this.model.date.setTime(res.time.getTime());
+    this.model.date.setTime(res.time.getTime() - max_time_offset_ms);
+
+    //this.update_simulator_time_with_offset(0 - max_time_offset_ms);
 
     // Get new position of sun/moon
     var pos  = this.model.get_sun_moon_position();
@@ -1507,9 +1537,11 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     // Update the view
     this.view.update_sun_moon_pos(pos.sun, pos.moon);
     this.view.update_eclipse_info(res);
-    this.view.current_time.setTime(res.time.getTime());
+    this.view.current_time.setTime(res.time.getTime() - max_time_offset_ms);
     this.view.reset_controls();
     this.view.update_slider();
+
+
 
     // Set the view slider bound sun positions
     var times     = this.view._get_slider_bound_times();
