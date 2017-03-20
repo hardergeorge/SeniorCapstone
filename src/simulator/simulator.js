@@ -408,6 +408,13 @@ EclipseSimulator.View.prototype.init = function()
 
 EclipseSimulator.View.prototype.initialize_location_entry = function()
 {
+    function callback(place, status) {
+        if (status == google.maps.places.PlacesServiceStatus.OK) {
+            view.offset = place.utc_offset;
+            view.update_slider_labels();
+        }
+    }
+
     var view = this;
 
     var autocomplete_options = {
@@ -484,15 +491,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             var service = new google.maps.places.PlacesService(view.map);
                             service.getDetails(request, callback);
 
-                            function callback(place, status) {
-                                if (status == google.maps.places.PlacesServiceStatus.OK) {
-                                    view.offset = place.utc_offset;
-                                    view.update_slider_labels();
-                                }
-                            }
-
-
-
                         } else {
                             view.display_error_to_user("Simulator is restricted to the United States");
                             return;
@@ -565,14 +563,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
                     var service = new google.maps.places.PlacesService(view.map);
                     service.getDetails(request, callback);
-
-                    function callback(place, status) {
-                        if (status == google.maps.places.PlacesServiceStatus.OK) {
-                            view.offset = place.utc_offset;
-                            view.update_slider_labels();
-                        }
-                    }
-
 
                 } else {
                     view.display_error_to_user("Simulator is restricted to the United States");
