@@ -46,8 +46,8 @@ var EclipseSimulator = {
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.5 * Math.PI / 180, apparant_r: 0.62 * Math.PI / 180};
-        this.moonpos = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: 0.25 * Math.PI / 180, apparant_r: 0.34 * Math.PI / 180};
+        this.moonpos = {x: 0, y: 0, r: 0.25 * Math.PI / 180};
 
         // Wide field of view in radians
         this.wide_fov = {
@@ -59,7 +59,7 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y_desired: 13 * Math.PI / 180,
+            _y_desired: 8 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
@@ -923,12 +923,13 @@ EclipseSimulator.View.prototype.update_eclipse_info = function(info)
     this.eclipse_time.setTime(info.time.getTime());
 };
 
-EclipseSimulator.View.prototype.update_sun_moon_pos = function(sunpos, moonpos)
+EclipseSimulator.View.prototype.update_sun_moon_pos = function(pos)
 {
-    this.sunpos.alt  = sunpos.alt;
-    this.sunpos.az   = sunpos.az;
-    this.moonpos.alt = moonpos.alt;
-    this.moonpos.az  = moonpos.az;
+    this.sunpos.alt  = pos.sun.alt;
+    this.sunpos.az   = pos.sun.az;
+    this.moonpos.alt = pos.moon.alt;
+    this.moonpos.az  = pos.moon.az;
+    this.moonpos.r   = pos.moon.r;
 }
 
 EclipseSimulator.View.prototype.update_fov = function()
@@ -1489,7 +1490,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     var pos  = this.model.get_sun_moon_position();
 
     // Update the view
-    this.view.update_sun_moon_pos(pos.sun, pos.moon);
+    this.view.update_sun_moon_pos(pos);
     this.view.refresh();
 
     if (EclipseSimulator.DEBUG)
@@ -1532,7 +1533,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     var pos  = this.model.get_sun_moon_position();
 
     // Update the view
-    this.view.update_sun_moon_pos(pos.sun, pos.moon);
+    this.view.update_sun_moon_pos(pos);
     this.view.update_eclipse_info(res);
     this.view.current_time.setTime(res.time.getTime() - max_time_offset_ms);
     this.view.reset_controls();
@@ -1634,9 +1635,20 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
     var julian_date = new A.JulianDay(date);
     var coords      = A.EclCoord.fromWgs84(this.coords.lat, this.coords.lng, undefined);
 
+    var sun = A.Solar.topocentricPosition(julian_date, coords, false);
+    var moon = A.Moon.topocentricPosition(julian_date, coords, false);
+
+    // Compute moon angular radius
+    var dist = moon.delta - A.Globe.Er;
+    var angular_r = Math.atan(3474 / dist) / 2;
+
     return {
-        sun: A.Solar.topocentricPosition(julian_date, coords, true).hz,
-        moon: A.Moon.topocentricPosition(julian_date, coords, true).hz,
+        sun: sun.hz,
+        moon: {
+            alt: moon.hz.alt,
+            az:  moon.hz.az,
+            r:   angular_r,
+        },
     };
 };
 
