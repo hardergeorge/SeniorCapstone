@@ -43,15 +43,22 @@
     .floating-bar.bottom .inner {
         bottom: 10px;
     }
+    .floating-bar.bottom .mdl-button {
+        margin-left: 0;
+        font-weight: 400;
+    }
     .floating-bar .mdl-button, .floating-bar.top .map-container {
         margin-left: 8px;
         float: left;
+    }
+    .floating-bar .mdl-button.blue {
+        color: #4285F4;
     }
     .slider-container {
         float: left;
         margin-top: 20px
     }
-    @media screen and (max-width: 599px) {
+    @media screen and (max-width: 749px) {
         .floating-bar .map-container {
             position: relative;
             margin-top: 10px;
@@ -71,7 +78,7 @@
             display: none;
         }
     }
-    @media screen and (min-width: 600px) {
+    @media screen and (min-width: 750px) {
         .floating-bar.top .mdl-button.map-open {
             margin-top: 4px;
         }
@@ -101,13 +108,25 @@
     .mdl-button, .mdl-button:focus, .mdl-button:hover, .mdl-button--raised.mdl-button--colored {
         background-color: #fff;
     }
+    .slider-container .mdl-slider__background-lower {
+        background-color: #4285F4;
+    }
+    .slider-container input[type=range]::-webkit-slider-thumb {
+        background: #4285F4;
+    }
+    .slider-container input[type=range]::-moz-range-thumb {
+        background: #4285F4;
+    }
+    .slider-container input[type=range]::-ms-thumb {
+        background: #4285F4;
+    }
     .slider-labels {
         width: calc(100% - 10px);
         height: 30px;
         margin-left: 5px;
         margin-top: 5px;
         text-align: center;
-        color: #333;
+        color: #d8d8d8;
     }
     .slider-labels div {
         height: 20px;
@@ -136,7 +155,7 @@
         background-position: center;
     }
     .background.sky {
-        background-color: #b5e3f8;
+        background-color: #8cd2dd;
     }
 </style>
 </head>
@@ -152,14 +171,23 @@
             <div id="controls" class="control-bar mdl-shadow--2dp">
 
                 <!-- Play button -->
-                <button class="mdl-button mdl-js-button"
-                        id="play">
-                    <i class="material-icons">play_circle_outline</i>
+                <button class="mdl-button blue mdl-js-button" id="play">
+                    <i class="material-icons">play_arrow</i>
+                </button>
+
+                <!-- Time down button -->
+                <button class="mdl-button blue mdl-js-button" id="downbutton">
+                    <i class="material-icons">replay_30</i>
+                </button>
+
+                <!-- Time up button -->
+                <button class="mdl-button blue mdl-js-button" id ="upbutton">
+                    <i class="material-icons">forward_30</i>
                 </button>
 
                 <!-- Right aligned menu below button -->
-                <button id="speed-menu-button"
-                        class="mdl-button mdl-js-button mdl-button--icon">
+                <button id="speed-menu-button" class="mdl-button mdl-js-button">
+                    <span>1000X</span>
                     <i class="material-icons">arrow_drop_down</i>
                 </button>
 
@@ -174,6 +202,10 @@
                     <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
                     <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
 
+                    <div class="mdl-tooltip mdl-tooltip--top" data-mdl-for="s">
+                        Upload <strong>file.zip</strong>
+                    </div>
+
                     <div class="slider-labels">
                         <div id="slabel1" style="margin-left: 0px;"></div>
                         <div id="slabel2" class="even"></div>
@@ -182,17 +214,6 @@
                         <div id="slabel5"></div>
                     </div>
                 </div>
-
-                <!-- Time down button -->
-                <button class="mdl-button mdl-js-button" id="downbutton">
-                    <i class="material-icons">skip_previous</i>
-                </button>
-
-
-                <!-- Time up button -->
-                <button class="mdl-button mdl-js-button" id ="upbutton">
-                    <i class="material-icons">skip_next</i>
-                </button>
 
             </div>
         </div>
@@ -221,11 +242,11 @@
 
             <div id="map-canvas" class="mdl-shadow--2dp map-container"></div>
 
-            <button class="mdl-button mdl-js-button mdl-button--fab" id="mapbutton">
+            <button class="mdl-button blue mdl-js-button mdl-button--fab" id="mapbutton">
                 <i class="material-icons">map</i>
             </button>
 
-            <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
+            <button class="mdl-button blue mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
                 <i class="material-icons">zoom_in</i>
             </button>
         </div>

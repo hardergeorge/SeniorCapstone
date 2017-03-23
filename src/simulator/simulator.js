@@ -3,7 +3,7 @@
 // EclipseSimulator namespace
 var EclipseSimulator = {
 
-    DEBUG: true,
+    DEBUG: false,
 
     View: function(location)
     {
@@ -19,8 +19,8 @@ var EclipseSimulator = {
         this.mapbutton      = $('#mapbutton').get(0);
         this.speed_btn_slow = $('#speed-button-slow').get(0);
         this.speed_btn_fast = $('#speed-button-fast').get(0);
-        this.speed_selector = $('#speed-menu').get(0);
-        this.speeddropdown  = $('#speed-menu-button').get(0);
+        this.speed_menu     = $('#speed-menu').get(0);
+        this.speed_sel_btn  = $('#speed-menu-button').get(0);
         this.zoombutton     = $('#zoom').get(0);
         this.playbutton     = $('#play').get(0);
         this.slider         = $('#tslider').get(0);
@@ -79,7 +79,7 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y_desired: 10 * Math.PI / 180,
+            _y_desired: 5 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
@@ -238,8 +238,8 @@ var EclipseSimulator = {
     VIEW_ZOOM_ZOOM: 'zoom',
 
     VIEW_SLIDER_STEP_MIN: {
-        zoom: 0.3,
-        wide: 0.3,
+        zoom: .25,
+        wide: .25,
     },
 
     VIEW_BG_IMAGE_W:             1397,
@@ -249,7 +249,7 @@ var EclipseSimulator = {
 
     VIEW_ACTING_SVG_MAX_ASPECT_RATIO: 1.5,
 
-    VIEW_PHONE_WMAX: 600,
+    VIEW_PHONE_DISP_W_MAX: 750,
 
     VIEW_MAP_MAX_W: 800,
 
@@ -258,7 +258,7 @@ var EclipseSimulator = {
     VIEW_MAP_TOTALITY_LNG: [-171.748, -164.505, -156.937, -152.105, -148.257, -144.965, -142.047, -139.4, -136.963, -134.695, -132.568, -130.56, -128.655, -126.84, -125.105, -123.442, -121.843, -120.305, -118.82, -117.385, -115.997, -114.65, -113.345, -112.077, -110.842, -109.642, -108.472, -107.332, -106.218, -105.132, -104.07, -103.032, -102.015, -101.02, -100.043, -99.087, -98.148, -97.227, -96.322, -95.432, -94.555, -93.693, -92.843, -92.007, -91.182, -90.367, -89.562, -88.767, -87.98, -87.202, -86.432, -85.667, -84.91, -84.157, -83.41, -82.667, -81.927, -81.19, -80.457, -79.723, -78.992, -78.26, -77.528, -76.795, -76.06, -75.323, -74.582, -73.835, -73.083, -72.325, -71.56, -70.785, -70.002, -69.205, -68.398, -67.575, -66.737, -65.88, -65.003, -64.103, -63.178, -62.225, -61.24, -60.218, -59.155, -58.045, -56.88, -55.652, -54.35, -52.958, -51.46, -49.828, -48.023, -45.99, -43.627, -40.74, -36.81, -27.332, -27.552, -38.467, -42.078, -44.827, -47.108, -49.09, -50.857, -52.46, -53.935, -55.308, -56.595, -57.808, -58.962, -60.062, -61.117, -62.128, -63.107, -64.052, -64.97, -65.862, -66.732, -67.582, -68.413, -69.23, -70.032, -70.82, -71.597, -72.365, -73.123, -73.873, -74.617, -75.355, -76.088, -76.817, -77.543, -78.267, -78.988, -79.71, -80.432, -81.153, -81.875, -82.6, -83.327, -84.058, -84.792, -85.53, -86.273, -87.023, -87.778, -88.542, -89.31, -90.088, -90.875, -91.672, -92.477, -93.293, -94.122, -94.963, -95.817, -96.683, -97.565, -98.462, -99.373, -100.303, -101.252, -102.218, -103.205, -104.213, -105.243, -106.298, -107.377, -108.483, -109.617, -110.78, -111.975, -113.203, -114.468, -115.772, -117.117, -118.507, -119.943, -121.433, -122.982, -124.592, -126.27, -128.027, -129.87, -131.813, -133.87, -136.062, -138.413, -140.963, -143.765, -146.908, -150.548, -155.018, -161.407, -171.433],
 
     VIEW_BG_COLOR_NIGHT:   [0,   0,   0],
-    VIEW_BG_COLOR_DAY:     [181, 227, 248],
+    VIEW_BG_COLOR_DAY:     [140, 210, 221],
     VIEW_MOON_OPACITY:     0.65,
     VIEW_BG_IMG_MAX_GRAY:  0.75,
 
@@ -299,8 +299,8 @@ var EclipseSimulator = {
     ECLIPSE_WCOAST_HOUR: 16,
 
     PLAY_PAUSE_BUTTON: {
-        true: 'play_circle_outline',
-        false: 'pause_circle_outline',
+        true:  'play_arrow',
+        false: 'pause',
     },
 
 };
@@ -322,23 +322,43 @@ EclipseSimulator.View.prototype.init = function()
     // refresh function callback this refers to the window object
     var view = this;
 
-    //This makes the sun move along with the slider
-    //A step toward calculating and displaying the sun and moon at a specific time based on the slider
+    // This makes the sun move along with the slider
+    // A step toward calculating and displaying the sun and moon at a specific time based on the slider
     $(this.slider).on('input', function() {
         view.playing = false;
         view.slider_change();
     });
 
-    //Increments the slider on a click
+    // Increments the slider on a click
     $(this.upbutton).click(function() {
         view.playing = false;
         view.slider_change('up');
     });
 
-    //Decrements the slider on a click
+    // Decrements the slider on a click
     $(this.downbutton).click(function() {
         view.playing = false;
         view.slider_change('down');
+    });
+
+    // Keyboard bindings
+    $(document).keydown(function(e) {
+        switch(e.which) {
+        // space bar
+        case 32:
+            $(view.playbutton).click();
+            break;
+        // left arrow key
+        case 37:
+            $(view.downbutton).click();
+            break;
+        // right arrow key
+        case 39:
+            $(view.upbutton).click();
+            break;
+        default:
+                return;
+        }
     });
 
     $(this.zoombutton).click(function() {
@@ -350,7 +370,7 @@ EclipseSimulator.View.prototype.init = function()
         // If the slider is at the very end of the time range and the user hits
         // the play button again. It will restart the playing of the simulation
         // from the beginning.
-        if(view.end_of_slider)
+        if (view.end_of_slider)
         {
           // Restart the slider at the beginning
           view.slider.value = (-1) * EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
@@ -362,7 +382,7 @@ EclipseSimulator.View.prototype.init = function()
     });
 
     //toggle's the view play speed and disables the menu option for the current speed
-    $(this.speed_selector).click(function() {
+    $(this.speed_menu).click(function(e) {
         if (view.play_speed == EclipseSimulator.VIEW_PLAY_SPEED_SLOW)
         {
             view.play_speed = EclipseSimulator.VIEW_PLAY_SPEED_FAST;
@@ -375,6 +395,7 @@ EclipseSimulator.View.prototype.init = function()
             $(view.speed_btn_fast).attr('disabled', false);
             $(view.speed_btn_slow).attr('disabled', true);
         }
+        $(view.speed_sel_btn).find('span').text($(e.target).text());
     });
 
     // Hide the map when the view initializes
@@ -743,25 +764,31 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
 
 EclipseSimulator.View.prototype.slider_change = function(direction)
 {
-    var current = parseFloat(this.slider.value);
-    var offset  = 0;
+    var current    = parseFloat(this.slider.value);
+    var offset     = 0;
     var max_offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
                      * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
 
-    if(this.slider.value >= max_offset) this.end_of_slider = true;
-
     if (direction === 'up')
     {
-        offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
+        offset = 2 * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     }
     else if (direction === 'down')
     {
-        offset = -EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
+        offset = (-1) * 2 * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
+    }
+    var new_val = current + offset;
+
+    if (new_val <= max_offset && new_val >= (-max_offset))
+    {
+        this.slider.MaterialSlider.change(new_val);
+        $(this).trigger('EclipseView_time_updated', new_val);
     }
 
-    var new_val = current + offset;
-    this.slider.MaterialSlider.change(new_val);
-    $(this).trigger('EclipseView_time_updated', new_val);
+    if (new_val >= max_offset || new_val <= (-max_offset))
+    {
+        this.end_of_slider = true;
+    }
 };
 
 
@@ -1157,7 +1184,7 @@ EclipseSimulator.View.prototype._compute_lune_area = function(sun_r, moon_r, sep
 
 EclipseSimulator.View.prototype.is_phone = function()
 {
-    return this.environment_size.width < EclipseSimulator.VIEW_PHONE_WMAX;
+    return this.environment_size.width < EclipseSimulator.VIEW_PHONE_DISP_W_MAX;
 };
 
 EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
@@ -1229,7 +1256,7 @@ EclipseSimulator.View.prototype._adjust_size_based_control_ui = function()
 {
     if (this.is_phone())
     {
-        $(this.speeddropdown).hide();
+        $(this.speed_sel_btn).hide();
         $(this.upbutton).hide();
         $(this.downbutton).hide();
 
@@ -1243,7 +1270,7 @@ EclipseSimulator.View.prototype._adjust_size_based_control_ui = function()
     else
     {
         $(this.slider_labels).show();
-        $(this.speeddropdown).show();
+        $(this.speed_sel_btn).show();
         $(this.upbutton).show();
         $(this.downbutton).show();
     }
@@ -1526,8 +1553,6 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
     // Set model displayed date to eclipse time
     this.model.date.setTime(res.time.getTime() - max_time_offset_ms);
-
-    //this.update_simulator_time_with_offset(0 - max_time_offset_ms);
 
     // Get new position of sun/moon
     var pos  = this.model.get_sun_moon_position();
