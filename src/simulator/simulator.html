@@ -111,14 +111,23 @@
     .slider-container .mdl-slider__background-lower {
         background-color: #4285F4;
     }
-    .slider-container input[type=range]::-webkit-slider-thumb {
-        background: #4285F4;
+    .slider-container .mdl-slider__background-upper {
+        background-color: #d8d8d8;
     }
-    .slider-container input[type=range]::-moz-range-thumb {
+    /* Chrome */
+    .slider-container input[type=range]::-webkit-slider-thumb, .slider-container input[type=range]:focus::-webkit-slider-thumb, .slider-container input[type=range].is-lowest-value::-webkit-slider-thumb {
         background: #4285F4;
+        border: none;
     }
-    .slider-container input[type=range]::-ms-thumb {
+    /* Firefox */
+    .slider-container input[type=range]::-moz-range-thumb, .slider-container input[type=range]:focus::-moz-range-thumb, .slider-container input[type=range].is-lowest-value::-moz-range-thumb {
         background: #4285F4;
+        border: none;
+    }
+    /* IE */
+    .slider-container input[type=range]::-ms-thumb, .slider-container input[type=range]:focus::-ms-thumb, .slider-container input[type=range].is-lowest-value::-ms-thumb {
+        background: #4285F4;
+        border: none;
     }
     .slider-labels {
         width: calc(100% - 10px);
