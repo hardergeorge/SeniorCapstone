@@ -1,5 +1,21 @@
 'use strict';
 
+/**
+  Copyright 2017 Bret Lorimore, George Harder, Jacob Fenger.
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 // EclipseSimulator namespace
 var EclipseSimulator = {
 
@@ -601,8 +617,9 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     this.search_input.value = this.location_name;
 };
 
-EclipseSimulator.View.prototype._update_sim_size = function(zoomed = false)
+EclipseSimulator.View.prototype._update_sim_size = function(zoomed)
 {
+    zoomed = zoomed || false;
     var h = $(window).height();
     var w = $(window).width();
 
@@ -1040,8 +1057,9 @@ EclipseSimulator.View.prototype._compute_fov_angle_for_screen_aspect_ratio = fun
 //                Format is the same as min.
 //
 // a:             Optional alpha - not changed, just added to rgba string
-EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start, end, a = 1)
+EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start, end, a)
 {
+    a = a || 1;
     // new values to be set to default minimum
     var new_rgb = [0, 0, 0];
 
@@ -1187,8 +1205,9 @@ EclipseSimulator.View.prototype.is_phone = function()
     return this.environment_size.width < EclipseSimulator.VIEW_PHONE_DISP_W_MAX;
 };
 
-EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
+EclipseSimulator.View.prototype._top_bar_w = function(map_open)
 {
+    map_open = map_open || false;
     var width = this._top_bar_control_w(map_open);
     if (map_open && !this.is_phone())
     {
@@ -1198,8 +1217,9 @@ EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
     return width;
 };
 
-EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
+EclipseSimulator.View.prototype._top_bar_control_w = function(map_open)
 {
+    map_open = map_open || false;
     var control_width = $(this.search_input).outerWidth(true);
     var is_phone = this.is_phone();
 
@@ -1220,8 +1240,9 @@ EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
     return control_width;
 };
 
-EclipseSimulator.View.prototype._map_w = function(include_margin = false)
+EclipseSimulator.View.prototype._map_w = function(include_margin)
 {
+    include_margin = include_margin || false;
     var width = this.environment_size.width;
 
     if (this.is_phone())
@@ -1276,8 +1297,9 @@ EclipseSimulator.View.prototype._adjust_size_based_control_ui = function()
     }
 };
 
-EclipseSimulator.View.prototype._adjust_size_based_map_ui = function(timeout = 200)
+EclipseSimulator.View.prototype._adjust_size_based_map_ui = function(timeout)
 {
+    timeout = timeout || 200;
     // Adjust map button icon and map width, if it is open
     if (this.map_visible)
     {
@@ -1533,7 +1555,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
 
 };
 
-EclipseSimulator.Controller.prototype.update_simulator_location = function(location = undefined)
+EclipseSimulator.Controller.prototype.update_simulator_location = function(location)
 {
     if (location !== undefined)
     {
@@ -1705,14 +1727,3 @@ function initSim() {
 
     return controller;
 }
-
-$(document).ready(function() {
-
-    var controller = initSim();
-
-    // In debug mode, add the controller instance to the global namespace
-    if (EclipseSimulator.DEBUG)
-    {
-        global_controller = controller;
-    }
-});
