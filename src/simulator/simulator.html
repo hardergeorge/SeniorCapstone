@@ -1,18 +1,46 @@
-<script type="text/javascript" src="jquery.min.js"></script>
-<script type="text/javascript" src="jquery-ui.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_API_KEY&libraries=places"></script>
-<script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
-<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
-<script defer type="text/javascript" src="simulator.js"></script>
+<!--
+Copyright 2017 Bret Lorimore, George Harder, Jacob Fenger.
+Licensed under the Apache License, Version 2.0 (the "License");
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.grey-amber.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    // NOTE: this lets you store the API key outside of this file.
+    <script type="text/javascript" src="client-id.js"></script>
+
+    <script>
+        function loadScript() {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://maps.googleapis.com/maps/api/js?' +
+              '&key=' + api_key +'&libraries=places&callback=initSim';
+          document.body.appendChild(script);
+        }
+
+        window.onload = loadScript;
+    </script>
+
+    <script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
+    <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+    <script defer type="text/javascript" src="simulator.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.grey-amber.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <meta charset="utf-8">
 <style>
     #loading {
