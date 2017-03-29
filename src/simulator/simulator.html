@@ -66,7 +66,6 @@ limitations under the License.
     }
     .floating-bar.bottom {
         bottom: 10px;
-        width: calc(100% - 100px);
     }
     .floating-bar.bottom .inner {
         bottom: 10px;
@@ -86,6 +85,16 @@ limitations under the License.
         float: left;
         margin-top: 20px
     }
+    @media screen and (max-width: 399px) {
+        .floating-bar.top input {
+            width: 200px;
+        }
+    }
+    @media screen and (min-width: 400px) {
+        .floating-bar.top input {
+            width: 300px;
+        }
+    }
     @media screen and (max-width: 749px) {
         .floating-bar .map-container {
             position: relative;
@@ -96,17 +105,27 @@ limitations under the License.
         .slider-container {
             width: calc(100% - 72px);
         }
+        .floating-bar.bottom {
+            width: calc(100% - 16px);
+        }
         .floating-bar.bottom .mdl-button {
             margin-left: 0;
         }
         .floating-bar.bottom .slider-labels div {
             margin-left: calc(50% - 96px);
+            font-size: 12px;
         }
         .floating-bar.bottom .slider-labels.even div {
             display: none;
         }
     }
     @media screen and (min-width: 750px) {
+        .floating-bar.bottom {
+            width: calc(100% - 100px);
+        }
+        .floating-bar.bottom .slider-labels div {
+            font-size: 14px;
+        }
         .floating-bar.top .mdl-button.map-open {
             margin-top: 4px;
         }
@@ -125,7 +144,6 @@ limitations under the License.
         font-weight: 300;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
-        width: 300px;
         border-radius: 2px;
     }
     .floating-bar.top .search {

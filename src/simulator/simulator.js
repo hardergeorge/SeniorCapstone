@@ -245,7 +245,8 @@ var EclipseSimulator = {
 
     VIEW_MAP_MAX_H: 400,
 
-    VIEW_MAP_TMARGIN: 70,
+    // Distance between map and top of window (phone mode)
+    VIEW_MAP_TMARGIN: 92,
 
     VIEW_MAP_LMARGIN: 8,
 
