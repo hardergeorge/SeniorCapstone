@@ -48,7 +48,7 @@ var EclipseSimulator = {
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
-                                zoom: 11,
+                                zoom: EclipseSimulator.GEOCODE_MAP_ZOOM,
                                 streetViewControl: false
                             });
         this.map_visible    = false;
@@ -252,6 +252,8 @@ var EclipseSimulator = {
     VIEW_MAP_TMARGIN: 92,
 
     VIEW_MAP_LMARGIN: 8,
+
+    GEOCODE_MAP_ZOOM : 8,
 
     VIEW_ZOOM_WIDE: 'wide',
 
@@ -506,7 +508,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             }
 
                             view.map.setCenter(view.maps_place.geometry.location);
-                            view.map.setZoom(11);
+                            view.map.setZoom(EclipseSimulator.GEOCODE_MAP_ZOOM);
 
                             view.marker.setPosition(view.maps_place.geometry.location);
                             view.marker.setVisible(true);
@@ -542,10 +544,10 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             // If the place has a geometry, then present it on a map.
             if (view.maps_place.geometry.viewport != undefined) {
                 view.map.fitBounds(view.maps_place.geometry.viewport);
-                view.map.setZoom(11);
+                view.map.setZoom(EclipseSimulator.GEOCODE_MAP_ZOOM);
             } else {
                 view.map.setCenter(view.maps_place.geometry.location);
-                view.map.setZoom(11);
+                view.map.setZoom(EclipseSimulator.GEOCODE_MAP_ZOOM);
             }
             view.marker.setPosition(view.maps_place.geometry.location);
             view.marker.setVisible(true);
