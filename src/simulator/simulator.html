@@ -85,6 +85,60 @@ limitations under the License.
         float: left;
         margin-top: 20px
     }
+    .info-card-holder {
+        z-index: 5;
+        position: absolute;
+        right: 50px;
+        padding-top: 12px;
+        bottom: 120px;
+        width:240px;
+        height:150px;
+    }
+
+    .info-card-holder>button {
+        position:absolute;
+        right:0;
+        bottom:0;
+        background: #668edf;
+    }
+
+    .info-card>button {
+        position:absolute;
+        right:4px;
+        top:4px;
+        background: #668edf;
+        color:#FAFAFA;
+    }
+
+    .info-card>button:hover {
+        color:#424242;
+    }
+
+    .info-card {
+        background: #668edf;
+        width:100%;
+        min-height:inherit;
+        position:absolute;
+        bottom:0;
+        right:0;
+        padding:8px;
+    }
+
+    table {
+      font-family: 'Roboto';
+      font-size: 14px;
+      color:#fafafa;
+    }
+
+    td:first-child {
+      text-align:right;
+      font-weight:400;
+      padding-right:16px;
+    }
+
+    td {
+      font-weight:500;
+    }
     @media screen and (max-width: 399px) {
         .floating-bar.top input {
             width: 200px;
@@ -117,6 +171,9 @@ limitations under the License.
         }
         .floating-bar.bottom .slider-labels.even div {
             display: none;
+        }
+        .info-card-holder {
+            right: 8px;
         }
     }
     @media screen and (min-width: 750px) {
@@ -222,6 +279,37 @@ limitations under the License.
 
     <div id="loading">
         <div class="mdl-spinner mdl-js-spinner is-active" style="position: absolute; top: 50%; left: calc(50% - 20px);"></div>
+    </div>
+
+    <div class="info-card-holder">
+        <button class="mdl-button blue mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="infocard-show">
+            <i class="material-icons">info_outline</i>
+        </button>
+        <div class="info-card mdl-card mdl-shadow--2dp">
+            <button class="mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect" id="infocard-hide">
+                <i class="material-icons">close</i>
+            </button>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Time zone</td>
+                        <td id="info_timezone">CST</td>
+                    </tr>
+                    <tr>
+                        <td>Current time</td>
+                        <td id="info_current_time">10:00 AM</td>
+                    </tr>
+                    <tr>
+                        <td>Eclipse start time</td>
+                        <td id="info_start_time">10:00 AM</td>
+                    </tr>
+                    <tr>
+                        <td>Eclipse end time</td>
+                        <td id="info_end_time">10:00 AM</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="floating-bar bottom">

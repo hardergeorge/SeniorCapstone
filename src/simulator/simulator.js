@@ -45,6 +45,9 @@ var EclipseSimulator = {
         this.mapcanvas      = $('#map-canvas').get(0);
         this.search_input   = $('#pac-input').get(0);
         this.topbar         = $('.floating-bar.top .inner').get(0);
+        this.infocard       = $('.info-card').get(0);
+        this.infocard_show  = $('#infocard-show').get(0);
+        this.infocard_hide  = $('#infocard-hide').get(0);
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
@@ -420,6 +423,18 @@ EclipseSimulator.View.prototype.init = function()
         view.playing = false;
         view.toggle_map();
     });
+
+    // Hide the info card when the view initializes
+    $(this.infocard).hide();
+
+    $(this.infocard_show).click(function() {
+      // TODO: spiffy animation
+      $(this.infocard).show();
+    }.bind(this));
+
+    $(this.infocard_hide).click(function() {
+      $(this.infocard).hide();
+    }.bind(this));
 
     this._init_top_bar();
     this.initialize_location_entry();
