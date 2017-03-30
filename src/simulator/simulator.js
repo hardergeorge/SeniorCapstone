@@ -48,7 +48,8 @@ var EclipseSimulator = {
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
-                                zoom: 11
+                                zoom: 11,
+                                streetViewControl: false
                             });
         this.map_visible    = false;
         this.search_box     = undefined;
@@ -361,6 +362,10 @@ EclipseSimulator.View.prototype.init = function()
 
     // Keyboard bindings
     $(document).keydown(function(e) {
+        var tag = e.target.tagName.toLowerCase();
+        if (tag == 'input') {
+            return;
+        }
         switch(e.which) {
         // space bar
         case 32:
