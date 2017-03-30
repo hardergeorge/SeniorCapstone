@@ -361,6 +361,10 @@ EclipseSimulator.View.prototype.init = function()
 
     // Keyboard bindings
     $(document).keydown(function(e) {
+        var tag = e.target.tagName.toLowerCase();
+        if (tag == 'input') {
+            return;
+        }
         switch(e.which) {
         // space bar
         case 32:
