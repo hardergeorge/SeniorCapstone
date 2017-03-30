@@ -589,15 +589,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     // Update location name
                     view.name = view.maps_place;
 
-                    var request = {
-                        placeId: results[1].place_id
-                    };
-
                     $(view).trigger('EclipseView_location_updated', view.maps_place);
-
-                    var service = new google.maps.places.PlacesService(view.map);
-                    service.getDetails(request, callback);
-
                 } else {
                     view.display_error_to_user("Simulator is restricted to the United States");
                     return;
@@ -607,7 +599,6 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                 return;
             }
         });
-
     });
 
     // Set initial searchbox text
