@@ -895,6 +895,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
 
         // Hide the hills/clouds/people/etc
         $(this.background[1]).hide();
+        $(this.background[2]).hide();
     }
     else
     {
@@ -907,6 +908,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
 
         // Show the hills/clouds/people/etc
         $(this.background[1]).show();
+        $(this.background[2]).show();
     }
     $(this.zoombutton).find('i').text(label);
 
