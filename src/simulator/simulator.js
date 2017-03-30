@@ -281,7 +281,8 @@ var EclipseSimulator = {
 
     VIEW_SLIDER_NSTEPS: 720,
 
-    PLAY_REFRESH_RATE: 16,
+    // Approx 60 fps
+    PLAY_REFRESH_RATE: 17,
 
     VIEW_PLAY_SPEED_SLOW: 'slow',
 
@@ -809,7 +810,6 @@ EclipseSimulator.View.prototype.slider_change = function(direction)
     }
 };
 
-
 EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
 {
     $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
@@ -1078,16 +1078,7 @@ EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start,
 EclipseSimulator.View.prototype.update_bg_lightness = function(p, rgba_str)
 {
     $(this.background[0]).css('background-color', rgba_str);
-
-    // Convert to percent
-    p  = Math.min(p, EclipseSimulator.VIEW_BG_IMG_MAX_GRAY);
-    p *= 100;
-    var filter_str = 'grayscale(' + p + '%) brightness(' + (100 - p) + '%)';
-
-    $(this.background[1]).css({
-        'filter': filter_str,
-        '-webkit-filter': filter_str,
-    });
+    $(this.background[2]).css('opacity', p);
 };
 
 EclipseSimulator.View.prototype.update_moon_lightness = function(rgba_str)
