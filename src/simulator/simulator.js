@@ -166,8 +166,10 @@ var EclipseSimulator = {
 
     Controller: function(location)
     {
-        this.view  = new EclipseSimulator.View(location);
-        this.model = new EclipseSimulator.Model(location);
+        this.view                         = new EclipseSimulator.View(location);
+        this.model                        = new EclipseSimulator.Model(location);
+        this.current_animation_id         = undefined;
+        this.previous_animation_timestamp = undefined;
     },
 
     Model: function(location)
@@ -282,9 +284,6 @@ var EclipseSimulator = {
 
     VIEW_SLIDER_NSTEPS: 720,
 
-    // Approx 60 fps
-    PLAY_REFRESH_RATE: 17,
-
     VIEW_PLAY_SPEED_SLOW: 'slow',
 
     VIEW_PLAY_SPEED_FAST: 'fast',
@@ -390,18 +389,7 @@ EclipseSimulator.View.prototype.init = function()
     });
 
     $(this.playbutton).click(function() {
-        // If the slider is at the very end of the time range and the user hits
-        // the play button again. It will restart the playing of the simulation
-        // from the beginning.
-        if (view.end_of_slider)
-        {
-          // Restart the slider at the beginning
-          view.slider.value = (-1) * EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
-                              * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
-        }
-
-        view.playing = !view.playing;
-        view.play_simulator_step(parseFloat(view.slider.value));
+        $(view).trigger('EclipseView_toggle_playing');
     });
 
     //toggle's the view play speed and disables the menu option for the current speed
@@ -815,45 +803,11 @@ EclipseSimulator.View.prototype.slider_change = function(direction)
     }
 };
 
-EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
-{
-    $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
-
-    // Stop playing
-    if (!this.playing)
-    {
-        return;
-    }
-
-    var max_offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
-                     * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
-
-    if (time_val >= max_offset)
-    {
-        this.end_of_slider = true;
-        this.playing = false;
-        $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
-        return;
-    }
-
-    this.end_of_slider = false;
-
-    this.slider.MaterialSlider.change(time_val);
-    $(this).trigger('EclipseView_time_updated', time_val);
-
-    var view = this;
-    setTimeout(function() {
-        var step_mins = EclipseSimulator.VIEW_PLAY_SPEED[view.zoom_level][view.play_speed]
-                        * EclipseSimulator.PLAY_REFRESH_RATE / 60 / 1000;
-        view.play_simulator_step(time_val + step_mins);
-    }, EclipseSimulator.PLAY_REFRESH_RATE);
-};
-
 EclipseSimulator.View.prototype.set_play_speed_label = function()
 {
     $(this.speed_btn_slow).text(EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][EclipseSimulator.VIEW_PLAY_SPEED_SLOW] + 'X');
     $(this.speed_btn_fast).text(EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][EclipseSimulator.VIEW_PLAY_SPEED_FAST] + 'X');
-}
+};
 
 EclipseSimulator.View.prototype.toggle_loading = function()
 {
@@ -1460,6 +1414,50 @@ EclipseSimulator.View.prototype._set_slider_bound_positions = function(positions
     this.sun_end_pos = positions[1];
 };
 
+// Updates view elements associated with simulator playing
+EclipseSimulator.View.prototype.start_playing = function()
+{
+    // If the slider is at the very end of the time range and the user hits
+    // the play button again. It will restart the playing of the simulation
+    // from the beginning.
+    if (this.end_of_slider)
+    {
+      // Restart the slider at the beginning
+      this.slider.value = (-1) * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
+                          * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
+    }
+
+    this.playing = true;
+    $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+};
+
+// Updates view elements associated with simulator not playing if the simulator should stop playing.
+// Returns true if the simulator should stop playing
+EclipseSimulator.View.prototype.stop_playing = function(offset_ms)
+{
+    if (offset_ms !== undefined)
+    {
+        var max_offset_ms  = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
+                             * (EclipseSimulator.VIEW_SLIDER_NSTEPS / 2)
+                             * 1000 * 60;
+        this.end_of_slider = (offset_ms >= max_offset_ms);
+    }
+
+    if (!this.playing || this.end_of_slider || (offset_ms === undefined))
+    {
+        this.playing = false;
+        $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+        return true;
+    }
+
+    return false;
+};
+
+EclipseSimulator.View.prototype.update_slider_pos = function(offset_mins)
+{
+    this.slider.MaterialSlider.change(offset_mins);
+};
+
 
 // ===================================
 //
@@ -1488,6 +1486,18 @@ EclipseSimulator.Controller.prototype.init = function()
         $(controller.view).on('EclipseView_location_updated', function(event, location) {
             // Call the location event handler with new location info
             controller.update_simulator_location(location);
+        });
+
+        $(controller.view).on('EclipseView_toggle_playing', function(event) {
+            if (controller.view.playing)
+            {
+                controller.view.stop_playing();
+                controller.stop_playing();
+            }
+            else
+            {
+                controller.start_playing();
+            }
         });
 
         // Sets initial simulator location
@@ -1583,8 +1593,6 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
     this.view.reset_controls();
     this.view.update_slider();
 
-
-
     // Set the view slider bound sun positions
     var times     = this.view._get_slider_bound_times();
     var positions = [];
@@ -1597,6 +1605,42 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
     this.view.update_fov();
     this.view.refresh();
+};
+
+EclipseSimulator.Controller.prototype.start_playing = function()
+{
+    this.view.start_playing();
+
+    var controller = this;
+    this.current_animation_id = window.requestAnimationFrame(function(timestamp) {
+        controller.previous_animation_timestamp = timestamp;
+        controller._play_step(parseFloat(controller.view.slider.value) * 60 * 1000);
+    });
+};
+
+EclipseSimulator.Controller.prototype.stop_playing = function() {
+    window.cancelAnimationFrame(this.current_animation_id);
+};
+
+EclipseSimulator.Controller.prototype._play_step = function(offset_ms)
+{
+    if (this.view.stop_playing(offset_ms))
+    {
+        this.stop_playing();
+        return;
+    }
+
+    this.view.update_slider_pos(offset_ms / 1000 / 60);
+    this.update_simulator_time_with_offset(offset_ms);
+
+    var view = this.view;
+    var controller = this;
+    this.current_animation_id = window.requestAnimationFrame(function(timestamp) {
+        var step_ms = EclipseSimulator.VIEW_PLAY_SPEED[view.zoom_level][view.play_speed]
+                      * (timestamp - controller.previous_animation_timestamp);
+        controller.previous_animation_timestamp = timestamp;
+        controller._play_step(offset_ms + step_ms);
+    });
 };
 
 
