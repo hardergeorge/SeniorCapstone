@@ -856,12 +856,6 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
 
 EclipseSimulator.View.prototype.update_slider_labels = function()
 {
-    // Convert UTC offset in minutes to hours
-    var hour_offset = this.offset/60;
-
-    var local_hour;
-    var am_pm_string;
-
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
                           * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     var tick_sep_ms     = (slider_range_ms / (this.slider_labels.length - 1));
@@ -869,26 +863,45 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 
     for (var i = 0; i < this.slider_labels.length; i++)
     {
-        // Zero padding in js is gross
-        var mins = "" + date.getMinutes();
-        mins     = mins.length == 1 ? "0" + mins : mins;
-
-        // compute local hour relative to UTC time
-        local_hour = (date.getUTCHours() + hour_offset + 11) % 12 + 1;
-
-        if(date.getUTCHours() + hour_offset >= 12){
-            am_pm_string = "PM";
-        }
-        else{
-            am_pm_string = "AM";
-        }
-
-        var label_string = local_hour + ":" + mins + " " + am_pm_string;
-
-        $(this.slider_labels[i]).text(label_string);
+        $(this.slider_labels[i]).text(EclipseSimulator.get_local_time_from_date(date, this.offset));
         date.setTime(date.getTime() + tick_sep_ms);
     }
+};
 
+EclipseSimulator.get_local_time_from_date = function(date, offset, include_seconds) {
+    // Convert UTC offset in minutes to hours
+    var hour_offset = offset/60;
+
+    var local_hour;
+    var am_pm_string;
+
+    // Zero padding in js is gross
+    var mins = "" + date.getMinutes();
+    mins     = mins.length == 1 ? "0" + mins : mins;
+    var secs = "";
+    // compute local hour relative to UTC time
+    local_hour = (date.getUTCHours() + hour_offset + 11) % 12 + 1;
+
+    if(date.getUTCHours() + hour_offset >= 12){
+        am_pm_string = "PM";
+    }
+    else{
+        am_pm_string = "AM";
+    }
+
+    if (include_seconds) {
+        secs = "" + date.getMinutes();
+        secs     = secs.length == 1 ? "0" + secs : secs;
+    }
+
+    var label_string = local_hour + ":" + mins + (include_seconds ? ":" + secs + " ": " ") + am_pm_string;
+
+    return label_string;
+}
+
+EclipseSimulator.View.prototype.update_info_card_start_end = function(start_time, end_time) {
+    $("#info_start_time").text(EclipseSimulator.get_local_time_from_date(start_time, this.offset, true));
+    $("#info_end_time").text(EclipseSimulator.get_local_time_from_date(end_time, this.offset, true));
 };
 
 EclipseSimulator.View.prototype.toggle_zoom = function()
