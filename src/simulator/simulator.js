@@ -49,7 +49,8 @@ var EclipseSimulator = {
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
                                 zoom: EclipseSimulator.GEOCODE_MAP_ZOOM,
-                                streetViewControl: false
+                                streetViewControl: false,
+                                clickableIcons: false
                             });
         this.map_visible    = false;
         this.search_box     = undefined;
