@@ -350,6 +350,20 @@ EclipseSimulator.View.prototype.init = function()
         view.slider_change();
     });
 
+    $(this.slider).on('mouseout', function() {
+      var instance = $(this.slider).tooltip("instance");
+      if (instance) {
+        instance.close();
+      }
+    }.bind(this));
+
+    $(this.slider).tooltip({
+        track:true,
+        classes: {
+            "ui-tooltip": "slider-tooltip mdl-shadow--2dp"
+            }
+        });
+
     // Increments the slider on a click
     $(this.upbutton).click(function() {
         view.playing = false;
@@ -1544,6 +1558,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Update the displayed time by adding the slider value to the eclipse time
     this.model.date.setTime(new_sim_time_ms);
     this.view.current_time.setTime(new_sim_time_ms);
+    $(this.view.slider).tooltip("option", "content", EclipseSimulator.get_local_time_from_date(this.view.current_time, this.view.offset, true));
 
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
