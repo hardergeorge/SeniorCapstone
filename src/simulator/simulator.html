@@ -17,6 +17,7 @@ limitations under the License.
 <html>
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <!-- NOTE: this lets you store the API key outside of this file. -->
     <script type="text/javascript" src="client-id.js"></script>
@@ -215,6 +216,10 @@ limitations under the License.
     .background.sky {
         background-color: #8cd2dd;
     }
+    .slider-tooltip {
+        font-family: 'Roboto';
+        font-weight: 300;
+    }
 </style>
 </head>
 
@@ -258,7 +263,7 @@ limitations under the License.
                 <!-- Time slider -->
                 <div class="slider-container">
                     <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
-                    <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
+                    <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1" title="Current time">
 
                     <div class="slider-labels">
                         <div id="slabel1" style="margin-left: 0px;"></div>

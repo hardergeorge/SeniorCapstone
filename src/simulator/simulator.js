@@ -244,6 +244,40 @@ var EclipseSimulator = {
         return Math.acos(a);
     },
 
+    get_local_time_from_date: function(date, offset, include_seconds) {
+        // Convert UTC offset in minutes to hours
+        var hour_offset = offset/60;
+
+        var local_hour;
+        var am_pm_string;
+
+        // Zero padding in js is gross
+        var mins = "" + date.getMinutes();
+        mins     = mins.length == 1 ? "0" + mins : mins;
+        var secs = "";
+        // compute local hour relative to UTC time
+        local_hour = (date.getUTCHours() + hour_offset + 11) % 12 + 1;
+
+        if (date.getUTCHours() + hour_offset >= 12)
+        {
+            am_pm_string = "PM";
+        }
+        else
+        {
+            am_pm_string = "AM";
+        }
+
+        if (include_seconds)
+        {
+            secs = "" + date.getSeconds();
+            secs = secs.length == 1 ? "0" + secs : secs;
+        }
+
+        var label_string = local_hour + ":" + mins + (include_seconds ? ":" + secs + " ": " ") + am_pm_string;
+
+        return label_string;
+    },
+
     // Target amount of the field of view that is "filled" by the sun's path
     VIEW_TARGET_FOV_FILL: 0.9,
 
@@ -350,6 +384,13 @@ EclipseSimulator.View.prototype.init = function()
     $(this.slider).on('input', function() {
         view.playing = false;
         view.slider_change();
+    });
+
+    $(this.slider).tooltip({
+        track: true,
+        classes: {
+            "ui-tooltip": "slider-tooltip mdl-shadow--2dp"
+        }
     });
 
     // Increments the slider on a click
@@ -844,12 +885,6 @@ EclipseSimulator.View.prototype.display_error_to_user = function(error_msg, time
 
 EclipseSimulator.View.prototype.update_slider_labels = function()
 {
-    // Convert UTC offset in minutes to hours
-    var hour_offset = this.offset/60;
-
-    var local_hour;
-    var am_pm_string;
-
     var slider_range_ms = 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS
                           * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     var tick_sep_ms     = (slider_range_ms / (this.slider_labels.length - 1));
@@ -857,26 +892,9 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 
     for (var i = 0; i < this.slider_labels.length; i++)
     {
-        // Zero padding in js is gross
-        var mins = "" + date.getMinutes();
-        mins     = mins.length == 1 ? "0" + mins : mins;
-
-        // compute local hour relative to UTC time
-        local_hour = (date.getUTCHours() + hour_offset + 11) % 12 + 1;
-
-        if(date.getUTCHours() + hour_offset >= 12){
-            am_pm_string = "PM";
-        }
-        else{
-            am_pm_string = "AM";
-        }
-
-        var label_string = local_hour + ":" + mins + " " + am_pm_string;
-
-        $(this.slider_labels[i]).text(label_string);
+        $(this.slider_labels[i]).text(EclipseSimulator.get_local_time_from_date(date, this.offset));
         date.setTime(date.getTime() + tick_sep_ms);
     }
-
 };
 
 EclipseSimulator.View.prototype.toggle_zoom = function()
@@ -1427,6 +1445,7 @@ EclipseSimulator.View.prototype.start_playing = function()
 
     this.playing = true;
     $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+    $(this.slider).tooltip('disable');
 };
 
 // Updates view elements associated with simulator not playing if the simulator should stop playing.
@@ -1445,6 +1464,7 @@ EclipseSimulator.View.prototype.stop_playing = function(offset_ms)
     {
         this.playing = false;
         $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+        $(this.slider).tooltip('enable');
         return true;
     }
 
@@ -1538,6 +1558,7 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Update the displayed time by adding the slider value to the eclipse time
     this.model.date.setTime(new_sim_time_ms);
     this.view.current_time.setTime(new_sim_time_ms);
+    $(this.view.slider).tooltip("option", "content", EclipseSimulator.get_local_time_from_date(this.view.current_time, this.view.offset, true));
 
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
