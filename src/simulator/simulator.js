@@ -45,6 +45,7 @@ var EclipseSimulator = {
         this.mapcanvas      = $('#map-canvas').get(0);
         this.search_input   = $('#pac-input').get(0);
         this.topbar         = $('.floating-bar.top .inner').get(0);
+        this.garbage_dump   = $('#garbage-dump').get(0);
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
@@ -504,10 +505,11 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
         map: this.map,
         position: EclipseSimulator.DEFAULT_LOCATION_COORDS,
     });
-
     view.marker.setVisible(true);
 
-    view.geocoder = new google.maps.Geocoder;
+    view.geocoder            = new google.maps.Geocoder();
+    var autocomplete_service = new google.maps.places.AutocompleteService();
+    var places_service       = new google.maps.places.PlacesService(view.garbage_dump);
 
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
@@ -520,14 +522,12 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
         if (!view.maps_place.geometry)
         {
-            var service = new google.maps.places.AutocompleteService();
-
-            var service_options = {
+            var options = {
                 input: view.maps_place.name,
                 componentRestrictions: {country: 'us'}
             };
 
-            service.getPlacePredictions(service_options, function(predictions, status) {
+            autocomplete_service.getPlacePredictions(options, function(predictions, status) {
                 if (status != google.maps.places.PlacesServiceStatus.OK) {
                     view.display_error_to_user("Location not found");
                     return;
@@ -560,14 +560,12 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             // Update location name
                             view.name = view.maps_place;
 
+                            $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
+
                             var request = {
                                 placeId: predictions[0].place_id
                             };
-
-                            $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
-
-                            var service = new google.maps.places.PlacesService(view.map);
-                            service.getDetails(request, callback);
+                            places_service.getDetails(request, callback);
 
                         } else {
                             view.display_error_to_user("Simulator is restricted to the United States");
@@ -634,6 +632,12 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                     view.name = view.maps_place;
 
                     $(view).trigger('EclipseView_location_updated', view.maps_place);
+
+                    var request = {
+                        placeId: results[1].place_id
+                    };
+                    places_service.getDetails(request, callback);
+
                 } else {
                     view.display_error_to_user("Simulator is restricted to the United States");
                     return;

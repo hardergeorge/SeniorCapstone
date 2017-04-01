@@ -320,5 +320,13 @@ limitations under the License.
         <button class="mdl-snackbar__action" type="button"></button>
     </div>
 
+    <!--
+         Google Maps places service wants a place to display results this makes it happy.
+         You can pass it a map object, but this leads to the creation of a small grey box in the
+         lower right hand corner. This can even be seen in the example here
+         https://developers.google.com/maps/documentation/javascript/examples/place-details
+     -->
+    <div id="garbage-dump" style="display:none"></div>
+
 </body>
 </html>
