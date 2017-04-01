@@ -324,6 +324,8 @@ var EclipseSimulator = {
         false: 'pause',
     },
 
+    MOON_RADIUS: 1737,
+
 };
 
 
@@ -1724,7 +1726,7 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
 
     // Compute moon angular radius
     var dist = moon.delta - A.Globe.Er;
-    var angular_r = Math.atan(3474 / dist) / 2;
+    var angular_r = Math.atan(EclipseSimulator.MOON_RADIUS / dist);
 
     return {
         sun: sun.hz,
