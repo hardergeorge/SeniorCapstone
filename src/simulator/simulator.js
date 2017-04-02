@@ -65,8 +65,8 @@ var EclipseSimulator = {
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.25 * Math.PI / 180, apparant_r: 0.34 * Math.PI / 180};
-        this.moonpos = {x: 0, y: 0, r: 0.25 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: EclipseSimulator.SUN_ANGULAR_R, apparant_r: 0.34 * Math.PI / 180};
+        this.moonpos = {x: 0, y: 0, r: EclipseSimulator.SUN_ANGULAR_R};
 
         // Wide field of view in radians
         this.wide_fov = {
@@ -279,6 +279,84 @@ var EclipseSimulator = {
         return label_string;
     },
 
+    // Compute the percent of the eclipse
+    // sun_r and moon_r correspond to the radius (In radians) of each body
+    // Returns a percent between 0 and 1
+    compute_percent_eclipse: function(sunpos, moonpos)
+    {
+        // Avoid repeated attribute lookups
+        var sun_r  = sunpos.r;
+        var moon_r = moonpos.r;
+
+        // Angular separation
+        var sep        = EclipseSimulator.compute_sun_moon_sep(sunpos, moonpos);
+        var lune_delta = EclipseSimulator._compute_lune_delta(sun_r, moon_r, sep);
+        var lune_area  = EclipseSimulator._compute_lune_area(sun_r,  moon_r, sep, lune_delta);
+
+        // Total solar eclipse
+        if (lune_delta == 0)
+        {
+            var percent_eclipse = 1;
+        }
+        // No eclipse
+        else if (lune_delta == -1)
+        {
+            var percent_eclipse = 0;
+        }
+        else
+        {
+            var percent_eclipse = 1 - (lune_area / (Math.PI * sun_r * sun_r))
+        }
+
+        if (EclipseSimulator.DEBUG)
+        {
+            console.log("Percent eclipse: " + percent_eclipse);
+        }
+
+        return percent_eclipse;
+    },
+
+    // Compute size of lune in radians
+    // http://mathworld.wolfram.com/Lune.html
+    _compute_lune_delta: function(sun_r, moon_r, sep)
+    {
+        var lune_delta = -1;
+
+        if (sep < (sun_r + moon_r))
+        {
+            var inner = ( sun_r + moon_r + sep) *
+                        (-sun_r + moon_r + sep) *
+                        (sun_r  - moon_r + sep) *
+                        (sun_r  + moon_r - sep);
+
+            if (inner < 0)
+            {
+                lune_delta = 0;
+            }
+            else
+            {
+                lune_delta = 0.25 * Math.sqrt(inner);
+            }
+        }
+
+        return lune_delta;
+    },
+
+    // Assumes lune_delta > 0
+    _compute_lune_area: function(sun_r, moon_r, sep, lune_delta)
+    {
+        // Avoid computing the same thing over and over again
+        var moon_r2 = moon_r * moon_r;
+        var sun_r2  = sun_r  * sun_r;
+        var sep2    = sep * sep;
+
+        var lune_area = (2 * lune_delta) +
+                        (sun_r2  * Math.acos((moon_r2 - sun_r2 - sep2) / (2 * sun_r  * sep))) -
+                        (moon_r2 * Math.acos((moon_r2 - sun_r2 + sep2) / (2 * moon_r * sep)));
+
+        return lune_area;
+    },
+
     // Target amount of the field of view that is "filled" by the sun's path
     VIEW_TARGET_FOV_FILL: 0.9,
 
@@ -361,6 +439,9 @@ var EclipseSimulator = {
 
     MOON_RADIUS: 1737,
 
+    SUN_ANGULAR_R: 0.25 * Math.PI / 180,
+
+    MODEL_TOTAL_ECLIPSE_PERCENTAGE_THRESHOLD: 1,
 };
 
 
@@ -742,7 +823,7 @@ EclipseSimulator.View.prototype.refresh = function()
 
     // Compute percent of eclipse and raise it to the 6th power
     // this achieves the "sudden darkness" effect
-    var p = this.compute_percent_eclipse();
+    var p = EclipseSimulator.compute_percent_eclipse(this.sunpos, this.moonpos);
     p     = Math.pow(p, 6);
 
     // Compute sky color - this is the same color used for the moon
@@ -1086,89 +1167,6 @@ EclipseSimulator.View.prototype.update_slider = function()
     {
         this.slider.MaterialSlider.boundChangeHandler();
     }
-};
-
-// Compute the percent of the eclipse
-// sun_r and moon_r correspond to the radius (In radians) of each body
-// Returns a percent between 0 and 1
-EclipseSimulator.View.prototype.compute_percent_eclipse = function()
-{
-    // Avoid repeated attribute lookups
-    var sun_r  = this.sunpos.r;
-    var moon_r = this.moonpos.r;
-
-    // Angular separation
-    var sep        = EclipseSimulator.compute_sun_moon_sep(this.sunpos, this.moonpos);
-    var lune_delta = this._compute_lune_delta(sun_r, moon_r, sep);
-    var lune_area  = this._compute_lune_area(sun_r,  moon_r, sep, lune_delta);
-
-    // Total solar eclipse
-    if (lune_delta == 0)
-    {
-        var percent_eclipse = 1;
-    }
-    // No eclipse
-    else if (lune_delta == -1)
-    {
-        var percent_eclipse = 0;
-    }
-    else
-    {
-        var percent_eclipse = 1 - (lune_area / (Math.PI * sun_r * sun_r))
-    }
-
-    if (EclipseSimulator.DEBUG)
-    {
-        console.log("Percent eclipse: " + percent_eclipse);
-    }
-
-    return percent_eclipse;
-};
-
-// Compute size of lune in radians
-// http://mathworld.wolfram.com/Lune.html
-EclipseSimulator.View.prototype._compute_lune_delta = function(sun_r, moon_r, sep)
-{
-    var lune_delta = -1;
-
-    if (EclipseSimulator.DEBUG)
-    {
-        console.log('sep: ' + sep + ' sun_r + moon_r: ' + (sun_r + moon_r));
-    }
-
-    if (sep < (sun_r + moon_r))
-    {
-        var inner = ( sun_r + moon_r + sep) *
-                    (-sun_r + moon_r + sep) *
-                    (sun_r  - moon_r + sep) *
-                    (sun_r  + moon_r - sep);
-
-        if (inner < 0)
-        {
-            lune_delta = 0;
-        }
-        else
-        {
-            lune_delta = 0.25 * Math.sqrt(inner);
-        }
-    }
-
-    return lune_delta;
-};
-
-// Assumes lune_delta > 0
-EclipseSimulator.View.prototype._compute_lune_area = function(sun_r, moon_r, sep, lune_delta)
-{
-    // Avoid computing the same thing over and over again
-    var moon_r2 = moon_r * moon_r;
-    var sun_r2  = sun_r  * sun_r;
-    var sep2    = sep * sep;
-
-    var lune_area = (2 * lune_delta) +
-                    (sun_r2  * Math.acos((moon_r2 - sun_r2 - sep2) / (2 * sun_r  * sep))) -
-                    (moon_r2 * Math.acos((moon_r2 - sun_r2 + sep2) / (2 * moon_r * sep)));
-
-    return lune_area;
 };
 
 EclipseSimulator.View.prototype.is_phone = function()
@@ -1601,18 +1599,17 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
     // This will set the model's eclipse_time attribute
     var res = this.model.compute_eclipse_time_and_pos();
-    //this.view.eclipse_time = res.getTime();
 
     // Set model displayed date to eclipse time
-    this.model.date.setTime(res.time.getTime() - max_time_offset_ms);
+    this.model.date.setTime(res.max_eclipse.time.getTime() - max_time_offset_ms);
 
     // Get new position of sun/moon
     var pos  = this.model.get_sun_moon_position();
 
     // Update the view
     this.view.update_sun_moon_pos(pos);
-    this.view.update_eclipse_info(res);
-    this.view.current_time.setTime(res.time.getTime() - max_time_offset_ms);
+    this.view.update_eclipse_info(res.max_eclipse);
+    this.view.current_time.setTime(res.max_eclipse.time.getTime() - max_time_offset_ms);
     this.view.reset_controls();
     this.view.update_slider();
 
@@ -1684,61 +1681,171 @@ EclipseSimulator.Model.prototype.get_sun_moon_position = function()
 
 EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 {
-    // Initial date/time to begin looking for eclipse time
-    var date = EclipseSimulator.ECLIPSE_DAY;
-    date.setUTCHours(EclipseSimulator.ECLIPSE_WCOAST_HOUR);
+    // Values to compute and loop termination / break conditions
+    var to_compute = {
 
-    // Sun/Moon angular separation
-    var prev_sep = Math.PI * 4;
-    var sep      = Math.PI * 2;
+        beg_partial_eclipse: {
 
-    // Initial time increment of 5 minutes
-    var step = 1000 * 60 * 5;
+            val: undefined,
 
-    // Set time back one step, as it will be incremented in the do while loop below, before its used
-    var time = date.getTime() - step;
+            while_cond: function(percent_eclipse, sep, prev_sep) {
+                return (percent_eclipse == 0);
+            },
+        },
 
-    // Doesn't matter
-    var prev_time = 0;
+        beg_total_eclipse: {
 
-    // Loop until we've reduced the step to a single second
-    while (step >= 1000)
+            val: undefined,
+
+            while_cond: function(percent_eclipse, sep, prev_sep) {
+                return (percent_eclipse < EclipseSimulator.MODEL_TOTAL_ECLIPSE_PERCENTAGE_THRESHOLD) && (sep < prev_sep);
+            },
+
+            undefined_cond: function(max_eclipse) {
+                return max_eclipse < EclipseSimulator.MODEL_TOTAL_ECLIPSE_PERCENTAGE_THRESHOLD;
+            },
+        },
+
+        max_eclipse: {
+
+            val: undefined,
+
+            while_cond: function(percent_eclipse, sep, prev_sep) {
+                return sep < prev_sep;
+            },
+        },
+
+        end_total_eclipse: {
+
+            val: undefined,
+
+            while_cond: function(percent_eclipse, sep, prev_sep) {
+                return percent_eclipse >= EclipseSimulator.MODEL_TOTAL_ECLIPSE_PERCENTAGE_THRESHOLD;
+            },
+
+            undefined_cond: function(max_eclipse) {
+                return max_eclipse < EclipseSimulator.MODEL_TOTAL_ECLIPSE_PERCENTAGE_THRESHOLD;
+            },
+        },
+
+        end_partial_eclipse: {
+
+            val: undefined,
+
+            while_cond: function(percent_eclipse, sep, prev_sep) {
+                return percent_eclipse > 0;
+            },
+        },
+    };
+
+    // Guarantee order - we want to compute max_eclipse first
+    var to_compute_order = [
+        'max_eclipse',
+        'beg_partial_eclipse',
+        'beg_total_eclipse',
+        'end_total_eclipse',
+        'end_partial_eclipse',
+    ];
+
+    for (var i = 0; i < to_compute_order.length; i++)
     {
-        do
+        var key = to_compute_order[i];
+
+        // Initial date/time to begin looking for eclipse time
+        if (key == 'beg_partial_eclipse' || key == 'beg_total_eclipse' || key == 'max_eclipse')
         {
-            // Record previous iteration values
-            prev_sep   = sep;
-            prev_time  = time;
-
-            // Update time for the current step
-            time      += step;
-            date.setTime(time);
-
-            // Compute sun and moon position and angular separation
-            var pos = this._compute_sun_moon_pos(date);
-            sep     = EclipseSimulator.compute_sun_moon_sep(pos.sun, pos.moon);
+            var date = new Date(EclipseSimulator.ECLIPSE_DAY);
+            date.setUTCHours(EclipseSimulator.ECLIPSE_WCOAST_HOUR);
         }
-        while (sep < prev_sep);         // Loop until the sun/moon start getting further apart
+        else
+        {
+            // Deterministic loop order guarantees that this value is not undefined.
+            var date = new Date(to_compute.max_eclipse.val.getTime());
+        }
 
-        // Back off and reduce step
-        time -= (2 * step);
-        step /= 2;
+        // Sun/Moon angular separation
+        var prev_sep = Math.PI * 4;
+        var sep      = Math.PI * 2;
 
-        // This sets the value of prev_sep
-        sep = Math.PI * 2;
+        // Initial time increment of 5 minutes
+        var step = 1000 * 60 * 5;
+
+        // Set time back one step, as it will be incremented in the do while loop below, before its used
+        var time      = date.getTime() - step;
+        var prev_time = 0;
+
+        // Doesn't matter
+        var percent_eclipse = 0;
+        var max_eclipse     = 0;
+
+        // Loop until we've reduced the step to a single second
+        while (step >= 1000)
+        {
+            do
+            {
+                // Record previous iteration values
+                prev_sep  = sep;
+                prev_time = time;
+
+                // Update time for the current step
+                time += step;
+                date.setTime(time);
+
+                // Compute sun and moon position and angular separation, and percent eclipse
+                var pos         = this._compute_sun_moon_pos(date);
+                sep             = EclipseSimulator.compute_sun_moon_sep(pos.sun, pos.moon);
+                percent_eclipse = EclipseSimulator.compute_percent_eclipse(pos.sun, pos.moon);
+                max_eclipse     = Math.max(max_eclipse, percent_eclipse);
+            }
+            while (to_compute[key].while_cond(percent_eclipse, sep, prev_sep));
+
+            // Back off and reduce step
+            time -= (2 * step);
+            step /= 2;
+
+            // This sets the value of prev_sep
+            sep = Math.PI * 2;
+        }
+
+        // Is the value undefined - specifically used when there is not total eclipse
+        var val_undefined = (to_compute[key].undefined_cond && to_compute[key].undefined_cond(max_eclipse));
+
+        if (!val_undefined)
+        {
+            // Set the value - must add back the time that was subtracted after the last loop
+            // iteration -- when while_cond eval'd to false
+            to_compute[key].val = new Date(time + (2 * step));
+        }
     }
 
-    // Compute eclipse position
-    var pos = this._compute_sun_moon_pos(date);
-
     // Save eclipse time in the model
-    this.eclipse_time.setTime(time);
+    this.eclipse_time.setTime(to_compute.max_eclipse.val.getTime());
 
-    return {
-        time: this.eclipse_time,
-        az:   pos.sun.az,
-        alt:  pos.sun.alt,
-    };
+    // Compute eclipse position
+    var eclipse_pos = this._compute_sun_moon_pos(to_compute.max_eclipse.val);
+
+    // Assemble result
+    var res = {};
+    for (key in to_compute)
+    {
+        res[key] = {
+            time: to_compute[key].val,
+        };
+    }
+    res.max_eclipse.alt = eclipse_pos.sun.alt;
+    res.max_eclipse.az  = eclipse_pos.sun.az;
+
+    if (EclipseSimulator.DEBUG)
+    {
+        console.log('Eclipse Time:');
+        console.log('Beg partial: ', res.beg_partial_eclipse.time);
+        console.log('Beg total:   ', res.beg_total_eclipse.time);
+        console.log('Max:         ', res.max_eclipse.time);
+        console.log('End total:   ', res.end_total_eclipse.time);
+        console.log('End partial: ', res.end_partial_eclipse.time);
+    }
+
+    return res;
 };
 
 EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
@@ -1754,7 +1861,11 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
     var angular_r = Math.atan(EclipseSimulator.MOON_RADIUS / dist);
 
     return {
-        sun: sun.hz,
+        sun: {
+            alt: sun.hz.alt,
+            az:  sun.hz.az,
+            r:   EclipseSimulator.SUN_ANGULAR_R,
+        },
         moon: {
             alt: moon.hz.alt,
             az:  moon.hz.az,
