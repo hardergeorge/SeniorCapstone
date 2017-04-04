@@ -161,6 +161,7 @@ var EclipseSimulator = {
         };
 
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
+        this.time_zone_name = location !== undefined ? "" : EclipseSimulator.DEFAULT_LOCATION_TIME_ZONE;
 
         this.playing       = false;
         this.play_speed    = EclipseSimulator.VIEW_PLAY_SPEED_SLOW;
@@ -274,10 +275,11 @@ var EclipseSimulator = {
             secs = secs.length == 1 ? "0" + secs : secs;
         }
 
-        var label_string = local_hour + ":" + mins + (include_seconds ? ":" + secs + " ": " ") + am_pm_string;
+        var label_string = local_hour + ":" + mins + (include_seconds ? ":" + secs : "") + '\u00a0' + am_pm_string;
 
         return label_string;
     },
+
 
     // Target amount of the field of view that is "filled" by the sun's path
     VIEW_TARGET_FOV_FILL: 0.9,
@@ -347,6 +349,8 @@ var EclipseSimulator = {
         lat: 44.567353,
         lng: -123.278622,
     },
+
+    DEFAULT_LOCATION_TIME_ZONE: 'PDT',
 
     ECLIPSE_DAY: new Date('08/21/2017'),
 
@@ -490,7 +494,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     function callback(place, status) {
         if (status == google.maps.places.PlacesServiceStatus.OK) {
             view.offset = place.utc_offset;
-            view.update_slider_labels();
+            view.queryTimeZone(place);
         }
     }
 
@@ -581,7 +585,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             return;
         } else {
 
-            view.offset = view.maps_place.utc_offset
+            view.offset = view.maps_place.utc_offset;
 
             // If the place has a geometry, then present it on a map.
             if (view.maps_place.geometry.viewport != undefined) {
@@ -598,7 +602,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             view.name = view.maps_place.formatted_address;
 
             $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
-            view.update_slider_labels();
+            view.queryTimeZone(view.maps_place);
         }
     });
 
@@ -651,6 +655,30 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
     // Set initial searchbox text
     this.search_input.value = this.location_name;
+};
+
+EclipseSimulator.View.prototype.queryTimeZone = function(place) {
+    $.ajax({
+        url: "https://maps.googleapis.com/maps/api/timezone/json",
+        data: {
+                location: place.geometry.location.lat() +"," + place.geometry.location.lng(),
+                key: api_key,
+                timestamp: EclipseSimulator.ECLIPSE_DAY.getTime() / 1000
+             }
+        })
+        .done(function(data) {
+            console.log(data);
+            var timeZoneName = "";
+            if (data.timeZoneName) {
+                // Convert to abbreviation.
+                var names = data.timeZoneName.split(" ");
+                for (var index = 0; index < names.length; index++) {
+                    timeZoneName += names[index].charAt(0);
+                }
+            }
+            this.time_zone_name = timeZoneName;
+            this.update_slider_labels();
+        }.bind(this));
 };
 
 EclipseSimulator.View.prototype._update_sim_size = function(zoomed)
@@ -896,7 +924,11 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 
     for (var i = 0; i < this.slider_labels.length; i++)
     {
-        $(this.slider_labels[i]).text(EclipseSimulator.get_local_time_from_date(date, this.offset));
+        var time = EclipseSimulator.get_local_time_from_date(date, this.offset);
+        if (i == 0 && this.time_zone_name) {
+            time += '\u00a0' + this.time_zone_name;
+        }
+        $(this.slider_labels[i]).text(time);
         date.setTime(date.getTime() + tick_sep_ms);
     }
 };
