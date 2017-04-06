@@ -365,6 +365,8 @@ var EclipseSimulator = {
 
     MOON_RADIUS: 1737,
 
+    TIME_ZONE_API_ENDPOINT: "https://maps.googleapis.com/maps/api/timezone/json",
+
 };
 
 
@@ -676,7 +678,7 @@ EclipseSimulator.View.prototype.setPlace = function(gLatLng) {
 
 EclipseSimulator.View.prototype.queryTimeZone = function(place) {
     $.ajax({
-        url: "https://maps.googleapis.com/maps/api/timezone/json",
+        url: EclipseSimulator.TIME_ZONE_API_ENDPOINT,
         data: {
                 location: place.geometry.location.lat() +"," + place.geometry.location.lng(),
                 key: api_key,
@@ -684,7 +686,6 @@ EclipseSimulator.View.prototype.queryTimeZone = function(place) {
              }
         })
         .done(function(data) {
-            console.log(data);
             var timeZoneName = "";
             if (data.timeZoneName) {
                 // Convert to abbreviation.
@@ -1642,6 +1643,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
             lat: location.lat(),
             lng: location.lng()
         };
+        parent.postMessage({simulator_location: this.model.coords}, window.location.href);
     }
 
     // compute the max time to be displayed on simulator
@@ -1837,7 +1839,7 @@ function initSim() {
 
     var controller = new EclipseSimulator.Controller(location);
     controller.init();
-    parent.postMessage("loaded", window.location.href);
+    parent.postMessage({simulator_status: "loaded"}, window.location.href);
 
     return controller;
 }
