@@ -365,6 +365,8 @@ var EclipseSimulator = {
 
     MOON_RADIUS: 1737,
 
+    TIME_ZONE_API_ENDPOINT: "https://maps.googleapis.com/maps/api/timezone/json",
+
 };
 
 
@@ -482,6 +484,18 @@ EclipseSimulator.View.prototype.init = function()
         view.refresh();
     });
 
+    $(window).on("message", function(e) {
+        if (e.originalEvent && e.originalEvent.data) {
+            // Check if lat and lng are there.
+            var data = e.originalEvent.data;
+            if (data.lat && data.lng) {
+                var latLng = new google.maps.LatLng(data);
+                view.setPlace(latLng);
+                view.map.setCenter(latLng);
+            }
+        }
+    });
+
     view._adjust_size_based_control_ui();
     view._adjust_size_based_map_ui(0);
     this.set_play_speed_label();
@@ -489,15 +503,16 @@ EclipseSimulator.View.prototype.init = function()
     this.refresh();
 };
 
+EclipseSimulator.View.prototype._onPlaceResponse = function(place, status) {
+    var view = this;
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+        view.offset = place.utc_offset;
+        view.queryTimeZone(place);
+    }
+};
+
 EclipseSimulator.View.prototype.initialize_location_entry = function()
 {
-    function callback(place, status) {
-        if (status == google.maps.places.PlacesServiceStatus.OK) {
-            view.offset = place.utc_offset;
-            view.queryTimeZone(place);
-        }
-    }
-
     var view = this;
 
     var autocomplete_options = {
@@ -512,8 +527,8 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     view.marker.setVisible(true);
 
     view.geocoder            = new google.maps.Geocoder();
-    var autocomplete_service = new google.maps.places.AutocompleteService();
-    var places_service       = new google.maps.places.PlacesService(view.garbage_dump);
+    view.autocomplete_service = new google.maps.places.AutocompleteService();
+    view.places_service       = new google.maps.places.PlacesService(view.garbage_dump);
 
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
@@ -531,7 +546,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                 componentRestrictions: {country: 'us'}
             };
 
-            autocomplete_service.getPlacePredictions(options, function(predictions, status) {
+            view.autocomplete_service.getPlacePredictions(options, function(predictions, status) {
                 if (status != google.maps.places.PlacesServiceStatus.OK) {
                     view.display_error_to_user("Location not found");
                     return;
@@ -569,7 +584,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             var request = {
                                 placeId: predictions[0].place_id
                             };
-                            places_service.getDetails(request, callback);
+                            view.places_service.getDetails(request, view._onPlaceResponse.bind(view));
 
                         } else {
                             view.display_error_to_user("Simulator is restricted to the United States");
@@ -607,59 +622,63 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
     });
 
     google.maps.event.addListener(view.map, 'click', function(event) {
-
-        view.maps_place = event.latLng;
-
-        var latlng = {lat: view.maps_place.lat(), lng: view.maps_place.lng()};
-
-        view.geocoder.geocode({'location': latlng}, function(results, status) {
-            if (status === 'OK') {
-
-                if (results[1].formatted_address.includes('USA')) {
-
-                    view.marker.setVisible(false);
-
-
-                    view.name = results[1].formatted_address;
-                    view.search_input.value = results[1].formatted_address;
-
-                    if (!view.maps_place)
-                    {
-                        view.display_error_to_user("No details available for: " + view.maps_place.name);
-                        return;
-                    }
-
-                    view.marker.setPosition(view.maps_place);
-                    view.marker.setVisible(true);
-
-                    // Update location name
-                    view.name = view.maps_place;
-
-                    $(view).trigger('EclipseView_location_updated', view.maps_place);
-
-                    var request = {
-                        placeId: results[1].place_id
-                    };
-                    places_service.getDetails(request, callback);
-
-                } else {
-                    view.display_error_to_user("Simulator is restricted to the United States");
-                    return;
-                }
-            } else {
-                view.display_error_to_user("Location not found");
-                return;
-            }
-        });
-    });
+        this.setPlace(event.latLng);
+    }.bind(view));
 
     // Set initial searchbox text
     this.search_input.value = this.location_name;
 };
 
+EclipseSimulator.View.prototype.setPlace = function(gLatLng) {
+   var view = this;
+   view.maps_place = gLatLng;
+
+   var latlng = {lat: view.maps_place.lat(), lng: view.maps_place.lng()};
+
+   view.geocoder.geocode({'location': latlng}, function(results, status) {
+       if (status === 'OK') {
+
+           if (results[1].formatted_address.includes('USA')) {
+
+               view.marker.setVisible(false);
+
+
+               view.name = results[1].formatted_address;
+               view.search_input.value = results[1].formatted_address;
+
+               if (!view.maps_place)
+               {
+                   view.display_error_to_user("No details available for: " + view.maps_place.name);
+                   return;
+               }
+
+               view.marker.setPosition(view.maps_place);
+               view.marker.setVisible(true);
+
+               // Update location name
+               view.name = view.maps_place;
+
+               $(view).trigger('EclipseView_location_updated', view.maps_place);
+
+               var request = {
+                   placeId: results[1].place_id
+               };
+               view.places_service.getDetails(request, view._onPlaceResponse.bind(view));
+
+           } else {
+               view.display_error_to_user("Simulator is restricted to the United States");
+               return;
+           }
+       } else {
+           view.display_error_to_user("Location not found");
+           return;
+       }
+   });
+};
+
 EclipseSimulator.View.prototype.queryTimeZone = function(place) {
     $.ajax({
-        url: "https://maps.googleapis.com/maps/api/timezone/json",
+        url: EclipseSimulator.TIME_ZONE_API_ENDPOINT,
         data: {
                 location: place.geometry.location.lat() +"," + place.geometry.location.lng(),
                 key: api_key,
@@ -667,7 +686,6 @@ EclipseSimulator.View.prototype.queryTimeZone = function(place) {
              }
         })
         .done(function(data) {
-            console.log(data);
             var timeZoneName = "";
             if (data.timeZoneName) {
                 // Convert to abbreviation.
@@ -1625,6 +1643,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
             lat: location.lat(),
             lng: location.lng()
         };
+        parent.postMessage({simulator_location: this.model.coords}, window.location.href);
     }
 
     // compute the max time to be displayed on simulator
@@ -1820,6 +1839,7 @@ function initSim() {
 
     var controller = new EclipseSimulator.Controller(location);
     controller.init();
+    parent.postMessage({simulator_status: "loaded"}, window.location.href);
 
     return controller;
 }
