@@ -83,8 +83,15 @@
 <body style="margin: 0px;">
     <iframe id="simulator_frame" height="750" width="100%" style="border-width: 0px;" src="simulator.html"></iframe>
 <script>
-    window.addEventListener("message", function() {
-      parseAndPassIfNecessary();
+    window.addEventListener("message", function(e) {
+      if (e.data) {
+          if (e.data.simulator_status == "loaded") {
+            parseAndPassIfNecessary();
+          } else if (e.data.simulator_location) {
+            // TODO: update query string here.
+          }
+      }
+
     });
 </script>
 </body>

@@ -546,7 +546,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                 componentRestrictions: {country: 'us'}
             };
 
-            autocomplete_service.getPlacePredictions(options, function(predictions, status) {
+            view.autocomplete_service.getPlacePredictions(options, function(predictions, status) {
                 if (status != google.maps.places.PlacesServiceStatus.OK) {
                     view.display_error_to_user("Location not found");
                     return;
@@ -584,7 +584,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             var request = {
                                 placeId: predictions[0].place_id
                             };
-                            places_service.getDetails(request, view._onPlaceResponse.bind(view));
+                            view.places_service.getDetails(request, view._onPlaceResponse.bind(view));
 
                         } else {
                             view.display_error_to_user("Simulator is restricted to the United States");
