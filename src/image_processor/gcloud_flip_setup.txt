@@ -49,3 +49,11 @@ make
 sudo make install
 
 sudo ldconfig
+
+# To install gflags
+$ git clone https://github.com/gflags/gflags
+$ cd gflags
+$ mkdir build && cd build
+$ cmake ..
+$ make
+$ sudo make install
