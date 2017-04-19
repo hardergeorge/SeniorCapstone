@@ -46,6 +46,7 @@ var EclipseSimulator = {
         this.search_input   = $('#pac-input').get(0);
         this.topbar         = $('.floating-bar.top .inner').get(0);
         this.garbage_dump   = $('#garbage-dump').get(0);
+        this.totality_label = $("#totality-label").get(0);
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
@@ -697,6 +698,18 @@ EclipseSimulator.View.prototype.queryTimeZone = function(place) {
             this.time_zone_name = timeZoneName;
             this.update_slider_labels();
         }.bind(this));
+};
+
+EclipseSimulator.View.prototype.update_totality = function() {
+    if (google.maps.geometry && this.marker && this.marker.getVisible()) {
+        if (google.maps.geometry.poly.containsLocation(this.marker.getPosition(), this.eclipsePath)) {
+            $(this.totality_label).text("Total eclipse");
+        } else {
+            $(this.totality_label).text("Partial eclipse");
+        }
+    } else {
+        $(this.totality_label).text("");
+    }
 };
 
 EclipseSimulator.View.prototype._update_sim_size = function(zoomed)
@@ -1393,7 +1406,7 @@ EclipseSimulator.View.prototype._create_polygon_map = function()
   }
 
   // Create the polygon
-  var eclipsePath = new google.maps.Polygon({
+  this.eclipsePath = new google.maps.Polygon({
     path: eclipse_path_coordinates,
     strokeColor: '#000000',
     strokeOpacity: 0.8,
@@ -1404,7 +1417,7 @@ EclipseSimulator.View.prototype._create_polygon_map = function()
   });
 
   // Add the polygon to the map
-  eclipsePath.setMap(this.map);
+  this.eclipsePath.setMap(this.map);
 };
 
 EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
@@ -1678,6 +1691,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
 
     this.view.update_fov();
+    this.view.update_totality();
     this.view.refresh();
 };
 

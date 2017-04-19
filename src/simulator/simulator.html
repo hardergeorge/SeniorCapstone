@@ -27,7 +27,7 @@ limitations under the License.
           var script = document.createElement('script');
           script.type = 'text/javascript';
           script.src = 'https://maps.googleapis.com/maps/api/js?' +
-              '&key=' + api_key +'&libraries=places&callback=initSim';
+              '&key=' + api_key +'&libraries=places,geometry&callback=initSim';
           document.body.appendChild(script);
         }
 
@@ -84,7 +84,7 @@ limitations under the License.
     }
     .slider-container {
         float: left;
-        margin-top: 20px
+        margin-top: 14px;
     }
     @media screen and (max-width: 399px) {
         .floating-bar.top input {
@@ -114,6 +114,8 @@ limitations under the License.
         }
         .floating-bar.bottom .slider-labels div {
             margin-left: calc(50% - 96px);
+        }
+        .floating-bar.bottom .slider-labels div, .totality-marker {
             font-size: 12px;
         }
         .floating-bar.bottom .slider-labels.even div {
@@ -124,7 +126,7 @@ limitations under the License.
         .floating-bar.bottom {
             width: calc(100% - 100px);
         }
-        .floating-bar.bottom .slider-labels div {
+        .floating-bar.bottom .slider-labels div, .totality-marker {
             font-size: 14px;
         }
         .floating-bar.top .mdl-button.map-open {
@@ -178,7 +180,7 @@ limitations under the License.
     }
     .slider-labels {
         width: calc(100% - 10px);
-        height: 30px;
+        height: 20px;
         margin-left: 5px;
         margin-top: 5px;
         text-align: center;
@@ -191,13 +193,13 @@ limitations under the License.
         margin-left: calc(25% - 75px);
     }
     .control-bar {
-        height: 80px;
+        height: 90px;
         padding: 0px 15px 0px 15px;
         background-color: #fff;
     }
     .floating-bar.bottom .mdl-button {
         float: left;
-        margin-top: 20px;
+        margin-top: 25px;
     }
     .background {
         display: none;
@@ -217,8 +219,14 @@ limitations under the License.
         background-color: #8cd2dd;
     }
     .slider-tooltip {
-        font-family: 'Roboto';
+        font-family: 'Roboto', sans-serif;
         font-weight: 300;
+    }
+    .totality-marker {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 400;
+        color:#616161;
+        margin-bottom: 1px;
     }
 </style>
 </head>
@@ -262,6 +270,7 @@ limitations under the License.
 
                 <!-- Time slider -->
                 <div class="slider-container">
+                    <div class="totality-marker" id="totality-label"></div>
                     <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
                     <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1" title="Current time">
 
