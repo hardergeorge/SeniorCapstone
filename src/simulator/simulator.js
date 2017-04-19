@@ -46,6 +46,7 @@ var EclipseSimulator = {
         this.search_input   = $('#pac-input').get(0);
         this.topbar         = $('.floating-bar.top .inner').get(0);
         this.garbage_dump   = $('#garbage-dump').get(0);
+        this.totality_label = $("#totality-label").get(0);
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
@@ -700,16 +701,14 @@ EclipseSimulator.View.prototype.queryTimeZone = function(place) {
 };
 
 EclipseSimulator.View.prototype.update_totality = function() {
-    var view = this;
-    var totalityLabel = $("#totality-label");
-    if (google.maps.geometry && view.marker && view.marker.getVisible()) {
-        if (google.maps.geometry.poly.containsLocation(view.marker.getPosition(), view.eclipsePath)) {
-            totalityLabel.text("Total eclipse");
+    if (google.maps.geometry && this.marker && this.marker.getVisible()) {
+        if (google.maps.geometry.poly.containsLocation(this.marker.getPosition(), this.eclipsePath)) {
+            $(this.totality_label).text("Total eclipse");
         } else {
-            totalityLabel.text("Partial eclipse");
+            $(this.totality_label).text("Partial eclipse");
         }
     } else {
-        totalityLabel.text("");
+        $(this.totality_label).text("");
     }
 };
 
