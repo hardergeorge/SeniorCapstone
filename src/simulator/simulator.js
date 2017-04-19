@@ -699,7 +699,7 @@ EclipseSimulator.View.prototype.queryTimeZone = function(place) {
         }.bind(this));
 };
 
-EclipseSimulator.View.prototype._update_totality = function() {
+EclipseSimulator.View.prototype.update_totality = function() {
     var view = this;
     var totalityLabel = $("#totality-label");
     if (google.maps.geometry && view.marker && view.marker.getVisible()) {
@@ -1692,7 +1692,7 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
 
 
     this.view.update_fov();
-    this.view._update_totality();
+    this.view.update_totality();
     this.view.refresh();
 };
 
