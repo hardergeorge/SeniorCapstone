@@ -1,18 +1,47 @@
-<script type="text/javascript" src="jquery.min.js"></script>
-<script type="text/javascript" src="jquery-ui.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_API_KEY&libraries=places"></script>
-<script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
-<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
-<script defer type="text/javascript" src="simulator.js"></script>
+<!--
+Copyright 2017 Bret Lorimore, George Harder, Jacob Fenger.
+Licensed under the Apache License, Version 2.0 (the "License");
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.grey-amber.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <!-- NOTE: this lets you store the API key outside of this file. -->
+    <script type="text/javascript" src="client-id.js"></script>
+
+    <script>
+        function loadScript() {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://maps.googleapis.com/maps/api/js?' +
+              '&key=' + api_key +'&libraries=places,geometry&callback=initSim';
+          document.body.appendChild(script);
+        }
+
+        window.onload = loadScript;
+    </script>
+
+    <script type="text/javascript" src="meuusjs.1.0.3.min.js"></script>
+    <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+    <script defer type="text/javascript" src="simulator.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.grey-amber.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <meta charset="utf-8">
 <style>
     #loading {
@@ -38,20 +67,36 @@
     }
     .floating-bar.bottom {
         bottom: 10px;
-        width: calc(100% - 100px);
     }
     .floating-bar.bottom .inner {
         bottom: 10px;
+    }
+    .floating-bar.bottom .mdl-button {
+        margin-left: 0;
+        font-weight: 400;
     }
     .floating-bar .mdl-button, .floating-bar.top .map-container {
         margin-left: 8px;
         float: left;
     }
+    .floating-bar .mdl-button.blue {
+        color: #4285F4;
+    }
     .slider-container {
         float: left;
-        margin-top: 20px
+        margin-top: 14px;
     }
-    @media screen and (max-width: 599px) {
+    @media screen and (max-width: 399px) {
+        .floating-bar.top input {
+            width: 200px;
+        }
+    }
+    @media screen and (min-width: 400px) {
+        .floating-bar.top input {
+            width: 300px;
+        }
+    }
+    @media screen and (max-width: 749px) {
         .floating-bar .map-container {
             position: relative;
             margin-top: 10px;
@@ -61,14 +106,29 @@
         .slider-container {
             width: calc(100% - 72px);
         }
+        .floating-bar.bottom {
+            width: calc(100% - 16px);
+        }
         .floating-bar.bottom .mdl-button {
             margin-left: 0;
         }
         .floating-bar.bottom .slider-labels div {
-            margin-left: calc(25% - 11px);
+            margin-left: calc(50% - 96px);
+        }
+        .floating-bar.bottom .slider-labels div, .totality-marker {
+            font-size: 12px;
+        }
+        .floating-bar.bottom .slider-labels.even div {
+            display: none;
         }
     }
-    @media screen and (min-width: 600px) {
+    @media screen and (min-width: 750px) {
+        .floating-bar.bottom {
+            width: calc(100% - 100px);
+        }
+        .floating-bar.bottom .slider-labels div, .totality-marker {
+            font-size: 14px;
+        }
         .floating-bar.top .mdl-button.map-open {
             margin-top: 4px;
         }
@@ -87,7 +147,6 @@
         font-weight: 300;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
-        width: 300px;
         border-radius: 2px;
     }
     .floating-bar.top .search {
@@ -98,28 +157,49 @@
     .mdl-button, .mdl-button:focus, .mdl-button:hover, .mdl-button--raised.mdl-button--colored {
         background-color: #fff;
     }
+    .slider-container .mdl-slider__background-lower {
+        background-color: #4285F4;
+    }
+    .slider-container .mdl-slider__background-upper {
+        background-color: #d8d8d8;
+    }
+    /* Chrome */
+    .slider-container input[type=range]::-webkit-slider-thumb, .slider-container input[type=range]:focus::-webkit-slider-thumb, .slider-container input[type=range].is-lowest-value::-webkit-slider-thumb {
+        background: #4285F4;
+        border: none;
+    }
+    /* Firefox */
+    .slider-container input[type=range]::-moz-range-thumb, .slider-container input[type=range]:focus::-moz-range-thumb, .slider-container input[type=range].is-lowest-value::-moz-range-thumb {
+        background: #4285F4;
+        border: none;
+    }
+    /* IE */
+    .slider-container input[type=range]::-ms-thumb, .slider-container input[type=range]:focus::-ms-thumb, .slider-container input[type=range].is-lowest-value::-ms-thumb {
+        background: #4285F4;
+        border: none;
+    }
     .slider-labels {
         width: calc(100% - 10px);
-        height: 30px;
+        height: 20px;
         margin-left: 5px;
         margin-top: 5px;
         text-align: center;
-        color: #333;
+        color: #616161;
     }
     .slider-labels div {
         height: 20px;
-        width: 40px;
+        width: 60px;
         float: left;
-        margin-left: calc(25% - 50px);
+        margin-left: calc(25% - 75px);
     }
     .control-bar {
-        height: 80px;
+        height: 90px;
         padding: 0px 15px 0px 15px;
         background-color: #fff;
     }
     .floating-bar.bottom .mdl-button {
         float: left;
-        margin-top: 20px;
+        margin-top: 25px;
     }
     .background {
         display: none;
@@ -132,8 +212,21 @@
         background-size: cover;
         background-position: center;
     }
+    .background.img.dark {
+        background-image: url("img/background_dark.png");
+    }
     .background.sky {
-        background-color: #b5e3f8;
+        background-color: #8cd2dd;
+    }
+    .slider-tooltip {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 300;
+    }
+    .totality-marker {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 400;
+        color:#616161;
+        margin-bottom: 1px;
     }
 </style>
 </head>
@@ -149,14 +242,23 @@
             <div id="controls" class="control-bar mdl-shadow--2dp">
 
                 <!-- Play button -->
-                <button class="mdl-button mdl-js-button"
-                        id="play">
-                    <i class="material-icons">play_circle_outline</i>
+                <button class="mdl-button blue mdl-js-button" id="play">
+                    <i class="material-icons">play_arrow</i>
+                </button>
+
+                <!-- Time down button -->
+                <button class="mdl-button blue mdl-js-button" id="downbutton">
+                    <i class="material-icons">replay_30</i>
+                </button>
+
+                <!-- Time up button -->
+                <button class="mdl-button blue mdl-js-button" id ="upbutton">
+                    <i class="material-icons">forward_30</i>
                 </button>
 
                 <!-- Right aligned menu below button -->
-                <button id="speed-menu-button"
-                        class="mdl-button mdl-js-button mdl-button--icon">
+                <button id="speed-menu-button" class="mdl-button mdl-js-button">
+                    <span>1000X</span>
                     <i class="material-icons">arrow_drop_down</i>
                 </button>
 
@@ -168,28 +270,18 @@
 
                 <!-- Time slider -->
                 <div class="slider-container">
+                    <div class="totality-marker" id="totality-label"></div>
                     <!-- +/- 720 minutes = +/- 12 hours with 2 minute resolution -->
-                    <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1">
+                    <input class="mdl-slider mdl-js-slider" type="range" id="tslider" min="-360" max="360" value="0" step="1" title="Current time">
 
                     <div class="slider-labels">
                         <div id="slabel1" style="margin-left: 0px;"></div>
+                        <div id="slabel2" class="even"></div>
                         <div id="slabel3"></div>
-                        <div id="slabel3"></div>
-                        <div id="slabel4"></div>
+                        <div id="slabel4" class="even"></div>
                         <div id="slabel5"></div>
                     </div>
                 </div>
-
-                <!-- Time down button -->
-                <button class="mdl-button mdl-js-button" id="downbutton">
-                    <i class="material-icons">skip_previous</i>
-                </button>
-
-
-                <!-- Time up button -->
-                <button class="mdl-button mdl-js-button" id ="upbutton">
-                    <i class="material-icons">skip_next</i>
-                </button>
 
             </div>
         </div>
@@ -211,6 +303,7 @@
     </svg>
 
     <div class="background img"></div>
+    <div class="background img dark"></div>
 
     <div class="floating-bar top">
         <div class="inner">
@@ -218,11 +311,11 @@
 
             <div id="map-canvas" class="mdl-shadow--2dp map-container"></div>
 
-            <button class="mdl-button mdl-js-button mdl-button--fab" id="mapbutton">
+            <button class="mdl-button blue mdl-js-button mdl-button--fab" id="mapbutton">
                 <i class="material-icons">map</i>
             </button>
 
-            <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
+            <button class="mdl-button blue mdl-js-button mdl-button--fab mdl-button--raised mdl-js-ripple-effect" id="zoom">
                 <i class="material-icons">zoom_in</i>
             </button>
         </div>
@@ -235,6 +328,14 @@
         <div class="mdl-snackbar__text"></div>
         <button class="mdl-snackbar__action" type="button"></button>
     </div>
+
+    <!--
+         Google Maps places service wants a place to display results this makes it happy.
+         You can pass it a map object, but this leads to the creation of a small grey box in the
+         lower right hand corner. This can even be seen in the example here
+         https://developers.google.com/maps/documentation/javascript/examples/place-details
+     -->
+    <div id="garbage-dump" style="display:none"></div>
 
 </body>
 </html>

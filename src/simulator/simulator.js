@@ -1,9 +1,25 @@
 'use strict';
 
+/**
+  Copyright 2017 Bret Lorimore, George Harder, Jacob Fenger.
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 // EclipseSimulator namespace
 var EclipseSimulator = {
 
-    DEBUG: true,
+    DEBUG: false,
 
     View: function(location)
     {
@@ -19,8 +35,8 @@ var EclipseSimulator = {
         this.mapbutton      = $('#mapbutton').get(0);
         this.speed_btn_slow = $('#speed-button-slow').get(0);
         this.speed_btn_fast = $('#speed-button-fast').get(0);
-        this.speed_selector = $('#speed-menu').get(0);
-        this.speeddropdown  = $('#speed-menu-button').get(0);
+        this.speed_menu     = $('#speed-menu').get(0);
+        this.speed_sel_btn  = $('#speed-menu-button').get(0);
         this.zoombutton     = $('#zoom').get(0);
         this.playbutton     = $('#play').get(0);
         this.slider         = $('#tslider').get(0);
@@ -29,22 +45,29 @@ var EclipseSimulator = {
         this.mapcanvas      = $('#map-canvas').get(0);
         this.search_input   = $('#pac-input').get(0);
         this.topbar         = $('.floating-bar.top .inner').get(0);
+        this.garbage_dump   = $('#garbage-dump').get(0);
+        this.totality_label = $("#totality-label").get(0);
 
         this.map            = new google.maps.Map(this.mapcanvas, {
                                 center: EclipseSimulator.DEFAULT_LOCATION_COORDS,
-                                zoom: 11
+                                zoom: EclipseSimulator.GEOCODE_MAP_ZOOM,
+                                streetViewControl: false,
+                                clickableIcons: false
                             });
         this.map_visible    = false;
         this.search_box     = undefined;
         this.marker         = undefined;
         this.maps_place     = undefined;
         this.geocoder       = undefined;
+        // set default place_id to Corvallis (Used to timezone computation)
+        this.place_id = 'ChIJfdcUqp1AwFQRvsC9Io-ADdc';
+        this.offset = -420; // pacific local offset from UTC in minutes
 
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.5 * Math.PI / 180, apparant_r: 0.62 * Math.PI / 180};
-        this.moonpos = {x: 0, y: 0, r: 0.5 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: 0.25 * Math.PI / 180, apparant_r: 0.34 * Math.PI / 180};
+        this.moonpos = {x: 0, y: 0, r: 0.25 * Math.PI / 180};
 
         // Wide field of view in radians
         this.wide_fov = {
@@ -56,7 +79,7 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y_desired: 13 * Math.PI / 180,
+            _y_desired: 8 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
@@ -76,7 +99,7 @@ var EclipseSimulator = {
             y: undefined,
 
             // Desired y fov. Will be used unless this would mean fov x exceeding _x_max
-            _y_desired: 10 * Math.PI / 180,
+            _y_desired: 5 * Math.PI / 180,
 
             // Max x fov
             _x_max: 160 * Math.PI / 180,
@@ -118,7 +141,28 @@ var EclipseSimulator = {
             },
         };
 
+        // Acting SVG size - we set the SVG canvas to be the entire width of the window,
+        // but we don't want to report this to the simulator, as this results in too wide of an
+        // aspect ratio that makes it difficult to keep the sun in view vertically without
+        // exceeding 180 degrees of horizontal field of view, which doesn't even make sense.
+        // Therefore, we report the environment size using the variable below, which is set by the
+        // update_sim_size function.
+        this.acting_svg_size = {
+            height: 0,
+            width: 0,
+        };
+        // This is the offset of the "acting SVG canvas" from the left side of the actual SVG canvas
+        // This value is computed as (actual_svg_w - acting_svg_w)/2
+        this.svg_horizontal_offset = 0;
+
+        // True simulator window size
+        this.environment_size = {
+            height: 0,
+            width: 0,
+        };
+
         this.location_name = location !== undefined ? location.name : EclipseSimulator.DEFAULT_LOCATION_NAME;
+        this.time_zone_name = location !== undefined ? "" : EclipseSimulator.DEFAULT_LOCATION_TIME_ZONE;
 
         this.playing       = false;
         this.play_speed    = EclipseSimulator.VIEW_PLAY_SPEED_SLOW;
@@ -126,8 +170,10 @@ var EclipseSimulator = {
 
     Controller: function(location)
     {
-        this.view  = new EclipseSimulator.View(location);
-        this.model = new EclipseSimulator.Model(location);
+        this.view                         = new EclipseSimulator.View(location);
+        this.model                        = new EclipseSimulator.Model(location);
+        this.current_animation_id         = undefined;
+        this.previous_animation_timestamp = undefined;
     },
 
     Model: function(location)
@@ -201,34 +247,70 @@ var EclipseSimulator = {
         return Math.acos(a);
     },
 
-    // Target amount of the field of view that is "filled" by the sun's path -
-    // i.e. we attempt to make the sun's path start 10% from the left of the canvas
-    // and end 10% from the right of the canvas - of course, this is idealized, as
-    // we must consider the sun's position in the y direction as well.
-    VIEW_TARGET_FOV_FILL: 0.9,
+    get_local_time_from_date: function(date, offset, include_seconds) {
+        // Convert UTC offset in minutes to hours
+        var hour_offset = offset/60;
 
-    // 15 degree top/botton buffer on target fov fill in the y direction - this prevents
-    // the sun from falling below the hills
-    VIEW_TARGET_FOV_FILL_Y_BUFF: 15 * Math.PI / 180,
+        var local_hour;
+        var am_pm_string;
+
+        // Zero padding in js is gross
+        var mins = "" + date.getMinutes();
+        mins     = mins.length == 1 ? "0" + mins : mins;
+        var secs = "";
+        // compute local hour relative to UTC time
+        local_hour = (date.getUTCHours() + hour_offset + 11) % 12 + 1;
+
+        if (date.getUTCHours() + hour_offset >= 12)
+        {
+            am_pm_string = "PM";
+        }
+        else
+        {
+            am_pm_string = "AM";
+        }
+
+        if (include_seconds)
+        {
+            secs = "" + date.getSeconds();
+            secs = secs.length == 1 ? "0" + secs : secs;
+        }
+
+        var label_string = local_hour + ":" + mins + (include_seconds ? ":" + secs : "") + '\u00a0' + am_pm_string;
+
+        return label_string;
+    },
+
+
+    // Target amount of the field of view that is "filled" by the sun's path
+    VIEW_TARGET_FOV_FILL: 0.9,
 
     VIEW_MAP_MAX_H: 400,
 
-    VIEW_MAP_TMARGIN: 70,
+    // Distance between map and top of window (phone mode)
+    VIEW_MAP_TMARGIN: 92,
 
     VIEW_MAP_LMARGIN: 8,
+
+    GEOCODE_MAP_ZOOM : 8,
 
     VIEW_ZOOM_WIDE: 'wide',
 
     VIEW_ZOOM_ZOOM: 'zoom',
 
     VIEW_SLIDER_STEP_MIN: {
-        zoom: 0.3,
-        wide: 0.3,
+        zoom: .25,
+        wide: .25,
     },
 
-    VIEW_BG_HILL_VALLEY_HEIGHT_PERCENT: 0.1888466413,
+    VIEW_BG_IMAGE_W:             1397,
+    VIEW_BG_IMAGE_H:             789,
+    VIEW_BG_IMAGE_HILL_CREST_H:  242,
+    VIEW_BG_IMAGE_HILL_VALLEY_H: 151,
 
-    VIEW_PHONE_WMAX: 600,
+    VIEW_ACTING_SVG_MAX_ASPECT_RATIO: 1.5,
+
+    VIEW_PHONE_DISP_W_MAX: 750,
 
     VIEW_MAP_MAX_W: 800,
 
@@ -237,13 +319,11 @@ var EclipseSimulator = {
     VIEW_MAP_TOTALITY_LNG: [-171.748, -164.505, -156.937, -152.105, -148.257, -144.965, -142.047, -139.4, -136.963, -134.695, -132.568, -130.56, -128.655, -126.84, -125.105, -123.442, -121.843, -120.305, -118.82, -117.385, -115.997, -114.65, -113.345, -112.077, -110.842, -109.642, -108.472, -107.332, -106.218, -105.132, -104.07, -103.032, -102.015, -101.02, -100.043, -99.087, -98.148, -97.227, -96.322, -95.432, -94.555, -93.693, -92.843, -92.007, -91.182, -90.367, -89.562, -88.767, -87.98, -87.202, -86.432, -85.667, -84.91, -84.157, -83.41, -82.667, -81.927, -81.19, -80.457, -79.723, -78.992, -78.26, -77.528, -76.795, -76.06, -75.323, -74.582, -73.835, -73.083, -72.325, -71.56, -70.785, -70.002, -69.205, -68.398, -67.575, -66.737, -65.88, -65.003, -64.103, -63.178, -62.225, -61.24, -60.218, -59.155, -58.045, -56.88, -55.652, -54.35, -52.958, -51.46, -49.828, -48.023, -45.99, -43.627, -40.74, -36.81, -27.332, -27.552, -38.467, -42.078, -44.827, -47.108, -49.09, -50.857, -52.46, -53.935, -55.308, -56.595, -57.808, -58.962, -60.062, -61.117, -62.128, -63.107, -64.052, -64.97, -65.862, -66.732, -67.582, -68.413, -69.23, -70.032, -70.82, -71.597, -72.365, -73.123, -73.873, -74.617, -75.355, -76.088, -76.817, -77.543, -78.267, -78.988, -79.71, -80.432, -81.153, -81.875, -82.6, -83.327, -84.058, -84.792, -85.53, -86.273, -87.023, -87.778, -88.542, -89.31, -90.088, -90.875, -91.672, -92.477, -93.293, -94.122, -94.963, -95.817, -96.683, -97.565, -98.462, -99.373, -100.303, -101.252, -102.218, -103.205, -104.213, -105.243, -106.298, -107.377, -108.483, -109.617, -110.78, -111.975, -113.203, -114.468, -115.772, -117.117, -118.507, -119.943, -121.433, -122.982, -124.592, -126.27, -128.027, -129.87, -131.813, -133.87, -136.062, -138.413, -140.963, -143.765, -146.908, -150.548, -155.018, -161.407, -171.433],
 
     VIEW_BG_COLOR_NIGHT:   [0,   0,   0],
-    VIEW_BG_COLOR_DAY:     [181, 227, 248],
+    VIEW_BG_COLOR_DAY:     [140, 210, 221],
     VIEW_MOON_OPACITY:     0.65,
     VIEW_BG_IMG_MAX_GRAY:  0.75,
 
     VIEW_SLIDER_NSTEPS: 720,
-
-    PLAY_REFRESH_RATE: 16,
 
     VIEW_PLAY_SPEED_SLOW: 'slow',
 
@@ -271,6 +351,8 @@ var EclipseSimulator = {
         lng: -123.278622,
     },
 
+    DEFAULT_LOCATION_TIME_ZONE: 'PDT',
+
     ECLIPSE_DAY: new Date('08/21/2017'),
 
     ECLIPSE_ECOAST_HOUR: 20,
@@ -278,9 +360,13 @@ var EclipseSimulator = {
     ECLIPSE_WCOAST_HOUR: 16,
 
     PLAY_PAUSE_BUTTON: {
-        true: 'play_circle_outline',
-        false: 'pause_circle_outline',
+        true:  'play_arrow',
+        false: 'pause',
     },
+
+    MOON_RADIUS: 1737,
+
+    TIME_ZONE_API_ENDPOINT: "https://maps.googleapis.com/maps/api/timezone/json",
 
 };
 
@@ -293,6 +379,7 @@ var EclipseSimulator = {
 
 EclipseSimulator.View.prototype.init = function()
 {
+
     // Needs to be called the first time as this will set the simulator size
     this._update_sim_size();
 
@@ -300,23 +387,54 @@ EclipseSimulator.View.prototype.init = function()
     // refresh function callback this refers to the window object
     var view = this;
 
-    //This makes the sun move along with the slider
-    //A step toward calculating and displaying the sun and moon at a specific time based on the slider
+    // This makes the sun move along with the slider
+    // A step toward calculating and displaying the sun and moon at a specific time based on the slider
     $(this.slider).on('input', function() {
         view.playing = false;
         view.slider_change();
     });
 
-    //Increments the slider on a click
+    $(this.slider).tooltip({
+        track: true,
+        classes: {
+            "ui-tooltip": "slider-tooltip mdl-shadow--2dp"
+        }
+    });
+
+    // Increments the slider on a click
     $(this.upbutton).click(function() {
         view.playing = false;
         view.slider_change('up');
     });
 
-    //Decrements the slider on a click
+    // Decrements the slider on a click
     $(this.downbutton).click(function() {
         view.playing = false;
         view.slider_change('down');
+    });
+
+    // Keyboard bindings
+    $(document).keydown(function(e) {
+        var tag = e.target.tagName.toLowerCase();
+        if (tag == 'input') {
+            return;
+        }
+        switch(e.which) {
+        // space bar
+        case 32:
+            $(view.playbutton).click();
+            break;
+        // left arrow key
+        case 37:
+            $(view.downbutton).click();
+            break;
+        // right arrow key
+        case 39:
+            $(view.upbutton).click();
+            break;
+        default:
+                return;
+        }
     });
 
     $(this.zoombutton).click(function() {
@@ -325,22 +443,11 @@ EclipseSimulator.View.prototype.init = function()
     });
 
     $(this.playbutton).click(function() {
-        // If the slider is at the very end of the time range and the user hits
-        // the play button again. It will restart the playing of the simulation
-        // from the beginning.
-        if(view.end_of_slider)
-        {
-          // Restart the slider at the beginning
-          view.slider.value = -1*EclipseSimulator.VIEW_SLIDER_STEP_MIN[view.zoom_level]
-                           * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
-        }
-
-        view.playing = !view.playing;
-        view.play_simulator_step(parseFloat(view.slider.value));
+        $(view).trigger('EclipseView_toggle_playing');
     });
 
     //toggle's the view play speed and disables the menu option for the current speed
-    $(this.speed_selector).click(function() {
+    $(this.speed_menu).click(function(e) {
         if (view.play_speed == EclipseSimulator.VIEW_PLAY_SPEED_SLOW)
         {
             view.play_speed = EclipseSimulator.VIEW_PLAY_SPEED_FAST;
@@ -353,6 +460,7 @@ EclipseSimulator.View.prototype.init = function()
             $(view.speed_btn_fast).attr('disabled', false);
             $(view.speed_btn_slow).attr('disabled', true);
         }
+        $(view.speed_sel_btn).find('span').text($(e.target).text());
     });
 
     // Hide the map when the view initializes
@@ -377,11 +485,31 @@ EclipseSimulator.View.prototype.init = function()
         view.refresh();
     });
 
+    $(window).on("message", function(e) {
+        if (e.originalEvent && e.originalEvent.data) {
+            // Check if lat and lng are there.
+            var data = e.originalEvent.data;
+            if (data.lat && data.lng) {
+                var latLng = new google.maps.LatLng(data);
+                view.setPlace(latLng);
+                view.map.setCenter(latLng);
+            }
+        }
+    });
+
     view._adjust_size_based_control_ui();
     view._adjust_size_based_map_ui(0);
     this.set_play_speed_label();
     this.update_fov();
     this.refresh();
+};
+
+EclipseSimulator.View.prototype._onPlaceResponse = function(place, status) {
+    var view = this;
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+        view.offset = place.utc_offset;
+        view.queryTimeZone(place);
+    }
 };
 
 EclipseSimulator.View.prototype.initialize_location_entry = function()
@@ -397,10 +525,11 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
         map: this.map,
         position: EclipseSimulator.DEFAULT_LOCATION_COORDS,
     });
-
     view.marker.setVisible(true);
 
-    view.geocoder = new google.maps.Geocoder;
+    view.geocoder            = new google.maps.Geocoder();
+    view.autocomplete_service = new google.maps.places.AutocompleteService();
+    view.places_service       = new google.maps.places.PlacesService(view.garbage_dump);
 
     // Listen for the event fired when the user selects a prediction and retrieve
     // more details for that place.
@@ -413,14 +542,12 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
 
         if (!view.maps_place.geometry)
         {
-            var service = new google.maps.places.AutocompleteService();
-
-            var service_options = {
+            var options = {
                 input: view.maps_place.name,
                 componentRestrictions: {country: 'us'}
             };
 
-            service.getPlacePredictions(service_options, function(predictions, status) {
+            view.autocomplete_service.getPlacePredictions(options, function(predictions, status) {
                 if (status != google.maps.places.PlacesServiceStatus.OK) {
                     view.display_error_to_user("Location not found");
                     return;
@@ -445,7 +572,7 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             }
 
                             view.map.setCenter(view.maps_place.geometry.location);
-                            view.map.setZoom(11);
+                            view.map.setZoom(EclipseSimulator.GEOCODE_MAP_ZOOM);
 
                             view.marker.setPosition(view.maps_place.geometry.location);
                             view.marker.setVisible(true);
@@ -454,6 +581,11 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
                             view.name = view.maps_place;
 
                             $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
+
+                            var request = {
+                                placeId: predictions[0].place_id
+                            };
+                            view.places_service.getDetails(request, view._onPlaceResponse.bind(view));
 
                         } else {
                             view.display_error_to_user("Simulator is restricted to the United States");
@@ -469,92 +601,149 @@ EclipseSimulator.View.prototype.initialize_location_entry = function()
             return;
         } else {
 
+            view.offset = view.maps_place.utc_offset;
+
             // If the place has a geometry, then present it on a map.
             if (view.maps_place.geometry.viewport != undefined) {
                 view.map.fitBounds(view.maps_place.geometry.viewport);
-                view.map.setZoom(11);
+                view.map.setZoom(EclipseSimulator.GEOCODE_MAP_ZOOM);
             } else {
                 view.map.setCenter(view.maps_place.geometry.location);
-                view.map.setZoom(11);
+                view.map.setZoom(EclipseSimulator.GEOCODE_MAP_ZOOM);
             }
             view.marker.setPosition(view.maps_place.geometry.location);
             view.marker.setVisible(true);
 
             // Update location name
             view.name = view.maps_place.formatted_address;
+
             $(view).trigger('EclipseView_location_updated', view.maps_place.geometry.location);
+            view.queryTimeZone(view.maps_place);
         }
     });
 
     google.maps.event.addListener(view.map, 'click', function(event) {
-
-        view.maps_place = event.latLng;
-
-        var latlng = {lat: view.maps_place.lat(), lng: view.maps_place.lng()};
-
-        view.geocoder.geocode({'location': latlng}, function(results, status) {
-            if (status === 'OK') {
-                if (results[1].formatted_address.includes('USA')) {
-
-                    view.marker.setVisible(false);
-
-                    // Update location name
-                    view.name = results[1].formatted_address;
-                    view.search_input.value = results[1].formatted_address;
-
-                    if (!view.maps_place)
-                    {
-                        view.display_error_to_user("No details available for: " + view.maps_place.name);
-                        return;
-                    }
-
-                    view.marker.setPosition(view.maps_place);
-                    view.marker.setVisible(true);
-
-                    // Update location name
-                    view.name = view.maps_place;
-
-                    $(view).trigger('EclipseView_location_updated', view.maps_place);
-
-                } else {
-                    view.display_error_to_user("Simulator is restricted to the United States");
-                    return;
-                }
-            } else {
-                view.display_error_to_user("Location not found");
-                return;
-            }
-        });
-
-    });
+        this.setPlace(event.latLng);
+    }.bind(view));
 
     // Set initial searchbox text
     this.search_input.value = this.location_name;
 };
 
-EclipseSimulator.View.prototype._update_sim_size = function(zoomed = false)
+EclipseSimulator.View.prototype.setPlace = function(gLatLng) {
+   var view = this;
+   view.maps_place = gLatLng;
+
+   var latlng = {lat: view.maps_place.lat(), lng: view.maps_place.lng()};
+
+   view.geocoder.geocode({'location': latlng}, function(results, status) {
+       if (status === 'OK') {
+
+           if (results[1].formatted_address.includes('USA')) {
+
+               view.marker.setVisible(false);
+
+
+               view.name = results[1].formatted_address;
+               view.search_input.value = results[1].formatted_address;
+
+               if (!view.maps_place)
+               {
+                   view.display_error_to_user("No details available for: " + view.maps_place.name);
+                   return;
+               }
+
+               view.marker.setPosition(view.maps_place);
+               view.marker.setVisible(true);
+
+               // Update location name
+               view.name = view.maps_place;
+
+               $(view).trigger('EclipseView_location_updated', view.maps_place);
+
+               var request = {
+                   placeId: results[1].place_id
+               };
+               view.places_service.getDetails(request, view._onPlaceResponse.bind(view));
+
+           } else {
+               view.display_error_to_user("Simulator is restricted to the United States");
+               return;
+           }
+       } else {
+           view.display_error_to_user("Location not found");
+           return;
+       }
+   });
+};
+
+EclipseSimulator.View.prototype.queryTimeZone = function(place) {
+    $.ajax({
+        url: EclipseSimulator.TIME_ZONE_API_ENDPOINT,
+        data: {
+                location: place.geometry.location.lat() +"," + place.geometry.location.lng(),
+                key: api_key,
+                timestamp: EclipseSimulator.ECLIPSE_DAY.getTime() / 1000
+             }
+        })
+        .done(function(data) {
+            var timeZoneName = "";
+            if (data.timeZoneName) {
+                // Convert to abbreviation.
+                var names = data.timeZoneName.split(" ");
+                for (var index = 0; index < names.length; index++) {
+                    timeZoneName += names[index].charAt(0);
+                }
+            }
+            this.time_zone_name = timeZoneName;
+            this.update_slider_labels();
+        }.bind(this));
+};
+
+EclipseSimulator.View.prototype.update_totality = function() {
+    if (google.maps.geometry && this.marker && this.marker.getVisible()) {
+        if (google.maps.geometry.poly.containsLocation(this.marker.getPosition(), this.eclipsePath)) {
+            $(this.totality_label).text("Total eclipse");
+        } else {
+            $(this.totality_label).text("Partial eclipse");
+        }
+    } else {
+        $(this.totality_label).text("");
+    }
+};
+
+EclipseSimulator.View.prototype._update_sim_size = function(zoomed)
 {
+    zoomed = zoomed || false;
     var h = $(window).height();
     var w = $(window).width();
 
-    var svg_margin_top = 0;
-    var svg_h          = h;
+    var svg_margin_left = 0;
+    var svg_w           = w;
+    var svg_h           = h;
     if (!zoomed)
     {
-        // Add buffer zone where searchbox is - do not want sun/moon
-        // to disappear behid the search box
-        svg_margin_top = this.search_input.getBoundingClientRect().bottom;
-        svg_h         -= svg_margin_top;
+        // Add bottom buffer - define altitude 0 to be the bottom of the hill crests - using the valleys
+        // can result in the sun falling below the hills
+        svg_h -= h * this.compute_y_percetage_of_frame(EclipseSimulator.VIEW_BG_IMAGE_HILL_CREST_H);
 
-        // Add bottom buffer - define altitude 0 to be the bottom of the hill valleys
-        svg_h -= h * EclipseSimulator.VIEW_BG_HILL_VALLEY_HEIGHT_PERCENT;
+        if ((svg_w / svg_h) > EclipseSimulator.VIEW_ACTING_SVG_MAX_ASPECT_RATIO)
+        {
+            svg_w = svg_h * EclipseSimulator.VIEW_ACTING_SVG_MAX_ASPECT_RATIO;
+            svg_margin_left = (w - svg_w) / 2;
+        }
     }
 
+    this.acting_svg_size.height = svg_h;
+    this.acting_svg_size.width  = svg_w;
+    this.svg_horizontal_offset  = (w - svg_w) / 2;
     $(this.svg_container).css({
         'height': svg_h,
         'width':  w,
-        'top':    svg_margin_top,
     });
+
+    this.environment_size.height = h;
+    this.environment_size.width  = w;
     this.background.css({
         'height': h,
         'width':  w,
@@ -575,8 +764,9 @@ EclipseSimulator.View.prototype.show = function()
     $([this.svg_container, this.sun, this.moon]).show();
 };
 
-EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined)
+EclipseSimulator.View.prototype.refresh = function()
 {
+
     if (this.zoom_level == EclipseSimulator.VIEW_ZOOM_ZOOM)
     {
         var az_center  = this.sunpos.az;
@@ -596,8 +786,7 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
             x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
             y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
             r: this.get_ratio_from_body_angular_r(this.sunpos.apparant_r, this.sunpos.alt, alt_center),
-        },
-        env_size_override
+        }
     );
     this.position_body_at_percent_coords(
         this.moon,
@@ -605,8 +794,7 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
             x: this.get_ratio_from_altaz(this.moonpos.az,  az_center,  this.current_fov.x, this.moonpos.r),
             y: this.get_ratio_from_altaz(this.moonpos.alt, alt_center, this.current_fov.y, this.moonpos.r),
             r: this.get_ratio_from_body_angular_r(this.moonpos.r, this.moonpos.alt, alt_center),
-        },
-        env_size_override
+        }
     );
 
     // === Update background and moon color === //
@@ -623,21 +811,34 @@ EclipseSimulator.View.prototype.refresh = function(env_size_override = undefined
     // Update background and moon lightness
     this.update_bg_lightness(p, rgba_str);
     this.update_moon_lightness(rgba_str);
+
 };
 
-EclipseSimulator.View.prototype.get_environment_size = function()
+// Computes percentage of frame (in the y direction) that is occupied by an object
+// (say a hill on the background) that is ref_height pixels high in the original background
+// image. This is variable since the background scales with the window size
+EclipseSimulator.View.prototype.compute_y_percetage_of_frame = function(ref_height)
 {
-    return {
-        width:  this.svg_container.getBoundingClientRect().width,
-        height: this.svg_container.getBoundingClientRect().height,
-    };
+    var ratio                   = this.environment_size.width / this.environment_size.height;
+    var image_ratio             = EclipseSimulator.VIEW_BG_IMAGE_W / EclipseSimulator.VIEW_BG_IMAGE_H;
+    var overall_hill_percentage = ref_height / EclipseSimulator.VIEW_BG_IMAGE_H;
+    var hidden_bottom           = 0;
+
+    // Window aspect ratio is greater than image aspect ratio => top/bottom of background image are
+    // cut off
+    if (ratio > image_ratio)
+    {
+        var rel_img_height      = this.environment_size.width / image_ratio;
+        var rel_hill_height     = rel_img_height * (ref_height / EclipseSimulator.VIEW_BG_IMAGE_H);
+        hidden_bottom           = (rel_img_height - this.environment_size.height) / 2;
+        overall_hill_percentage = (rel_hill_height - hidden_bottom) / this.environment_size.height;
+    }
+
+    return Math.max(0, overall_hill_percentage);
 };
 
-EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos, env_size_override = undefined)
+EclipseSimulator.View.prototype.position_body_at_percent_coords = function(target, pos)
 {
-    var env_size = env_size_override === undefined ? this.get_environment_size()
-                                                   : env_size_override;
-
     // This happens early on in initialization
     if (isNaN(pos.r) || isNaN(pos.x) || isNaN(pos.y) || pos.r < 0)
     {
@@ -645,12 +846,12 @@ EclipseSimulator.View.prototype.position_body_at_percent_coords = function(targe
     }
 
     // Adjust radius
-    $(target).attr('r', (env_size.height * pos.r));
+    $(target).attr('r', (this.acting_svg_size.height * pos.r));
 
     // with SVG, (0, 0) is top left corner
-    $(target).attr('cy', (env_size.height * (1 - pos.y)));
+    $(target).attr('cy', (this.acting_svg_size.height * (1 - pos.y)));
 
-    $(target).attr('cx', (env_size.width * pos.x));
+    $(target).attr('cx', this.svg_horizontal_offset + (this.acting_svg_size.width * pos.x));
 
 };
 
@@ -665,7 +866,7 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
     var dist_from_center = Math.sin(altaz - center);
     var half_fov_width   = Math.sin(fov / 2);
 
-    if (this.out_of_view(altaz, center, fov, body_r))
+    if (EclipseSimulator.rad_abs_diff(altaz, center) > (Math.PI / 2))
     {
         return -0.5;
     }
@@ -673,104 +874,57 @@ EclipseSimulator.View.prototype.get_ratio_from_altaz = function(altaz, center, f
     return 0.5 + (0.5 * dist_from_center / half_fov_width);
 };
 
-EclipseSimulator.View.prototype.out_of_view = function(altaz, center, fov, body_r)
-{
-    var bound = center + (fov / 2);
-    var dist  = EclipseSimulator.rad_abs_diff(bound, altaz);
-
-    // Body off screen in positive direction
-    if (EclipseSimulator.rad_gt(altaz, bound) && dist > body_r)
-    {
-        return true;
-    }
-
-    bound = center - (fov / 2);
-    dist  = EclipseSimulator.rad_abs_diff(bound, altaz);
-
-    // Body off screen in negative direction
-    if (EclipseSimulator.rad_gt(bound, altaz) && dist > body_r)
-    {
-        return true;
-    }
-
-    return false;
-};
-
 EclipseSimulator.View.prototype.slider_change = function(direction)
 {
-    var current = parseFloat(this.slider.value);
-    var offset  = 0;
+    var current    = parseFloat(this.slider.value);
+    var offset     = 0;
     var max_offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
                      * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
-
-    if(this.slider.value >= max_offset) this.end_of_slider = true;
 
     if (direction === 'up')
     {
-        offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
+        offset = 2 * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     }
     else if (direction === 'down')
     {
-        offset = -EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
+        offset = (-1) * 2 * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level];
     }
-
     var new_val = current + offset;
-    this.slider.MaterialSlider.change(new_val);
-    $(this).trigger('EclipseView_time_updated', new_val);
-};
 
-
-EclipseSimulator.View.prototype.play_simulator_step = function(time_val)
-{
-    $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
-
-    // Stop playing
-    if (!this.playing)
+    if (new_val <= max_offset && new_val >= (-max_offset))
     {
-        return;
+        this.slider.MaterialSlider.change(new_val);
+        $(this).trigger('EclipseView_time_updated', new_val);
     }
 
-    var max_offset = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
-                     * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
-
-    if (time_val >= max_offset)
+    if (new_val >= max_offset || new_val <= (-max_offset))
     {
         this.end_of_slider = true;
-        this.playing = false;
-        $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
-        return;
     }
-
-    this.end_of_slider = false;
-
-    this.slider.MaterialSlider.change(time_val);
-    $(this).trigger('EclipseView_time_updated', time_val);
-
-    var view = this;
-    setTimeout(function() {
-        var step_mins = EclipseSimulator.VIEW_PLAY_SPEED[view.zoom_level][view.play_speed]
-                        * EclipseSimulator.PLAY_REFRESH_RATE / 60 / 1000;
-        view.play_simulator_step(time_val + step_mins);
-    }, EclipseSimulator.PLAY_REFRESH_RATE);
 };
 
 EclipseSimulator.View.prototype.set_play_speed_label = function()
 {
     $(this.speed_btn_slow).text(EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][EclipseSimulator.VIEW_PLAY_SPEED_SLOW] + 'X');
     $(this.speed_btn_fast).text(EclipseSimulator.VIEW_PLAY_SPEED[this.zoom_level][EclipseSimulator.VIEW_PLAY_SPEED_FAST] + 'X');
-}
+};
 
 EclipseSimulator.View.prototype.toggle_loading = function()
 {
     $(this.loading).toggle();
 };
 
+// resets the slider to the start
 EclipseSimulator.View.prototype.reset_controls = function()
 {
+    // compute the minimum slider value
+    var min_slider_val = (-1) * EclipseSimulator.VIEW_SLIDER_NSTEPS
+        * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level] / 2;
+
     // Need this check in case MDL has not finished initializing
     if (this.slider.MaterialSlider !== undefined)
     {
-        this.slider.MaterialSlider.change(0);
+        this.slider.MaterialSlider.change(min_slider_val);
     }
 };
 
@@ -801,11 +955,11 @@ EclipseSimulator.View.prototype.update_slider_labels = function()
 
     for (var i = 0; i < this.slider_labels.length; i++)
     {
-        // Zero padding in js is gross
-        var mins = "" + date.getMinutes();
-        mins     = mins.length == 1 ? "0" + mins : mins;
-
-        $(this.slider_labels[i]).text(date.getUTCHours() + ':' + mins);
+        var time = EclipseSimulator.get_local_time_from_date(date, this.offset);
+        if (i == 0 && this.time_zone_name) {
+            time += '\u00a0' + this.time_zone_name;
+        }
+        $(this.slider_labels[i]).text(time);
         date.setTime(date.getTime() + tick_sep_ms);
     }
 };
@@ -818,10 +972,11 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         this.current_fov = this.zoomed_fov;
         var label        = 'zoom_out';
 
-        var new_env_size = this._update_sim_size(true);
+        this._update_sim_size(true);
 
         // Hide the hills/clouds/people/etc
         $(this.background[1]).hide();
+        $(this.background[2]).hide();
     }
     else
     {
@@ -830,10 +985,11 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         var label        = 'zoom_in';
         var zooming_in   = false;
 
-        var new_env_size = this._update_sim_size(false);
+        this._update_sim_size(false);
 
         // Show the hills/clouds/people/etc
         $(this.background[1]).show();
+        $(this.background[2]).show();
     }
     $(this.zoombutton).find('i').text(label);
 
@@ -841,12 +997,8 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
     this.update_slider();
     this.set_play_speed_label();
 
-    // Here we have to override the environment size, as the call to _update_sim_size
-    // does not take immediately - the amount of time it takes in undefined, so to be sure
-    // update_fov and refresh work correctly we must override with the new values.
-    new_env_size.height = new_env_size.svg_h;
-    this.update_fov(new_env_size);
-    this.refresh(new_env_size);
+    this.update_fov();
+    this.refresh();
 };
 
 EclipseSimulator.View.prototype.update_eclipse_info = function(info)
@@ -858,19 +1010,18 @@ EclipseSimulator.View.prototype.update_eclipse_info = function(info)
     this.eclipse_time.setTime(info.time.getTime());
 };
 
-EclipseSimulator.View.prototype.update_sun_moon_pos = function(sunpos, moonpos)
+EclipseSimulator.View.prototype.update_sun_moon_pos = function(pos)
 {
-    this.sunpos.alt  = sunpos.alt;
-    this.sunpos.az   = sunpos.az;
-    this.moonpos.alt = moonpos.alt;
-    this.moonpos.az  = moonpos.az;
+    this.sunpos.alt  = pos.sun.alt;
+    this.sunpos.az   = pos.sun.az;
+    this.moonpos.alt = pos.moon.alt;
+    this.moonpos.az  = pos.moon.az;
+    this.moonpos.r   = pos.moon.r;
 }
 
-EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefined)
+EclipseSimulator.View.prototype.update_fov = function()
 {
-    var env_size  = env_size_override === undefined ? this.get_environment_size()
-                                                    : env_size_override;
-    var ratio         = env_size.width / env_size.height;
+    var ratio         = this.acting_svg_size.width / this.acting_svg_size.height;
     var desired_x     = this._compute_fov_angle_for_screen_aspect_ratio(this.current_fov._y_desired, 1 / ratio);
 
     // Compute reference field of view needed to fit sun path in field of view - X DIRECTION
@@ -884,7 +1035,7 @@ EclipseSimulator.View.prototype.update_fov = function(env_size_override = undefi
     d2                  = EclipseSimulator.rad_abs_diff(this.sun_end_pos.alt, this.eclipse_pos.alt);
     diff                = Math.max(d1, d2);
     // Just want to keep the sun in view with this desired_y_ref
-    var desired_y_ref   = (2 * diff) + EclipseSimulator.VIEW_TARGET_FOV_FILL_Y_BUFF;
+    var desired_y_ref   = 2 * diff;
 
     // Window aspect ratio prevents desired y fov. Using the desired y fov, this.current_fov._y
     // would result in an x fov that is greater than the max allowed.
@@ -949,8 +1100,9 @@ EclipseSimulator.View.prototype._compute_fov_angle_for_screen_aspect_ratio = fun
 //                Format is the same as min.
 //
 // a:             Optional alpha - not changed, just added to rgba string
-EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start, end, a = 1)
+EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start, end, a)
 {
+    a = a || 1;
     // new values to be set to default minimum
     var new_rgb = [0, 0, 0];
 
@@ -968,16 +1120,7 @@ EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start,
 EclipseSimulator.View.prototype.update_bg_lightness = function(p, rgba_str)
 {
     $(this.background[0]).css('background-color', rgba_str);
-
-    // Convert to percent
-    p  = Math.min(p, EclipseSimulator.VIEW_BG_IMG_MAX_GRAY);
-    p *= 100;
-    var filter_str = 'grayscale(' + p + '%) brightness(' + (100 - p) + '%)';
-
-    $(this.background[1]).css({
-        'filter': filter_str,
-        '-webkit-filter': filter_str,
-    });
+    $(this.background[2]).css('opacity', p);
 };
 
 EclipseSimulator.View.prototype.update_moon_lightness = function(rgba_str)
@@ -1006,8 +1149,6 @@ EclipseSimulator.View.prototype.update_slider = function()
     {
         this.slider.MaterialSlider.boundChangeHandler();
     }
-
-    this.update_slider_labels();
 };
 
 // Compute the percent of the eclipse
@@ -1095,11 +1236,12 @@ EclipseSimulator.View.prototype._compute_lune_area = function(sun_r, moon_r, sep
 
 EclipseSimulator.View.prototype.is_phone = function()
 {
-    return this.get_environment_size().width < EclipseSimulator.VIEW_PHONE_WMAX;
+    return this.environment_size.width < EclipseSimulator.VIEW_PHONE_DISP_W_MAX;
 };
 
-EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
+EclipseSimulator.View.prototype._top_bar_w = function(map_open)
 {
+    map_open = map_open || false;
     var width = this._top_bar_control_w(map_open);
     if (map_open && !this.is_phone())
     {
@@ -1109,8 +1251,9 @@ EclipseSimulator.View.prototype._top_bar_w = function(map_open = false)
     return width;
 };
 
-EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
+EclipseSimulator.View.prototype._top_bar_control_w = function(map_open)
 {
+    map_open = map_open || false;
     var control_width = $(this.search_input).outerWidth(true);
     var is_phone = this.is_phone();
 
@@ -1131,9 +1274,10 @@ EclipseSimulator.View.prototype._top_bar_control_w = function(map_open = false)
     return control_width;
 };
 
-EclipseSimulator.View.prototype._map_w = function(include_margin = false)
+EclipseSimulator.View.prototype._map_w = function(include_margin)
 {
-    var width = this.get_environment_size().width;
+    include_margin = include_margin || false;
+    var width = this.environment_size.width;
 
     if (this.is_phone())
     {
@@ -1167,7 +1311,7 @@ EclipseSimulator.View.prototype._adjust_size_based_control_ui = function()
 {
     if (this.is_phone())
     {
-        $(this.speeddropdown).hide();
+        $(this.speed_sel_btn).hide();
         $(this.upbutton).hide();
         $(this.downbutton).hide();
 
@@ -1181,14 +1325,15 @@ EclipseSimulator.View.prototype._adjust_size_based_control_ui = function()
     else
     {
         $(this.slider_labels).show();
-        $(this.speeddropdown).show();
+        $(this.speed_sel_btn).show();
         $(this.upbutton).show();
         $(this.downbutton).show();
     }
 };
 
-EclipseSimulator.View.prototype._adjust_size_based_map_ui = function(timeout = 200)
+EclipseSimulator.View.prototype._adjust_size_based_map_ui = function(timeout)
 {
+    timeout = timeout || 200;
     // Adjust map button icon and map width, if it is open
     if (this.map_visible)
     {
@@ -1261,7 +1406,7 @@ EclipseSimulator.View.prototype._create_polygon_map = function()
   }
 
   // Create the polygon
-  var eclipsePath = new google.maps.Polygon({
+  this.eclipsePath = new google.maps.Polygon({
     path: eclipse_path_coordinates,
     strokeColor: '#000000',
     strokeOpacity: 0.8,
@@ -1272,7 +1417,7 @@ EclipseSimulator.View.prototype._create_polygon_map = function()
   });
 
   // Add the polygon to the map
-  eclipsePath.setMap(this.map);
+  this.eclipsePath.setMap(this.map);
 };
 
 EclipseSimulator.View.prototype.compute_wide_mode_altaz_centers = function()
@@ -1352,6 +1497,52 @@ EclipseSimulator.View.prototype._set_slider_bound_positions = function(positions
     this.sun_end_pos = positions[1];
 };
 
+// Updates view elements associated with simulator playing
+EclipseSimulator.View.prototype.start_playing = function()
+{
+    // If the slider is at the very end of the time range and the user hits
+    // the play button again. It will restart the playing of the simulation
+    // from the beginning.
+    if (this.end_of_slider)
+    {
+      // Restart the slider at the beginning
+      this.slider.value = (-1) * EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
+                          * EclipseSimulator.VIEW_SLIDER_NSTEPS / 2;
+    }
+
+    this.playing = true;
+    $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+    $(this.slider).tooltip('disable');
+};
+
+// Updates view elements associated with simulator not playing if the simulator should stop playing.
+// Returns true if the simulator should stop playing
+EclipseSimulator.View.prototype.stop_playing = function(offset_ms)
+{
+    if (offset_ms !== undefined)
+    {
+        var max_offset_ms  = EclipseSimulator.VIEW_SLIDER_STEP_MIN[this.zoom_level]
+                             * (EclipseSimulator.VIEW_SLIDER_NSTEPS / 2)
+                             * 1000 * 60;
+        this.end_of_slider = (offset_ms >= max_offset_ms);
+    }
+
+    if (!this.playing || this.end_of_slider || (offset_ms === undefined))
+    {
+        this.playing = false;
+        $(this.playbutton).find('i').text(EclipseSimulator.PLAY_PAUSE_BUTTON[!this.playing]);
+        $(this.slider).tooltip('enable');
+        return true;
+    }
+
+    return false;
+};
+
+EclipseSimulator.View.prototype.update_slider_pos = function(offset_mins)
+{
+    this.slider.MaterialSlider.change(offset_mins);
+};
+
 
 // ===================================
 //
@@ -1382,15 +1573,38 @@ EclipseSimulator.Controller.prototype.init = function()
             controller.update_simulator_location(location);
         });
 
+        $(controller.view).on('EclipseView_toggle_playing', function(event) {
+            if (controller.view.playing)
+            {
+                controller.view.stop_playing();
+                controller.stop_playing();
+            }
+            else
+            {
+                controller.start_playing();
+            }
+        });
+
         // Sets initial simulator location
         controller.update_simulator_location();
 
         // Simulator window/buttons, etc start out hidden so that the user doesn't see
         // a partially rendered view to start (e.g. height not set, etc). This only needs
         // to be shown once, so we do it manually
+        controller.view.update_slider_labels();
         controller.view.show();
 
-        controller.update_simulator_time_with_offset(0);
+        var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
+            EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
+
+        // set simulator to start from the beginning
+        controller.update_simulator_time_with_offset(0 - max_time_offset_ms);
+
+        var min_slider_val = (-1) * EclipseSimulator.VIEW_SLIDER_NSTEPS
+            * EclipseSimulator.VIEW_SLIDER_STEP_MIN[controller.view.zoom_level] / 2;
+
+        // set slider to beginning
+        controller.view.slider.value = min_slider_val;
 
         // Hide loading view - this starts out visible
         controller.view.toggle_loading();
@@ -1398,6 +1612,7 @@ EclipseSimulator.Controller.prototype.init = function()
         // Signal that initilization is complete, as this function completes asynchronously
         $(controller).trigger('EclipseController_init_complete');
     }, 1);
+
 };
 
 // Handler for when the slider gets changed
@@ -1410,13 +1625,14 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
     // Update the displayed time by adding the slider value to the eclipse time
     this.model.date.setTime(new_sim_time_ms);
     this.view.current_time.setTime(new_sim_time_ms);
+    $(this.view.slider).tooltip("option", "content", EclipseSimulator.get_local_time_from_date(this.view.current_time, this.view.offset, true));
 
     // Compute sun/moon position based off of this.model.date value
     // which is the displayed time
     var pos  = this.model.get_sun_moon_position();
 
     // Update the view
-    this.view.update_sun_moon_pos(pos.sun, pos.moon);
+    this.view.update_sun_moon_pos(pos);
     this.view.refresh();
 
     if (EclipseSimulator.DEBUG)
@@ -1429,9 +1645,10 @@ EclipseSimulator.Controller.prototype.update_simulator_time_with_offset = functi
             + '\nM(alt: ' + pos.moon.alt + ' az: ' + pos.moon.az + ')'
         );
     }
+
 };
 
-EclipseSimulator.Controller.prototype.update_simulator_location = function(location = undefined)
+EclipseSimulator.Controller.prototype.update_simulator_location = function(location)
 {
     if (location !== undefined)
     {
@@ -1439,21 +1656,27 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
             lat: location.lat(),
             lng: location.lng()
         };
+        parent.postMessage({simulator_location: this.model.coords}, window.location.href);
     }
+
+    // compute the max time to be displayed on simulator
+    var max_time_offset_ms = 0.5 * 1000 * 60 * EclipseSimulator.VIEW_SLIDER_NSTEPS *
+        EclipseSimulator.VIEW_SLIDER_STEP_MIN[EclipseSimulator.VIEW_ZOOM_WIDE];
 
     // This will set the model's eclipse_time attribute
     var res = this.model.compute_eclipse_time_and_pos();
+    //this.view.eclipse_time = res.getTime();
 
     // Set model displayed date to eclipse time
-    this.model.date.setTime(res.time.getTime());
+    this.model.date.setTime(res.time.getTime() - max_time_offset_ms);
 
     // Get new position of sun/moon
     var pos  = this.model.get_sun_moon_position();
 
     // Update the view
-    this.view.update_sun_moon_pos(pos.sun, pos.moon);
+    this.view.update_sun_moon_pos(pos);
     this.view.update_eclipse_info(res);
-    this.view.current_time.setTime(res.time.getTime());
+    this.view.current_time.setTime(res.time.getTime() - max_time_offset_ms);
     this.view.reset_controls();
     this.view.update_slider();
 
@@ -1465,8 +1688,47 @@ EclipseSimulator.Controller.prototype.update_simulator_location = function(locat
         positions.push(this.model._compute_sun_moon_pos(times[i]).sun);
     }
     this.view._set_slider_bound_positions(positions);
+
+
     this.view.update_fov();
+    this.view.update_totality();
     this.view.refresh();
+};
+
+EclipseSimulator.Controller.prototype.start_playing = function()
+{
+    this.view.start_playing();
+
+    var controller = this;
+    this.current_animation_id = window.requestAnimationFrame(function(timestamp) {
+        controller.previous_animation_timestamp = timestamp;
+        controller._play_step(parseFloat(controller.view.slider.value) * 60 * 1000);
+    });
+};
+
+EclipseSimulator.Controller.prototype.stop_playing = function() {
+    window.cancelAnimationFrame(this.current_animation_id);
+};
+
+EclipseSimulator.Controller.prototype._play_step = function(offset_ms)
+{
+    if (this.view.stop_playing(offset_ms))
+    {
+        this.stop_playing();
+        return;
+    }
+
+    this.view.update_slider_pos(offset_ms / 1000 / 60);
+    this.update_simulator_time_with_offset(offset_ms);
+
+    var view = this.view;
+    var controller = this;
+    this.current_animation_id = window.requestAnimationFrame(function(timestamp) {
+        var step_ms = EclipseSimulator.VIEW_PLAY_SPEED[view.zoom_level][view.play_speed]
+                      * (timestamp - controller.previous_animation_timestamp);
+        controller.previous_animation_timestamp = timestamp;
+        controller._play_step(offset_ms + step_ms);
+    });
 };
 
 
@@ -1549,9 +1811,20 @@ EclipseSimulator.Model.prototype._compute_sun_moon_pos = function(date)
     var julian_date = new A.JulianDay(date);
     var coords      = A.EclCoord.fromWgs84(this.coords.lat, this.coords.lng, undefined);
 
+    var sun = A.Solar.topocentricPosition(julian_date, coords, false);
+    var moon = A.Moon.topocentricPosition(julian_date, coords, false);
+
+    // Compute moon angular radius
+    var dist = moon.delta - A.Globe.Er;
+    var angular_r = Math.atan(EclipseSimulator.MOON_RADIUS / dist);
+
     return {
-        sun: A.Solar.topocentricPosition(julian_date, coords, true).hz,
-        moon: A.Moon.topocentricPosition(julian_date, coords, true).hz,
+        sun: sun.hz,
+        moon: {
+            alt: moon.hz.alt,
+            az:  moon.hz.az,
+            r:   angular_r,
+        },
     };
 };
 
@@ -1580,17 +1853,7 @@ function initSim() {
 
     var controller = new EclipseSimulator.Controller(location);
     controller.init();
+    parent.postMessage({simulator_status: "loaded"}, window.location.href);
 
     return controller;
 }
-
-$(document).ready(function() {
-
-    var controller = initSim();
-
-    // In debug mode, add the controller instance to the global namespace
-    if (EclipseSimulator.DEBUG)
-    {
-        global_controller = controller;
-    }
-});

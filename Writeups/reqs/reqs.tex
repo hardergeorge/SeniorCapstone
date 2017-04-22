@@ -57,7 +57,7 @@ processing, photo upload capabilities, and static informational content. This
 senior capstone project will consist of three distinct sub-projects, specifically,
 implementing/modifying an image processing algorithm facilitating the
 classification and alignment of solar eclipse images before they are stitched into
-a movie, a manager to run this image processing app, and a location-based eclipse simulator.
+a movie, a developer pipeline, and a location-based eclipse simulator.
 
 \end{abstract}
 
@@ -82,23 +82,25 @@ a movie, a manager to run this image processing app, and a location-based eclips
 
 \subsection{Purpose}
 The purpose of this software requirements specification (SRS) is to describe in
-detail the Eclipse Image Processor, Eclipse Image Processor Manager, and the Eclipse
-Simulator that our group will
+detail the Eclipse Image Processor, Eclipse Image Processor Developer Pipeline,
+and the Eclipse Simulator that our group will
 produce. By writing these requirements down and agreeing to them with our
 sponsor both parties will have a clear understanding of what the finished
 product will be and what it will be able to do. The intended audience for this
 SRS is our sponsor, the Senior Capstone Instruction Team, and ourselves.
 
 \subsection{Scope}
-We are producing  three products: an Eclipse Image Processor, Eclipse
-Image Processor Manager, and an Eclipse
+We are producing three products: an Eclipse Image Processor, an Eclipse
+Image Processor Developer Pipeline, and an Eclipse
 Simulator. The Eclipse Image Processor will ingest images and if
-they are of a total solar eclipse, align/crop these images consistantly. Images of non-total
-solar eclipses will marked as such and otherwise ignored. The Eclipse Image Processor Manager
-will download images to be processed by the Image Processor, run the Image Processor on these images,
-and collect the results of running the Image Processor and upload them to Google Cloud. The Eclipse
+they are of a total solar eclipse, align/crop these images consistantly.
+Images of non-total solar eclipses will marked as such and otherwise ignored.
+The Eclipse Image Developer Pipeline
+will download images to be processed by the image processor, build and run the
+image processor on these images, generate an HTML document with the results,
+and upload the processed images and HTML document to Google Cloud. The Eclipse
 Simulator will provide users with a 2D visual representation of the eclipse from a
-specified location from 12 hours before it occurs to 12 hours after.
+specified location within a 3 hour range.
 
 \subsection{Definitions, acronyms, and abbreviations}
 
@@ -109,17 +111,6 @@ specified location from 12 hours before it occurs to 12 hours after.
 	that will pass over the United States on August 21, 2017. The project
 	will crowdsource photos of the eclipse from photographers at various
 	points along the path of totality. \\
-
-	\noindent \textbf{EXIF:}
-	EXIF refers to the Exchangeable Image File Format, a standard
-	media file format. Ancillary data tags associated with other media
-	files are frequently referred to as "EXIF fields", "EXIF data", etc.
-	This is how "EXIF" will be used within the scope of this document. \\
-
-	\noindent \textbf{GPS:}
-	GPS stands for global positioning system. We will refer to the
-	latitude and longitude information obtained from a global positioning
-	system as "GPS coordinates", "GPS data", etc. throughout this document. \\
 
 	\noindent \textbf{JPEG/JPG:}
 	JPEG is a lossy compression technique for images. When we refer
@@ -144,9 +135,9 @@ Atmospheric Administration. This paper can be found on arxiv.org.
 \subsection{Overview}
 
 The remainder of this SRS contains an overall description of the Eclipse Image
-Processor, Eclipse Image Processor Manager, and Eclipse Simulator systems in
-section 2. Following these descriptions are specific requirements for the
-systems in section 3.
+Processor, Eclipse Image Processor Developer Pipeline, and Eclipse Simulator
+systems in section 2. Following these descriptions are specific requirements
+for the systems in section 3.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SECTION 2: OVERALL DESCRIPTION
@@ -221,10 +212,10 @@ systems in section 3.
 \subsection{User characteristics}
 	\begin{enumerate}
 		\item The Eclipse Image Processor application will be used by
-			 the members of this project.
+            the members of this project.
 
-		\item The Eclipse Image Processor Manager application will be used by
-			Google Engineers.
+		\item The Eclipse Image Processor Developer Pipeline application will be
+            used by Google Engineers.
 
 		\item The Eclipse Simulator application will be used by the
 			general public. No unusual technical/scientific knowledge is
@@ -241,9 +232,6 @@ None.
 
 		\item This SRS assumes the availability of Google Cloud Platform
 		n1-standard-4 virtual machines.
-
-		\item This SRS assumes the ability to interface with Google Cloud from
-		Python, for example with the Google Cloud Client Library for Python.
 
 		\item This SRS assumes the availability of the OpenCV computer
 		vision library.
