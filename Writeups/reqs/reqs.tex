@@ -288,116 +288,130 @@ See Gantt Chart in Appendix.
 			initialization parameter.
 		\end{enumerate}
 
-		\item Users will be able to adjust the simulator time from 12 before
-		the eclipse to 12 hours after it.
+		\item Users will be able to adjust the simulator time from 2 before
+		the eclipse to 2 hours after it.
 		\begin{enumerate}
 			\item Time can be advanced via a draggable slider or clickable buttons.
 		\end{enumerate}
+
+        \item Users will be able to "play" the eclipse and advance through the available time
+        domain automatically by pressing a play button.
 
 	\end{enumerate}
 
 \subsubsection{Eclipse Image Processor}
 	\begin{enumerate}
 		\item The Image Processor will be compatible with Ubuntu 16.04 and
-		 will include a script that to install all dependencies/build the
-		 binary.
+		 will include instructions to install all dependencies and a makefile to
+         build the binary.
 
 		 \item The application will accept the following input as command line
 		 arguments:
 		 \begin{enumerate}
-		 	\item Required: image\_list\_file
+		 	\item Required: images\_file
 		 		\begin{enumerate}
 		 			\item Absolute or relative (to the directory the binary was
-		 			invoked from) path to file containing a list of image filenames
-		 			with no directory prefix.
+		 			invoked from) path to file containing a list of image files to
+                    process. Each line of this file should correspond to one image file.
+                    Paths to image files must be absolute paths.
 		 		\end{enumerate}
 
-		 	\item Required: output\_dir
+            \item Optional: mode
+                \begin{enumerate}
+                    \item Mode in which to run the image processor pipeline. Valid modes: "window", "batch"
+                \end{enumerate}
+
+		 	\item Optional: output\_dir
 		 		\begin{enumerate}
-		 			\item Directory to write output files to.
+		 			\item  Required in batch mode. Directory in which to save exported images and metadata when run in batch mode.
 		 		\end{enumerate}
 
-		 	\item Optional: image\_path\_prefix
+		 	\item Optional: hough\_dp
 		 		\begin{enumerate}
-		 			\item Absolute or relative (to the directory the binary was
-		 			 invoked from) path to prepend to each image filename in
-		 			 image\_file\_list. Defaults to "./".
+		 			\item dp parameter to cv::HoughCircles.
+		 		\end{enumerate}
+
+            \item Optional: hough\_param1
+		 		\begin{enumerate}
+		 			\item param1 parameter to cv::HoughCircles.
+		 		\end{enumerate}
+
+            \item Optional: hough\_param2
+		 		\begin{enumerate}
+		 			\item param2 parameter to cv::HoughCircles.
+		 		\end{enumerate}
+
+            \item Optional: hough\_min\_dist
+		 		\begin{enumerate}
+		 			\item min\_dist parameter to cv::HoughCircles.
+		 		\end{enumerate}
+
+            \item Optional: hough\_min\_radius
+		 		\begin{enumerate}
+		 			\item min\_radius parameter to cv::HoughCircles.
+		 		\end{enumerate}
+
+            \item Optional: hough\_max\_radius
+		 		\begin{enumerate}
+		 			\item max\_radius parameter to cv::HoughCircles.
 		 		\end{enumerate}
 		 \end{enumerate}
 
 		 \item The application will accept JPEG (.jpeg/.jpg) and PNG (.png)
 		 image files.
-		 \begin{enumerate}
-		 	\item Images of an invalid format will be disregarded and an error
-		 	 message will be written to stderr.
-		 \end{enumerate}
 
 		 \item The application will write the following output to the
 		 output\_dir directory:
 		 \begin{enumerate}
-		 	\item image\_transformations.txt
+		 	\item metadata.txt
 		 	\begin{enumerate}
 		 		\item File containing one line per image processed with the
-		 		following values (comma separated):
+		 		following values ( |  separated):
 		 		\begin{enumerate}
-		 			\item processed\_image: processed image filename
+                    \item processed\_image: processed image filepath (absolute)
 
-		 			\item crop\_topl\_x: x coordinate of top left corner of
-		 			cropped image (refers to rotated image)
+                    \item found\_circle(s): circles found by the image processor, format:
+                        c(cente\_x, center\_y, radius)
 
-		 			\item crop\_topl\_y: y coordinate of top left corner of
-		 			cropped image (refers to rotated image)
+                    \item execution\_time(s): time(s) taken for various parts of the image
+                    processor to execute, format t(''name'', num\_secs)
 
-		 			\item crop\_botr\_x: x coordinate of bottom right corner of
-		 			cropped image (refers to rotated image)
+                    \item observation(s): observations about the image, format: ''observation text''
 
-		 			\item crop\_botr\_y: y coordinate of bottom right corner of
-		 			 cropped image (refers to rotated image)
-
-		 			\item timestamp: timestamp at which image was taken
-
-		 			\item eclipse\_path\_percent: percentage through eclipse
-		 			totality path at which image was taken, see requirement \#8
-		 			 of 3.2.2
-
-		 			 \item rejected\_reason: reason a particular image was rejected,
-		 			 see requirement \#10 of 3.2.2.
-		 		\end{enumerate}
+                \end{enumerate}
 		 	\end{enumerate}
-			\item Processed image files
+
+            \item Processed image files
 				\begin{enumerate}
-					 \item Processed image files will be saved into a sub-directory
-					 of output\_dir called "images" and will be named as follows:
-					 *\_pp.[png$\vert$jpeg$\vert$jpg].
+					 \item Processed image files will be saved into output\_dir.
 				\end{enumerate}
 		 \end{enumerate}
 
-		 \item Images that are rejected will  be added to the
-		 image\_transformations.txt file but will not be cropped/exported to
-		 the images directory.
-
-		 \item The application will format all log messages as follows:
-		 \begin{enumerate}
-		 	\item img\_preproc:level:timestamp:”message”
-		 	\begin{enumerate}
-		 		\item Values of level: ERROR/WARNING/INFO/DEBUG
-		 		\item Value of timestamp: current timestamp
-		 		\item Value of message: specific logging message
-		 	\end{enumerate}
-		 \end{enumerate}
 	\end{enumerate}
 
-\subsubsection{Eclipse Image Processor Manager}
+\subsubsection{Eclipse Image Processor Developer Pipeline}
 	\begin{enumerate}
-		\item The Eclipse Image Processor Manager will collect images to be processed
-		from Google Cloud Storage. It will obtain lists of files to download and their
-		respective metadata from Google Cloud Datastore. It will be aware of the scheme
-		of the Datastore NoSQL database in order to read/write image metadata.
+		\item The developer pipeline will accept the following command line arguments:
+            \begin{enumerate}
+                \item Required: \$DIR, the directory to use for image/data storage. The following will be saved into DIR:
+                \begin{enumerate}
+                    \item If download flag set: A clone of the \$GCS\_BUCKET
+                    \item A directory called output that will contain:
+                    \begin{enumerate}
+                        \item All the processed images \$GCS\_BUCKET
+                        \item A metadata file that will contain the processed image names along with output information from the image processor
+                        \item An HTML file that includes summarizes the image processor output info.
+                    \end{enumerate}
+                \end{enumerate}
+            \end{enumerate}
 
-		\item The Eclipse Image Processor Manager will invoke instances of the Eclipse
-		Image Processor and communicate with them via a command-line interface as well
-		as data files. The format of these data files, as well as the command-line interface
-		is described in 3.1.2.
+        \item Required: \$GCS\_BUCKET, the Google Cloud Storage Bucket that contains the images to process.
+
+        \item Optional: download, if set, the developer pipeline will download the images from Google Cloud Storage.
+        Otherwise, it will assume these images are included in \$DIR/\$GCS\_BUCKET
+
+        \item Optional: \$PIPELINE\_FLAGS, arguments to pass to the image processor when it is invoked.
+
 	\end{enumerate}
 
 %%%%%% Section 3.2 %%%%%%%%
@@ -409,96 +423,48 @@ See Gantt Chart in Appendix.
 		time and will account for edge cases like when the location is not in
 		the path of totality.
 
-		\item The simulator location will be restricted to North America as this is where
-		the eclipse will be visible from.
+		\item The simulator location will be restricted to the United States.
 
-		\item The Simulator will display a timestamp indicating the time that the simulator
-		is set to.
+		\item The simulator environment will darken as the eclipse progresses.
+
+        \item The simulator will feature a zoom mode, where the sun appears larger
+        in the sky. In zoom mode, the sun will remain in the center of the screen.
+        The simulator will effectively track along with the sun's movement.
+
+        \item The simulator will be mobile friendly.
 	\end{enumerate}
 
 \subsubsection{Eclipse Image Processor}
 	\begin{enumerate}
-		\item Invalid JPEG and PNG files (e.g. cannot be opened by OpenCV,
-		width/height equal to 0px, etc.) will be ignored and an error message
-		will be written to stderr.
+		\item The image processor will be implemented as a class that will be easily
+        inheritable / modifiable by developers.
 
-		\item Images where the solar disk has a radius of less than 50px
-		will be rejected (see requirement \#5 in 3.1.2).
+        \item The image processor will feature two modes, ''window'' and ''batch''. In window
+        mode, after an image is processed, windows will open showing the original image,
+        processed image, and intermediate images. In batch mode, all images will be processed
+        sequentially without opening any windows. Processed images and metadata will be exported
+        as described in \textit{External Interfaces: Eclipse Image Processor}.
 
-		\item The application will crop the images to be square with the
-		Sun centered. The images will be cropped so that there is a 100px
-		pad between the solar perimeter and the edge of the image on all
-		sides.
-		\begin{enumerate}
-			\item Images that do not have enough room around the Sun to
-			allow for the pad described above will be rejected, see requirement \#5 in 3.1.2.
-		\end{enumerate}
+        \item The image processor will identify the circles of the sun/moon in the images it processes.
 
-		\item Based on images' GPS EXIF information, the application will
-		compute/export the percentage through the eclipse's path of
-		totality at which the image was taken. 0\% will be defined as the
-		westmost point on that path of totality that is over land, this
-		point is on the west coast of Oregon. 100\% will be defined as the
-		eastmost point on the path of totality that is over land, this
-		point is on the east coast of South Carolina. The application will
-		compute the point on the path of totality nearest the point where
-		the image was taken. This point will be used to compute the
-		percentage through the path of totality at which the image was
-		taken.
-
-		\item Images  that were not taken on the path of
-		totality will be rejected, see requirement \#5 in 3.1.2.
-
-		\item Images can be rejected by the Image Processor. When an image is rejected,
-		the reason it was rejected will be noted and exported, see requirement \#5 in 3.1.2.
-		The possible reasons for which an image can be rejected will include at least the
-		following:
-		\begin{enumerate}
-			\item Invalid image file, e.g. image file is corrupted and cannot be opened.
-
-			\item Solar disk radius is too small.
-
-			\item There is not enough padding around the solar disk.
-
-			\item Image was not taken on the path of totality.
-		\end{enumerate}
+        \item The image processor will record the number of seconds (wall clock time) needed to
+        complete various portions of each image's processing.
 
 	\end{enumerate}
 
-\subsubsection{Eclipse Image Processor Manager}
+\subsubsection{Eclipse Image Processor Developer Pipeline}
 	\begin{enumerate}
-		\item The application will be designed so that multiple instances of it
-		can run concurrently with no communication between them.
-		These distinct managers will not attempt to process the same images.
+		\item The developer pipeline will be able to download images from Google Cloud Storage, if requested.
 
-		\item The application will record the time at which it "checks-out" image
-		files for processing in Datastore. This enables future processing of images
-		that were downloaded by an Image Processor Manager instance that later became
-		delinquent.
+        \item The developer pipeline will build and invoke the image processor on the requested images
+        using batch mode.
 
-		\item The application will group files/metadata downloaded from Google
-		Cloud into directories corresponding to individual workloads that will be
-		delegated to distinct Image Processor instances.
+        \item The developer pipeline will assemble the results of running the image processor into
+        and HTML file. This HTML file, along with the processed images it references,
+        will be uploaded to Google Cloud Storage to a public URL.
 
-		\item When an Image Processor instance completes its workload, its output data
-		will be collected by its parent Image Processor Manager and uploaded to Google
-		Cloud. This will include processed image files and metadata that is saved to
-		Datastore.
-
-		\item The application will kill delinquent Image Processor Instances and upload
-		the results of processing any images that were processed successfully. Images that
-		were not processed successfully will be marked as such in Datastore.
-
-		\item The application will be highly parallel. Multiple Eclipse Image Processor
-		application instances will be launched concurrently, and while these are working,
-		the next images to be processed will be downloaded and previous results will be
-		uploaded.
-		\begin{enumerate}
-			\item The number of Image Processor instances launched will be determined by
-			the number of cores on the host VM. \textit{Note: this does not mean that
-			given an \(n\) core machine, \(n\) Image Processor instances will be launched - some cores
-			must be reserved for downloading/preparing input data, and processing/uploading results}.
-		\end{enumerate}
+        \item The HTML file created by the developer pipeline will summarize the data included
+        in the metadata.txt file exported by the image processor.
 
 	\end{enumerate}
 
@@ -507,7 +473,7 @@ See Gantt Chart in Appendix.
 
 \subsubsection{Eclipse Simulator}
 	\begin{enumerate}
-		\item All simulator resources will load in less than 500ms given a 1-10
+		\item All simulator resources will load in less than 700ms given a 1-10
 		 Mbps internet connection.
 	\end{enumerate}
 
@@ -518,19 +484,10 @@ See Gantt Chart in Appendix.
 		 machine.
 	\end{enumerate}
 
-\subsubsection{Eclipse Image Processor Manager}
+\subsubsection{Eclipse Image Processor Developer Pipeline}
 	\begin{enumerate}
-		\item The Image Processor Manager will saturate either the CPUs or network interface of
-		the host VM to which it is deployed.
-		\begin{itemize}
-			\item The reason for the "or" in the above statement is that either the time to process
-			images, or the time to download them and upload their processed counterparts will be a
-			bottleneck depending on the VM configuration. The goal here is to get as close to network
-			saturation and 100\% utilization of all CPU cores as possible. If all CPU cores are running
-			at nearly 100\% but the network interface is not saturated, then VMs with more cores should
-			be used. Conversely, if the network interface is saturated but not all cores are running at
-			100\%, VMs with fewer cores should be used.
-		\end{itemize}
+		\item The image processor developer pipeline will download/upload images from/to Google
+        Cloud Storage in parallel.
 	\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
