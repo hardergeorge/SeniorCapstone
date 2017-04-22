@@ -57,7 +57,7 @@ processing, photo upload capabilities, and static informational content. This
 senior capstone project will consist of three distinct sub-projects, specifically,
 implementing/modifying an image processing algorithm facilitating the
 classification and alignment of solar eclipse images before they are stitched into
-a movie, a manager to run this image processing app, and a location-based eclipse simulator.
+a movie, a developer pipeline, and a location-based eclipse simulator.
 
 \end{abstract}
 
@@ -82,23 +82,24 @@ a movie, a manager to run this image processing app, and a location-based eclips
 
 \subsection{Purpose}
 The purpose of this software requirements specification (SRS) is to describe in
-detail the Eclipse Image Processor, Eclipse Image Processor Manager, and the Eclipse
-Simulator that our group will
+detail the Eclipse Image Processor, Eclipse Image Processor Developer Pipeline,
+and the Eclipse Simulator that our group will
 produce. By writing these requirements down and agreeing to them with our
 sponsor both parties will have a clear understanding of what the finished
 product will be and what it will be able to do. The intended audience for this
 SRS is our sponsor, the Senior Capstone Instruction Team, and ourselves.
 
 \subsection{Scope}
-We are producing  three products: an Eclipse Image Processor, Eclipse
-Image Processor Manager, and an Eclipse
-Simulator. The Eclipse Image Processor will ingest images and if
-they are of a total solar eclipse, align/crop these images consistantly. Images of non-total
-solar eclipses will marked as such and otherwise ignored. The Eclipse Image Processor Manager
-will download images to be processed by the Image Processor, run the Image Processor on these images,
-and collect the results of running the Image Processor and upload them to Google Cloud. The Eclipse
+We are producing three products: an Eclipse Image Processor, an Eclipse
+Image Processor Developer Pipeline, and an Eclipse
+Simulator. The Eclipse Image Processor will ingest images and identify the sun
+and moon.
+The Eclipse Image Developer Pipeline
+will download images to be processed by the image processor, build and run the
+image processor on these images, generate an HTML document with the results,
+and upload the processed images and HTML document to Google Cloud Storage. The Eclipse
 Simulator will provide users with a 2D visual representation of the eclipse from a
-specified location from 12 hours before it occurs to 12 hours after.
+specified location within a 3 hour time range.
 
 \subsection{Definitions, acronyms, and abbreviations}
 
@@ -109,17 +110,6 @@ specified location from 12 hours before it occurs to 12 hours after.
 	that will pass over the United States on August 21, 2017. The project
 	will crowdsource photos of the eclipse from photographers at various
 	points along the path of totality. \\
-
-	\noindent \textbf{EXIF:}
-	EXIF refers to the Exchangeable Image File Format, a standard
-	media file format. Ancillary data tags associated with other media
-	files are frequently referred to as "EXIF fields", "EXIF data", etc.
-	This is how "EXIF" will be used within the scope of this document. \\
-
-	\noindent \textbf{GPS:}
-	GPS stands for global positioning system. We will refer to the
-	latitude and longitude information obtained from a global positioning
-	system as "GPS coordinates", "GPS data", etc. throughout this document. \\
 
 	\noindent \textbf{JPEG/JPG:}
 	JPEG is a lossy compression technique for images. When we refer
@@ -144,9 +134,9 @@ Atmospheric Administration. This paper can be found on arxiv.org.
 \subsection{Overview}
 
 The remainder of this SRS contains an overall description of the Eclipse Image
-Processor, Eclipse Image Processor Manager, and Eclipse Simulator systems in
-section 2. Following these descriptions are specific requirements for the
-systems in section 3.
+Processor, Eclipse Image Processor Developer Pipeline, and Eclipse Simulator
+systems in section 2. Following these descriptions are specific requirements
+for the systems in section 3.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SECTION 2: OVERALL DESCRIPTION
@@ -156,31 +146,33 @@ systems in section 3.
 \subsection{Product perspective}
 	\begin{enumerate}
 		\item These products, the Eclipse Image Processor, Eclipse Image
-		Processor Manager, and the Eclipse Simulator, are all components of
+		Processor Developer Pipeline, and the Eclipse Simulator, are all components of
 		the larger Eclipse Megamovie Project. The Eclipse Image Processor will be
-		a binary that receives images from another application - the Eclipse
-		Image Processor Manager - processes them, and exports them. The Eclipse
-		Image Processor and its manager will work together and form a standalone module
-		that can be deployed to multiple Virtual Machines as a Docker container.
-		The Eclipse Simulator will be a standalone JavaScript module that can be added to an
-		existing webpage.
+		a binary that processes images, finds the sun and moon in each image, and
+        exports metdata about the images. The Eclipse Image Processor Developer
+        Pipeline is an interface that allows easy experimentation and development
+        with the image processor via a test script that builds and runs the processor, can
+        download images, and uploads an HTML document to Google Cloud Storage
+        with nicely formatted output. The Eclipse Simulator will be a standalone
+        JavaScript module that can be added to an existing webpage.
 
-		\item The Eclipse Image Processor and Image Processor Manager
-		do not directly interface with the user, they are backend
-		systems that will be running asynchronously in Google Cloud.
+		\item The Eclipse Image Processor and Image Processor Developer Pipeline
+		do not directly interface with the user, the pipeline will function as a
+        developer tool and the Image Processor will eventually function as a backend
+        system for file uploads on the Eclipse Megamovie website.
 		The Eclipse Simulator does interface
 		directly with the user. It should function on most modern
-		internet browsers (Chrome, Firefox, Safari). The simulator
+		internet browsers (Chrome, Firefox, Safari, Edge). The simulator
 		will appear to the user as a 2D animated depiction of the
 		Sun and the Moon as they appear at the specified time and
 		location. The simulator will also have background imagery in
 		addition to the Sun and the Moon. Besides the images, the
-		simulator will have a time slider, a location input, and a
-		time display.
+		simulator will have a time slider, a location input, a zoom feature,
+        and a play buttob.
 
 		\item This system does not interface with hardware.
 
-		\item The Eclipse Image Processor and Image Processor Manager
+		\item The Eclipse Image Processor and Image Processor Developer Pipeline
 		will be designed to run on Ubuntu 16.04. It is necessary for these
 		applications to be compatible with this operating system because
 		the machines that will be running the them also run Ubuntu 16.04. The Eclipse
@@ -196,48 +188,34 @@ systems in section 3.
 		module enabling users to "preview" the eclipse. It will be
 		designed in a stylized, 2D manner. The simulator will
 		incorporate a time slider that allows users to simulate the
-		eclipse in a time window spanning from 12 hours before the
-		eclipse to 12 hours after it. As users drag the time
+		eclipse in a time window spanning from about 1.5 hours before maximum
+        eclipse to about 1.5 hours. As users drag the time
 		slider, the eclipse will animate in the simulator window.
 		The view of the eclipse which users are presented will be
 		specific to the selected location.
 
-		\item The Eclipse Image Processor application will ingest
-		photos of the eclipse, determine if they are images of a
-		total solar eclipse, and if so, align them spatially.
-		These aligned
-		images will be cropped so that the Sun
-		occupies the same amount of space in each image and will be
-		exported. All data that is required to take the raw input
-		images and produce the exported images will be saved to a
-		data file. Additionally, select EXIF information will be
-		extracted from the image files and included in this output
-		data file. Images that are deemed as being of "non-total" solar
-		eclipses will be marked as such and otherwise ignored.
+		\item The Eclipse Image Processor application will ingest eclipse
+		photos and find the sun and moon in these images. In addition to
+        identifying circles in the images the image processor will export
+        data about its run to an output directory. This function will allow
+        developers to imporove upon the application as it matures.
 
-		\item The Eclipse Image Processor Manager will be responsible for
-		managing the Eclipse Image Processor application. This includes
-		collecting images from Google Cloud for the Image Processor to process,
+		\item The Eclipse Image Processor Developer Pipeline will enable easy
+        experimentation and testing of the image processor. This includes
+		collecting images from Google Cloud Storage for the Image Processor to process,
 		invoking the Image Processor with these images as input, and collecting
-		the output of the Image Processor and uploading it to Google Cloud. The
-		Image Processor and Image Processor Manager will be deployed together
-		in a single docker container to Google Container Engine Clusters (of VMs).
-		An important role of the Image Processor Manager is that it will be responsible
-		for ensuring that the compute resources on the host VMs are as saturated as
-		possible. This means invoking multiple Image Processor processes concurrently,
-		while at the same time downloading the next images to be processed and uploading
-		the already processed images.
-
+		the output of the Image Processor and uploading it in a nicely formatted
+        HTML document to Google Cloud Storage.
 
 	\end{enumerate}
 
 \subsection{User characteristics}
 	\begin{enumerate}
 		\item The Eclipse Image Processor application will be used by
-			 the members of this project.
+            the members of this project.
 
-		\item The Eclipse Image Processor Manager application will be used by
-			Google Engineers.
+		\item The Eclipse Image Processor Developer Pipeline application will be
+            used by Google Engineers.
 
 		\item The Eclipse Simulator application will be used by the
 			general public. No unusual technical/scientific knowledge is
@@ -254,9 +232,6 @@ None.
 
 		\item This SRS assumes the availability of Google Cloud Platform
 		n1-standard-4 virtual machines.
-
-		\item This SRS assumes the ability to interface with Google Cloud from
-		Python, for example with the Google Cloud Client Library for Python.
 
 		\item This SRS assumes the availability of the OpenCV computer
 		vision library.
