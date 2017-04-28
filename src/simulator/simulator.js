@@ -54,14 +54,17 @@ var EclipseSimulator = {
                                 streetViewControl: false,
                                 clickableIcons: false
                             });
+
         this.map_visible    = false;
         this.search_box     = undefined;
         this.marker         = undefined;
         this.maps_place     = undefined;
         this.geocoder       = undefined;
-        // set default place_id to Corvallis (Used to timezone computation)
-        this.place_id = 'ChIJfdcUqp1AwFQRvsC9Io-ADdc';
-        this.offset = -420; // pacific local offset from UTC in minutes
+
+        // Used in timezone computation
+        this.place_id       = EclipseSimulator.DEFAULT_LOCATION_PLACE_ID;
+        this.offset         = EclipseSimulator.DEFAULT_LOCATION_UTC_OFFSET;
+        this.in_totality    = EclipseSimulator.DEFAULT_LOCATION_IN_TOTALITY;
 
         this.end_of_slider = false;
 
@@ -318,10 +321,10 @@ var EclipseSimulator = {
 
     VIEW_MAP_TOTALITY_LNG: [-171.748, -164.505, -156.937, -152.105, -148.257, -144.965, -142.047, -139.4, -136.963, -134.695, -132.568, -130.56, -128.655, -126.84, -125.105, -123.442, -121.843, -120.305, -118.82, -117.385, -115.997, -114.65, -113.345, -112.077, -110.842, -109.642, -108.472, -107.332, -106.218, -105.132, -104.07, -103.032, -102.015, -101.02, -100.043, -99.087, -98.148, -97.227, -96.322, -95.432, -94.555, -93.693, -92.843, -92.007, -91.182, -90.367, -89.562, -88.767, -87.98, -87.202, -86.432, -85.667, -84.91, -84.157, -83.41, -82.667, -81.927, -81.19, -80.457, -79.723, -78.992, -78.26, -77.528, -76.795, -76.06, -75.323, -74.582, -73.835, -73.083, -72.325, -71.56, -70.785, -70.002, -69.205, -68.398, -67.575, -66.737, -65.88, -65.003, -64.103, -63.178, -62.225, -61.24, -60.218, -59.155, -58.045, -56.88, -55.652, -54.35, -52.958, -51.46, -49.828, -48.023, -45.99, -43.627, -40.74, -36.81, -27.332, -27.552, -38.467, -42.078, -44.827, -47.108, -49.09, -50.857, -52.46, -53.935, -55.308, -56.595, -57.808, -58.962, -60.062, -61.117, -62.128, -63.107, -64.052, -64.97, -65.862, -66.732, -67.582, -68.413, -69.23, -70.032, -70.82, -71.597, -72.365, -73.123, -73.873, -74.617, -75.355, -76.088, -76.817, -77.543, -78.267, -78.988, -79.71, -80.432, -81.153, -81.875, -82.6, -83.327, -84.058, -84.792, -85.53, -86.273, -87.023, -87.778, -88.542, -89.31, -90.088, -90.875, -91.672, -92.477, -93.293, -94.122, -94.963, -95.817, -96.683, -97.565, -98.462, -99.373, -100.303, -101.252, -102.218, -103.205, -104.213, -105.243, -106.298, -107.377, -108.483, -109.617, -110.78, -111.975, -113.203, -114.468, -115.772, -117.117, -118.507, -119.943, -121.433, -122.982, -124.592, -126.27, -128.027, -129.87, -131.813, -133.87, -136.062, -138.413, -140.963, -143.765, -146.908, -150.548, -155.018, -161.407, -171.433],
 
-    VIEW_BG_COLOR_NIGHT:   [0,   0,   0],
-    VIEW_BG_COLOR_DAY:     [140, 210, 221],
-    VIEW_MOON_OPACITY:     0.65,
-    VIEW_BG_IMG_MAX_GRAY:  0.75,
+    VIEW_BG_COLOR_NIGHT: [0,   0,   0],
+    VIEW_BG_COLOR_DAY:   [140, 210, 221],
+
+    VIEW_OUTSIDE_TOTALITY_MAX_DARK_OPACITY: 0.65,
 
     VIEW_SLIDER_NSTEPS: 720,
 
@@ -351,7 +354,13 @@ var EclipseSimulator = {
         lng: -123.278622,
     },
 
+    DEFAULT_LOCATION_IN_TOTALITY: true,
+
     DEFAULT_LOCATION_TIME_ZONE: 'PDT',
+
+    DEFAULT_LOCATION_UTC_OFFSET: -420,  // minutes
+
+    DEFAULT_LOCATION_PLACE_ID: 'ChIJfdcUqp1AwFQRvsC9Io-ADdc',
 
     ECLIPSE_DAY: new Date('08/21/2017'),
 
@@ -704,11 +713,14 @@ EclipseSimulator.View.prototype.update_totality = function() {
     if (google.maps.geometry && this.marker && this.marker.getVisible()) {
         if (google.maps.geometry.poly.containsLocation(this.marker.getPosition(), this.eclipsePath)) {
             $(this.totality_label).text("Total eclipse");
+            this.in_totality = true;
         } else {
             $(this.totality_label).text("Partial eclipse");
+            this.in_totality = false;
         }
     } else {
         $(this.totality_label).text("");
+        this.in_totality = false;
     }
 };
 
@@ -799,10 +811,16 @@ EclipseSimulator.View.prototype.refresh = function()
 
     // === Update background and moon color === //
 
-    // Compute percent of eclipse and raise it to the 6th power
-    // this achieves the "sudden darkness" effect
     var p = this.compute_percent_eclipse();
-    p     = Math.pow(p, 6);
+
+    // Brightness of sun is exponential in its area
+    p = Math.pow(100, p - 1);
+
+    // Cap the darkness if not in path of totality
+    if (!this.in_totality)
+    {
+        p = Math.min(p, EclipseSimulator.VIEW_OUTSIDE_TOTALITY_MAX_DARK_OPACITY);
+    }
 
     // Compute sky color - this is the same color used for the moon
     var rgba_str = this.get_rgba_string(p, EclipseSimulator.VIEW_BG_COLOR_DAY,
@@ -977,6 +995,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         // Hide the hills/clouds/people/etc
         $(this.background[1]).hide();
         $(this.background[2]).hide();
+        $(this.background[3]).hide();
     }
     else
     {
@@ -990,6 +1009,7 @@ EclipseSimulator.View.prototype.toggle_zoom = function()
         // Show the hills/clouds/people/etc
         $(this.background[1]).show();
         $(this.background[2]).show();
+        $(this.background[3]).show();
     }
     $(this.zoombutton).find('i').text(label);
 
@@ -1119,8 +1139,20 @@ EclipseSimulator.View.prototype.get_rgba_string = function(color_percent, start,
 
 EclipseSimulator.View.prototype.update_bg_lightness = function(p, rgba_str)
 {
+    if (this.in_totality)
+    {
+        var show = 2;
+        var hide = 3;
+    }
+    else
+    {
+        var show = 3;
+        var hide = 2;
+    }
+
     $(this.background[0]).css('background-color', rgba_str);
-    $(this.background[2]).css('opacity', p);
+    $(this.background[show]).css('opacity', p);
+    $(this.background[hide]).css('opacity', 0);
 };
 
 EclipseSimulator.View.prototype.update_moon_lightness = function(rgba_str)
