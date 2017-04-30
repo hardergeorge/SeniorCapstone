@@ -1,11 +1,15 @@
-# On flip
+## Instructions for setting up x-forwarding from a Google Compute Engine VM to one of the `flip` engr servers:
+
+**On flip:**
+```bash
 wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-146.0.0-linux-x86_64.tar.gz
 tar -xf google-cloud-sdk-146.0.0-linux-x86_64.tar.gz
 ./google-cloud-sdk/install.sh
+```
 
 
-# On Google Compute Engine VM
-
+**On Google Compute Engine VM:**
+```bash
 sudo apt-get install packagekit-gtk3-module
 sudo apt-get install xauth
 
@@ -19,12 +23,19 @@ sudo vim /etc/ssh/ssh_config
 
 # Reboot
 sudo reboot
+```
 
+**On flip:**
+```bash
 # Now reconnect using gcloud command from Google Cloud Console,
 # but add the flag: --ssh-flag=-Y
+gcloud compute ssh [machine-name] --ssh-flag=-Y
+```
 
-#to install the Jinja2 python library
-sudo pip3 install Jinja2 
+## Instructions for installing image processor dependencies on a GCE VM
+```bash
+# to install the Jinja2 python library
+sudo pip3 install Jinja2
 
 # To get opencv setup on the VM
 git clone https://github.com/opencv/opencv
@@ -57,3 +68,4 @@ $ mkdir build && cd build
 $ cmake ..
 $ make
 $ sudo make install
+```
