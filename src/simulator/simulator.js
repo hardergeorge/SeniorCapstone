@@ -69,7 +69,7 @@ var EclipseSimulator = {
         this.end_of_slider = false;
 
         // Sun/moon position in radians
-        this.sunpos  = {x: 0, y: 0, r: 0.26 * Math.PI / 180};
+        this.sunpos  = {x: 0, y: 0, r: 0.25 * Math.PI / 180, apparant_r: 0.34 * Math.PI / 180};
         this.moonpos = {x: 0, y: 0, r: 0.25 * Math.PI / 180};
 
         // Wide field of view in radians
@@ -797,7 +797,7 @@ EclipseSimulator.View.prototype.refresh = function()
         {
             x: this.get_ratio_from_altaz(this.sunpos.az,  az_center,  this.current_fov.x, this.sunpos.r),
             y: this.get_ratio_from_altaz(this.sunpos.alt, alt_center, this.current_fov.y, this.sunpos.r),
-            r: this.get_ratio_from_body_angular_r(this.sunpos.r, this.sunpos.alt, alt_center),
+            r: this.get_ratio_from_body_angular_r(this.sunpos.apparant_r, this.sunpos.alt, alt_center),
         }
     );
     this.position_body_at_percent_coords(
