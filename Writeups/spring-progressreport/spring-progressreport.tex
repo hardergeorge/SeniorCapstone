@@ -73,20 +73,40 @@ parallelization and deployment to a different piece of the project. \\
 
 \subsection{Image Processor Developer Pipeline}
 
-Lorem \\
+The image processor developmer pipeline is a tool that will assist any future
+development of the image processor. It consists of a script that operates
+several primary stages that provides developers with an easily manipulatable
+interface to the image processor. The script first downloads images from a
+Google Cloud Storage (GCS) bucket. Then it runs the images through the image
+processor in one of two modes: "batch" or "window." The first mode runs through
+all of the images at once and the second lets the user see the results of a run
+one image at a time. After the image processor finishes running and writing its
+output, the script then uploads all of the processed images and the output into
+a GCS bucket so the information can be easily found and reviewed. Lastly, the
+pipeline calls a python script that formats the output of the image processor
+into an HTML document. The HTML document contains metadata about the run of the
+image processor so that runs can be recreated and easily compared. In addition,
+it has a table with information about each individual image processed in the run.
+
+The image processor developer pipeline is a valuable tool because it gives
+developers very fine control over runs of the image processor. The script that
+runs the pipeline takes arguments that control the mode, where to download
+images from, where to upload the to, and what paramters to pass to the image
+processor. This allows developers to easily experiment with small and large
+changes to the image processor and examine results. \\
 
 \subsection{Eclipse Simulator}
 
-The eclipse simulator will be an independent JavaScript module that can easily
-be added to the existing Eclipse Megamovie webpage. This simulator will allow
-users to “preview” the eclipse. It will be a 2D depiction of what the solar
-eclipse in 2017 could look like given a certain location. Users will be able
-to interact with a time slider that will simulate the eclipse in a time
-window spanning from 12 hours before the eclipse to 12 hours after it.
+The eclipse simulator is an independent JavaScript module that has been
+added to the existing Eclipse Megamovie webpage. This simulator will allow
+users to "preview" a 2D stylized depiction of the eclipse from a given location
+in the United States. Users interact with the simulator using a time slider
+that ranges from 1.5 hours before to 1.5 hours after the eclipse, a "play" button,
+location selection via a map or search bar, and a zoom mode.
 
-To help with the eclipse ephemeris computations, we will be using an external
+To help with the eclipse ephemeris computations, we used an external
 JavaScript library called MeeusJs. For the front end view for the simulator,
-we will be utilizing HTML5 SVG. We plan to implement a model-view-controller
+we utilized HTML5 SVG. Our eclipse simulator uses a model-view-controller 
 architecture for controlling the states of each component as well as handling
 the interactions. This architecture was chosen due to the ability to easily
 exchange a component without altering the whole design of the system. For
@@ -101,20 +121,46 @@ interactions with the controller module. \\
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Current Status of the Project}
 
-Lorem \\
+Based on the requirments we set for ourselves and agreed upon with our sponsor
+our project is effectively complete. We have delivered a solar eclipse simulator
+that meets the specifications our sponsor requested. In addition, we have
+produced an image processing development pipline that will assist in future
+development of our image processor. \\
 
 \subsection{Image Processor}
 
-Lorem \\
+As of the code freeze on May 1, we had a working image processor that identified
+circles in images of eclipses and drew the two most prominent circles
+(ostensibly the sun and moon) over the image. This tool meets ours and our
+sponsor's specifications for the image processor. In addition, during meetings
+with our sponsor he has expressed the fact that he is happy with our work and
+appreciates what we have done. \\
 
 \subsection{Image Processor Developer Pipeline}
 
-Lorem \\
+The image processor developer pipeline meets the specifications our client
+requested for a platform that will aid in future development of the image
+processor. The developer pipeline is a tool that allows developers to quickly
+and easily run and experiment with different paramaters or tweaks to code. This
+tool gives our sponsor, who plans to continue development on the image processor,
+an effective way to validate his development is improving the image processor. \\
 
 \subsection{Eclipse Simulator}
 
-Lorem \\
+The eclipse simulator we delivered to our sponsor and his team has met the
+requirements we set forth and is now live on the eclipsemega.movie website. The
+eclipse simulator has exceeded our expectations for quality and our sponsor has
+expressed his pleasure with our finished product. \\
 
+\subsection{[SUPPLEMENTAL] Eclipse Image Classifier}
+
+The eclipse image classifier is a supplemental piece of the project that our
+sponsor asked us to investigate with the remaining time we had on the project.
+Currently, we are looking into using Google Cloud Vision (GCV) to classify images
+as either partial or total eclipse. This is because we and our sponsor have
+decided to add a precondition of the image processor that the images it works
+on are of a total eclipse. By using GCV to classify images, we can meet this
+precondition. \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Problems           %
