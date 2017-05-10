@@ -57,23 +57,15 @@ The image processor’s primary activity is to quickly and consistently identify
 images of an eclipse at totality. The Eclipse Megamovie project will be
 collecting thousands of images from photographers around the country, and the
 image processor needs to identify the images of the eclipse at totality so that
-these can then be stitched into a timelapse movie. In order to make the
-stitching as easy as possible for the Eclipse Megamovie team, the image
-processor will add metadata to each processed image that includes spatial
-information about where the image was taken along the path of totality and
-temporal information about how far into totality the eclipse is.
+these can then be stitched into a timelapse movie. The image processor finds the
+sun and moon in each image to determine if it is in a state of totality. The
+processor takes in a variety of command line arguments, the only required
+one being an images file containing paths to every image to be processed.
 
-
-The purpose of the Image Processor is not to process many images as quickly as
-possible. Instead, our goal is to be able to consistently and accurately process
-a single image at a time. As such, the image processor will fit into the larger
-project as an executable file that is called by the Image Processor Manager.
-This allows us to focus the image processor solely on a single goal, and leave
-parallelization and deployment to a different piece of the project. \\
+In addition to identifying circles in the images, the image processor exports
+relevant data, including the processed images, to an output directory. \\
 
 \subsection{Image Processor Developer Pipeline}
-
-Lorem \\
 
 \subsection{Eclipse Simulator}
 
@@ -121,6 +113,7 @@ Lorem \\
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems and Possible Solutions}
 
+We have not come across any problems during Spring term.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Things Left to Do  %
@@ -129,16 +122,27 @@ Lorem \\
 
 \subsection{Image Processor}
 
-Lorem \\
+No further work is needed for the image processor. It successfully ingests
+eclipse images, attempts to find the sun/moon, and exports data to an output
+directory. Developers who wish to change certain components of the
+processor will easily be able to do so. \\
 
 \subsection{Image Processor Developer Pipeline}
 
-Lorem \\
+None! The pipeline is capable of building and invoking the processor on requested
+images. It will then assemble the results into an HTML file which will be uploaded
+as well as the processed images to Google Cloud Storage. \\
 
 \subsection{Eclipse Simulator}
 
-None! \\
+None! The simulator is now on the Eclipsemega.movie website and nothing more
+is required from us development wise. \\
 
+\subsection{[SUPPLEMENTAL] Eclipse Image Classifier}
+
+We would like to improve the overall accuracy of the classifier as it currently
+is only about 70\% accurate. This will potentially require a larger
+set of training data which our client is working to gather. \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %   Code               %
