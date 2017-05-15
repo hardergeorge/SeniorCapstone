@@ -33,7 +33,7 @@ This document describes in detail the design for the various components of the
 North American Solar Eclipse 2017 senior capstone project. These components are
 described according to the IEEE 1016-2009 standard. There are three high level
 components detailed in this document, the Eclipse Image Processor, Eclipse Image
-Processor Manager, and Eclipse Simulator. The sections of this document are broken
+Processor Developer Pipeline, and Eclipse Simulator. The sections of this document are broken
 into subsections corresponding to these components as applicable.
 
 \end{abstract}
@@ -64,87 +64,64 @@ this Senior Capstone project. David Konerding's concerns are listed below.
 
 \subsubsection{}
 
-The image process needs to take in an image, identify if the image has a total
-solar eclipse, and if it does further process it so that it can be stitched into
-a timelapse movie by Eclipse Megamovie engineers. \\
+The image process needs to take in an image and identify circles which
+correspond to the Sun and Moon in the eclipse so it can be stitched into
+a timelapse movie by Eclipse Megamovie engineers.
 
 \subsubsection{}
 
-The mean processing time for an image must be one second. \\
+The mean processing time for an image must be one second.
 
 \subsubsection{}
 
-Images must be processed in no longer than five seconds.\\
+Images must be processed in no longer than five seconds.
 
 \subsubsection{}
 
-Images must be filtered so that the processed images are only images of the
-eclipse at totality.\\
+Circles corresponding to the Sun and Moon should be found for each image.
 
 \subsubsection{}
 
-Only high quality images, defined as having a 50 pixel solar disk size and
-padding around the disk of 100 pixels, should be accepted by the image
-processor.\\
+The image processor needs to be able to be called by an image processor developer
+pipeline with appropriate input data. \\
 
-\subsubsection{}
+\subsection{Image Processor Developer Pipeline}
 
-Once images have been filtered, they need to have metadata attached in a way
-that allows easy stitching of eclipse images. \\
+	\subsubsection{}
+	Pipeline must collect images from Google Cloud Storage to be run through the image
+	processor processor.
 
-\subsubsection{}
+	\subsubsection{}
+	Pipeline must invoke image processor with images downloaded from Google Cloud
+	Storage.
 
-The image processor needs to be able to be called by the image processor manager
-with appropriate input data. \\
+	\subsubsection{}
+	Pipeline must aggregate results of image processor run in user friendly HTML file.
 
-\subsubsection{}
+	\subsubsection{}
+	HTML file should include all information required to re-create any run of the pipeline,
+	i.e. image processor git revision, dataset, pipeline command line parameters.
 
-Image processor needs to be able to use GPS EXIF information associated with
-images.\\
-
-\subsection{Image Processor Manager}
-
-    \subsubsection{}
-    Image processor manager should download images needing processing
-    from Google Cloud Storage. \\
-
-    \subsubsection{}
-    Image processor manager should invoke image processor with downloaded images. \\
-
-    \subsubsection{}
-    Image processor manager should upload processed images and corresponding metadata
-    - the output from the image processor - to Google Cloud Storage and Datastore, respectively. \\
-
-    \subsubsection{}
-    Image processor should download/upload images at the same time the image processor
-    is processing other images. \\
-
-    \subsubsection{}
-    Image processor manager should invoke multiple image processor instances concurrently
-    with different input images. The number of image processor instances launched should be
-    determined by the number of cores on the host VM. \\
-
-    \subsubsection{}
-    Image processor manager instances should be able to run alongside other image processor
-    manager instances running on (potentially) different machines. These discrete instances should
-    not attempt to process the same images. \\
+	\subsubsection{}
+	All assets required to display HTML file must be uploaded to Google Cloud Storage.
+	All links in generated HTML file must correctly reference these assets. \\
 
 \subsection{Eclipse Simulator}
     \subsubsection{}
     The solar eclipse must be accurately simulated based on
-    user entered location information. \\
+    user entered location information.
 
     \subsubsection{}
     Users will be able to view the eclipse via a
-    draggable slider, clickable time step buttons, and a play functionality. \\
+    draggable slider, clickable time step buttons, and a play functionality.
 
-    \subsection{}
+    \subsubsection{}
     The user interface should be visually appealing, easy to navigate, and align
-    with the theme of the larger project's site. \\
+    with the theme of the larger project's site.
 
     \subsubsection{}
     Simulator will only support locations within continental
-    United States. \\
+    United States.
 
     \subsubsection{}
     The simulator must load in less than 500ms given a 1-10
@@ -159,66 +136,67 @@ images.\\
 \subsubsection{Speed and Performance}
 
 \textbf{Concerns:} 1.1.2, 1.1.3 \\
-\textbf{Elements:} 4.1.1, 4.1.2, 4.1.3, 4.1.4\\
-\textbf{Analytical Methods:} The primary criteria and methods in constructing
-this view is whether or not we are achieving the desired average speeds on our
-golden data set. \\
+\textbf{Elements:} 4.1.2, 4.1.3, 4.1.4, 4.1.5, 4.1.9 \\
+\textbf{Analytical Methods:} This view is defined by whether or not we are
+achieving desired processing speeds for our eclipse images. \\
 \textbf{Viewpoint Source:} George Harder \\
 
 \subsubsection{Accuracy}
 
-\textbf{Concerns:} 1.1.1, 1.1.4, 1.1.5, 1.1.8 \\
-\textbf{Elements:} 4.1.1, 4.1.2, 4.1.5, 4.1.6 4.1.9, 4.1.10\\
-\textbf{Analytical Methods:}  In constructing the corresponding view, we will be
-evaluating it based on whether or not the image processor is correctly
-identifying eclipses with at least 90\% accuracy on our golden data set.\\
+\textbf{Concerns:} 1.1.1, 1.1.4 \\
+\textbf{Elements:} 4.1.1, 4.1.5, 4.1.9 \\
+\textbf{Analytical Methods:} Accurately finding the Sun and the Moon in each
+eclipse image is very important as it is pertinent to the construction of the
+Eclipse Megamovie. \\
 \textbf{Viewpoint Source:} George Harder \\
 
 \subsubsection{Input and Output}
 
-\textbf{Concerns:} 1.1.6, 1.1.7 \\
-\textbf{Elements:} 4.1.2, 4.1.4, 4.1.7, 4.1.8, 4.1.9\\
+\textbf{Concerns:} 1.1.5 \\
+\textbf{Elements:} 4.1.2, 4.1.6, 4.1.7, 4.1.8 \\
 \textbf{Analytical Methods:} This view will be evaluating whether or not the
 input and output of the image process meet the specifications defined in the
 design document. \\
 \textbf{Viewpoint Source:} George Harder\\
 
-\subsection{Image Processor Manager}
+\subsection{Image Processor Developer Pipeline}
+    \subsubsection{Image Collection}
+    \textbf{Concerns:} 1.2.1, 1.2.2 \\
+    \textbf{Elements:} 4.2.1, 4.2.4, 4.2.5 \\
+    \textbf{Analytical Methods:} Developer pipeline must be able to use images
+    from a specified Google Cloud Storage bucket. \\
+    \textbf{Viewpoint source:} George Harder \\
 
-    \subsubsection{Intra-instance Concurrency}
-    \textbf{Concerns:} 1.2.4, 1.2.5 \\
-    \textbf{Elements:} 4.2.1, 4.2.2, 4.2.3, 4.2.4, 4.2.5, 4.2.6, 4.2.7 \\
-    \textbf{Analytical Methods:} Overall VM CPU utilization, overall VM network interface utilization.
-    Both these values should be maximized as much as possible. \\
-    \textbf{Viewpoint Source:} Bret Lorimore \\
+    \subsubsection{Output Generation}
+    \textbf{Concerns:} 1.2.3, 1.2.4 \\
+    \textbf{Elements:} 4.2.1, 4.2.2, 4.2.3, 4.2.6, 4.2.7, 4.2.8, 4.2.9 \\
+    \textbf{Analytical Methods:} Developer pipeline must produce a well
+    formatted and visually appealing output document in HTML that includes
+    the information specified in sections 1.2.3 and 1.2.4. \\
+    \textbf{Viewpoint source:} George Harder \\
 
-    \subsubsection{Inter-instance Concurrency and Synchronization}
-    \textbf{Concerns:} 1.2.1, 1.2.3, 1.2.6 \\
-    \textbf{Elements:} 4.2.1 \\
-    \textbf{Analytical Methods:} No image should be successfully processed by multiple image processor
-    instances, whether or not these run on the same VM or are managed by the same image processor manager. \\
-    \textbf{Viewpoint Source:} Bret Lorimore \\
-
-    \subsubsection{Invocation}
-    \textbf{Concerns:} 1.2.2 \\
-    \textbf{Elements:} 4.2.6 \\
-    \textbf{Analytical Methods:} Multiple image processor processes should be able to be easily launched
-    concurrently with different input data. \\
-    \textbf{Viewpoint Source:} Bret Lorimore \\
+    \subsubsection{Output Uploading and Storage}
+    \textbf{Concerns:} 1.2.5 \\
+    \textbf{Elements:} 4.2.1, 4.2.4, 4.2.5 \\
+    \textbf{Analytical Methods:} Developer pipeline must upload the output
+    document to Google Cloud Storage so that is easily viewable by the developer
+    and any collaborators and must produce working URL's to all referenced
+    assets (i.e. images and the document itself). \\
+    \textbf{Viewpoint source:} George Harder \\
 
 \subsection{Eclipse Simulator}
   \subsubsection{Interface}
-  \textbf{Concerns:} 1.3.1, 1.3.2 \\
-  \textbf{Elements:} 4.3.1, 4.3.2, 4.3.4, 4.3.7 \\
+  \textbf{Concerns:} 1.3.2, 1.3.3 \\
+  \textbf{Elements:} 4.3.1, 4.3.2, 4.3.3, 4.3.5, 4.3.8 \\
   \textbf{Analytical Methods:} Interface should be appealing
   to the user as well as being responsive and fast. The look and feel of the user
   interface will be evaluated by the sponsor and deemed complete when it meets their
   desired specifications. \\
   \textbf{Viewpoint source:} Jacob Fenger \\
 
-  \subsubsection{Loading Performance}
-  \textbf{Concerns:} 1.3.4\\
-  \textbf{Elements:} 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7 \\
+  \subsubsection{Performance}
+  \textbf{Concerns:} 1.3.2, 1.3.5 \\
+  \textbf{Elements:} 4.3.4, 4.3.7, 4.3.8,  \\
   \textbf{Analytical Methods:} The initial loading time
   of the simulator should be fast. Additionally, the
   interactions that the user has with the simulator should
@@ -227,8 +205,8 @@ design document. \\
   \textbf{Viewpoint source:} Jacob Fenger \\
 
   \subsubsection{Simulation Accuracy}
-  \textbf{Concerns:} 1.3.1, 1.3.3 \\
-  \textbf{Elements:} 4.3.3, 4.3.5 \\
+  \textbf{Concerns:} 1.3.1, 1.3.4 \\
+  \textbf{Elements:} 4.3.4, 4.3.6 \\
   \textbf{Analytical Methods:} In the simulator, the Sun and
   Moon display should reflect scientific accuracy when it
   comes to relative position and sizes. Additionally, the
@@ -250,33 +228,31 @@ the project. This being the case, it is of utmost importance that the image
 processor we are building for the project can process images in a timely manner.
 This is not only important to being able to build a movie from the images soon
 after the eclipse, but also because it prevents storage spaces on either end of
-the image processing pipeline from becoming clogged. \\
+the image processing pipeline from becoming clogged.
 
 In order to achieve these design goals, we are designing a system that uses the
 OpenCV C++ library.  This API provides us with high performing library methods,
 like Hough transforms, image crops, and image rotations that are necessary to
 the image processor's core functionality. In addition to the use of this
-language and library, we are also designing this system to be single threaded
-but to also interface with a manager that runs multiple instances of the image
-processor concurrently. This fact allows us to design the image process to
-process a single image quickly and accurately and leaves management of the
-application to a different art of the system.\\
+language and library, we are making it very easy for anyone to inherit from
+the base processing class so one can manipulate specific parts of the
+processing pipeline. The interface we are using for the input and output of
+the processing easily allows another application, such as the image processor
+developer pipeline, to build and run it. \\
 
 \subsubsection{Accuracy [Governed by Viewpoint 2.1.2]}
 
 From a high level, the most fundamental concern in the design of the image
-processor is that it can accurately identify an eclipse image. The other
-concerns associated with the design of the image processor are near meaningless
-if the application is not consistently identifying images that contain total
-eclipse.\\
+processor is that it can accurately identify the Sun and/or Moon in an eclipse
+image. The other concerns associated with the design of the image processor
+are near meaningless if the application is not capable of identifying circles
+that correspond to the Sun and/or Moon.
 
-To address this concern, and the related concerns around accepting only high
-quality images and determining the relative temporal and spatial positioning of
-images, we are designing this application with accuracy as a primary goal. The
-meet this goal, the system will build upon an existing eclipse identification
-algorithm. This algorithm, with improvements we add ourselves, will be the basis
-for the parts of the system that we design to meet the accuracy requirements of
-the image processor.\\
+To address this concern, we are designing this application with accuracy as a
+primary goal. To meet this goal, the system will build upon an existing
+eclipse identification algorithm. This algorithm, with improvements we add
+ourselves, will be the basis for the parts of the system that we design to
+meet the accuracy requirements of the image processor.\\
 
 \subsubsection{Input and Output [Governed by Viewpoint 2.1.3]}
 
@@ -284,76 +260,75 @@ The image processor is one component in a much larger system. For the system to
 function the image processor needs to interface with the other components in a
 well defined and seamless manner. In addition to speed and accuracy, we need to
 design the system with a view toward optimizing the way the image processor
-interacts with other components.\\
+interacts with other components.
 
-The ensure a smooth interface with the image processor manager we are designing
-the image processor to accept a well defined set of command line arguments
-including the path to the list of images to be processed, the path to an output
-directory, and the path to prefix image file names with that points to their
-location. The design of the image processor also takes into account the needs of
-the engineers handling the processed images. The image processor will write
-processed images and their metadata in a specific format to an output file.\\
+To ensure a smooth interface with the image processor developer pipeline we
+are designing the image processor to accept a well defined set of command line
+arguments including a list of images containing their paths to be processed,
+the running mode (Window or batch), the path to an output directory (If ran in
+batch mode), and other optional paramaters involving the cv::HoughCircles
+function call. The design of the image processor also takes into account the
+needs of the engineers handling the processed images. The image processor will
+write processed images and their metadata in a specific format to the
+specified output directory. \\
 
-\subsection{Image Processor Manager}
+\subsection{Image Processor Development Pipeline}
 
-    \subsubsection{Maximal Utilization [Governed by viewpoint 2.2.1]}
-    It is the goal of the image processor manager to maximize hardware utilization on the VMs on which it is
-    running. This means that ideally, the VMs where the image processor manager and therefore the image
-    processor are running will have an average of 100\% CPU utilization on all cores at all times.The image
-    processor application will be single threaded and thus by invoking multiple instances of this application,
-    the image processor manager can increase utilization on multiple CPU cores. \\
+    \subsubsection{Image Collection [Governed by viewpoint 2.2.1]}
+    The image processor developer pipeline seeks to provide developers with an
+    easy to use interface to the image processor. As such, it is integral to the
+    design of the system that it can interface with Google Cloud Storage and
+    thereby provide the developer with access to any bucket of test images. In
+    order to provide this functionality to developers the image processor
+    developer pipeline will accept as an argument the name of a Google Cloud
+    Storage bucket. The pipeline will then download the images in this bucket
+    and run the image processor over the downloaded images. This streamlines the
+    process of testing the image processor and gives developers fine grained but
+    simple control over runs of the image processor.  \\
 
-    The downloading of images to process and uploading of processed images are both very high latency
-    operations. Therefore, instead of waiting for these downloads/uploads to complete with virtually zero CPU
-    utilization in the meantime, the image processor manager can achieve greater average CPU utilization by
-    completing these high latency tasks concurrently to processing other images. \\
+    \subsubsection{Output Generation [Governed by viewpoint 2.2.2]}
+    The image processor developer pipeline shall produce an easily readable and
+    well formatted HTML document that details information about the run and the
+    run itself. For this system to be effective we need to give developer the
+    ability to easily reproduce runs and then compare the results of these
+    runs. With this in mind, we are designing the output generation portion of
+    the pipeline to parse the result of the image processor, which are in a text
+    file, and display them, along with metadata like a timestamp, git hash, and
+    scoring metrics in an HTML document so that a developer can quickly diagnose
+    what impact their changes to the processor had on the results. \\
 
-    \subsubsection{Image Processing [Governed by viewpoint 2.2.2]}
-    The ultimate goal of the image processor manager is to facilitate the processing of eclipse images by the
-    image processor component of this project. This can be achieved by downloading images to process from the
-    cloud, assembling them into a form that can be consumed by the image processor and then invoking that
-    application with the downloaded images as input data. \\
-
-    \subsubsection{Synchronization [Governed by viewpoint 2.2.3]}
-    The image processor must process the images that are uploaded by users. These images are uploaded by the
-    eclipsemega.movie website to Google Cloud Storage and metadata entries are also created for them in Google
-    Cloud Datastore. In order for the image processor manager to invoke the image processor with these images,
-    it must download them from Google Cloud. \\
-
-    The application to stitch processed images into movies, being developed by Google, expects to find
-    processed eclipse images in Google Cloud Storage with corresponding metadata in Google Cloud Datastore. In
-    order to meet this expectation, the image processor manager must upload the results of running the image
-    processor to Google Cloud Storage and Google Cloud Datastore when ready. \\
-
-    To enable scalable image processing performance, it is desirable to enable many VMs to run image processor
-    applications at once. In order to do this efficiently without redundancy, it is necessary to ensure that
-    multiple VMs do not try to process the same images. For that reason, image processor manager instances must
-    mark image files as pending processing before another instances of the image processor manager can queue
-    them for processing. Without implementing this functionality, little to no performance improvements can be
-    expected by deploying multiple image processor manager nodes. \\
+    \subsubsection{Output Uploading and Storage [Governed by viewpoint 2.2.3]}
+    Our image processor developer pipeline must not only produce useful output
+    but in addition store that output in a convenient location. To fulfill this
+    goal the image processor developer pipeline will upload its output to
+    Google Cloud Storage and produce a working URL to the output. This way, a
+    developer can share the results of a run with collaborators. Designing the
+    image processor pipeline in this way further facilitates continued
+    development of the image processor. \\
 
 \subsection{Eclipse Simulator}
 
   \subsubsection{User Interface View [Governed by Viewpoint 2.3.1 ]}
   The user interface shall utilize 2D animated depictions of
-  the Sun and the Moon positioned based on the time the simulator is set to. In addition
-  to the Sun and Moon, the user interface will contain stylized background imagery of a hillside. The
-  simulator's controls will be split into a top bar and bottom bar. The top bar
-  will have a location entry box, an expandable map, and a zoom button. The
-  bottom bar will have a time slider, time up and down buttons, a play button,
-  and a menu to select the play speed.  \\
+  the Sun and the Moon positioned based on the time and location the simulator
+  is set to. In addition to the Sun and Moon, the user interface will contain
+  stylized background imagery of a hillside. The simulator's controls will be
+  split into a top bar and bottom bar. The top bar will have a location entry
+  box, an expandable map, and a zoom button. The bottom bar will have a time
+  slider, time up and down buttons, a play/pause button, and a menu to select
+  the play speed.  \\
 
   \subsubsection{Operating Performance View [Governed by Viewpoint 2.3.2]}
-  The simulator will have low loading times to ensure fast
-  performance for most users. Additionally, the simulator
-  will need to respond in a timely matter when users are
-  interacting with the module. \\
+  The simulator will have low loading times to ensure smooth performance
+  for most users. The simulator will be responsive and quickly respond to
+  user input. \\
 
   \subsubsection{Eclipse Accuracy View [Governed by Viewpoint 2.3.3]}
-  The simulator shall be accurate enough for any location in
-  the continental United States. This accuracy includes
-  accurate relative Moon and Sun sizes, positions in the
-  rendered scene, and positions relative to one another. \\
+  The simulator shall display an accurate dipiction of the eclipse from
+  any location in the continental United States. This accuracy includes
+  accurate relative Moon and Sun sizes, positions in the rendered scene,
+  and positions relative to one another. This accuracy shall be evaluated
+  by our client and will be marked as adaquate when it meets their expectations. \\
 
 %% Section 4
 \section{Design Elements}
@@ -379,8 +354,7 @@ average time for an image to be processed must be less than one second.\\
 
 \subsubsection{Serial Image Processing}
 \textbf{Type:} Framework\\
-\textbf{Purpose:} The image processor will process images one at a time because
-the Image Processor Manager handles all parallelization.\\
+\textbf{Purpose:} The image processor will process images one at a time. \\
 
 \subsubsection{Hough Transform}
 \textbf{Type:} Procedure\\
@@ -388,129 +362,128 @@ the Image Processor Manager handles all parallelization.\\
 and lines in images. It will be used by the image processor to identify total
 eclipse images. OpenCV has the circular Hough transform built in. \\
 
-\subsubsection{Image Quality Error Checking}
-\textbf{Type:} Constraint\\
-\textbf{Purpose:} The requirements of the image processor specify that only
-images with a solar disk of at least 50 pixels and 100 pixels of padding around
-the sun will be accepted.\\
-
 \subsubsection{Command Line Arguments}
 \textbf{Type:} Constraint\\
 \textbf{Purpose:} The image processor needs to have a well defined set of
 command line arguments so that it can interface with the image processor
-manager without difficulty. \\
+developer pipeline without difficulty. \\
 
 \subsubsection{Data writer}
 \textbf{Type:} System\\
 \textbf{Purpose:} This component is meant to encapsulate the functionality
 necessary to write the processed images and their associated metadata to an
-output file.\\
+output directory.\\
 
 \subsubsection{Image Data Structure}
 \textbf{Type:} Class\\
-\textbf{Purpose:} This class will encapsulate the information and methods needed
-to manage the images we will be processing. It will also work closely with the
-Data Writer to write images and their metadata to files.\\
+\textbf{Purpose:} This class will encapsulate the information and methods needed to manage the images we will be processing. It will also work closely with the Data Writer to write images and their metadata to files.\\
 
 \subsubsection{Solar Eclipse Image Standardisation and Sequencing (SEISS)}
 \textbf{Type:} Procedure\\
 \textbf{Purpose:} The SEISS algorithm is an image processing algorithm that can
-identify images of eclipses, including eclipses at totality \cite{imgKrista}. We
-will be basing part of the image processor off of this algorithm. \\
+identify images of eclipses, including eclipses at totality \cite{imgKrista}.
+We will be basing part of the image processor off of this algorithm. \\
 
-\subsection{Image Processor Manager}
+\subsection{Image Processor Development Pipeline}
 
-    \subsubsection{Image List Downloader}
-    \textbf{Type:} Subsystem \\
-    \textbf{Purpose:} The purpose of this subsystem is to download and return a list of images from Datastore
-    to be processed by the image processor application. It will use Datastore transactions to ensure that each
-    image in this list is marked as pending processing before it can be retrieved by another image processor
-    manager instance. The max number of image files retrieved will be determined by the number of image
-    processor processes that are going to be launched. This value will be a parameter of the image list
-    downloader subsystem. \\
-
-    \subsubsection{Image Downloader}
-    \textbf{Type:} Subsystem \\
-    \textbf{Purpose:} The purpose of this subsystem is to download and save individual image files. It will
-    accept the name of an image file to retrieve from Cloud Storage and a place to store this file, and will
-    then download the file and save it to the desired location. \\
-
-    \subsubsection{Image Download Manager}
+    \subsubsection{Bash Script}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to coordinate design elements 4.2.1 and 4.2.2, the
-    \textit{Image List Downloader} and \textit{Image Downloader}, respectively. It will use the
-    \textit{Image List Downloader} to retrieve a list of images to download and then will use the Python
-    multiprocessing module to launch multiple instances of the \textit{Image Downloader} subsystem
-    concurrently to download the images in the list. \\
+    \textbf{Purpose:} The image processor developer pipeline will consist, in
+    part, as a Bash script that handles upload, download, calling the processor,
+    and calling the output generator. \\
 
-    \subsubsection{Result Uploader}
-    \textbf{Type:} Subsystem \\
-    \textbf{Purpose:} The purpose of this subsystem is to upload an individual processed image to Google Cloud
-    Storage and upload its metadata to Google Cloud Datastore. \\
+    \subsubsection{Python}
+    \textbf{Type:} Class \\
+    \textbf{Purpose:} In order to parse output of the image processor and
+    produce an HTML document the image processor developer pipeline will call a
+    Python script that handles this functionality. \\
 
-    \subsubsection{Result Uploader Manager}
+    \subsubsection{Jinja 2}
+    \textbf{Type:} Library \\
+    \textbf{Purpose:} Jinja 2 is an HTML templating library for the Python
+    language. We will use it in our output generation script to fill the HTML
+    document with information and results from the run. \\
+
+    \subsubsection{Google Cloud Storage}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to coordinate element 4.2.4, the \textit{Results Uploader}.
-    It will use the Python multiprocessing module to launch multiple instances of the \textit{Results Uploader}
-    concurrently to upload the output of the image processor. \\
+    \textbf{Purpose:} Google Cloud Storage is a system that we will use to store
+    test image datasets and the results of runs of the image processor. \\
 
-    \subsubsection{Image Processor Invoker}
+    \subsubsection{GSUtil}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to invoke multiple instances of the image processor
-    application concurrently using the Python subprocess module. It will distribute images to process over
-    multiple image processor processes to increase throughput. The number of image processor processes will be
-    determined by the number of cores on the host VM. \\
+    \textbf{Purpose:} GSUtil is a command line application that handles
+    interaction with Google Cloud Storage. We will use it in our Bash Script as
+    an interface to Google Cloud Storage for image download and output upload. \\
 
-    \subsubsection{Controller}
+    \subsubsection{HyperText Markup Language (HTML)}
     \textbf{Type:} System \\
-    \textbf{Purpose:} The purpose of this system is to coordinate the three other systems that are part of the
-    image processor manager, design elements 4.2.3, 4.2.5, and 4.2.6, the \textit{Image Download Manager},
-    the \textit{Result Uploader Manager}, and the \textit{Image Processor Invoker}. It will run these systems
-    in parallel so that images are downloaded/uploaded at the same time that other images are being
-    processed. \\
+    \textbf{Purpose:} HTML is a language for formatting and aranging data. We
+    will use it to format the results of a run of the image processor. \\
+
+    \subsubsection{Javascript}
+    \textbf{Type:} System \\
+    \textbf{Purpose:} Javascript provides functionality to HTML documents, we
+    will use it to handle sorting of the rows in the table that holds the
+    output in the output HTML document. \\
+
+    \subsubsection{Cascading Style Sheets (CSS)}
+    \textbf{Type:} System \\
+    \textbf{Purpose:} CSS handles the styling, look, and feel of HTML documents.
+    In our context, it is used to make the output HTML document visually
+    appealing and easy to read. \\
+
+    \subsubsection{Material Design Lite (MDL)}
+    \textbf{Type:} Library/Framework \\
+    \textbf{Purpose:} MDL is a framework that provides built in CSS for HTML
+    elements like text, lists and tables. We will use it to enhance the CSS on
+    our page and make the data easily readable and visually appealing. \\
 
 
 \subsection{Eclipse Simulator}
 
-  \subsubsection{Scalar Vector Graphics (SVG)}
+  \subsubsection{Hypertext Markup Language (HTML)}
   \textbf{Type:} System \\
-  \textbf{Purpose:} This element shall be used for the
-  front-end display of the eclipse simulator.
-  Two-dimensional images of the Sun and Moon will be altered
-  based on how the user interacts with the module.
-
+  \textbf{Purpose:} HTML will be used to describe the basic
+  view structure of the simulator. \\
 
   \subsubsection{Cascading Style Sheets (CSS)}
   \textbf{Type:} System \\
-  \textbf{Purpose:} CSS helps with the front-end display of
-  the simulator by helping produce better looking output.
+  \textbf{Purpose:} CSS will be used to style the simulator
+  HTML. This includes layout, color, shape, fonts,
+  and more. \\
 
-  \subsubsection{Meuus JavaScript Library}
+  \subsubsection{Scalar Vector Graphics (SVG)}
+  \textbf{Type:} System \\
+  \textbf{Purpose:} This element will be used to
+  position the Sun/Moon within the simulator scene. \\
+
+  \subsubsection{MeuusJS JavaScript Library}
   \textbf{Type:} Library \\
-  \textbf{Purpose:} This library is used to compute the position of the Sun and
-  Moon in the sky.
+  \textbf{Purpose:} This library is used to compute the position
+  of the Sun and Moon in the sky at a given time/position. \\
 
   \subsubsection{View}
   \textbf{Type:} Component \\
-  \textbf{Purpose:} Combined the HTML, SVG, and CSS elements
-  for simulator display and interaction for the user.
+  \textbf{Purpose:} The simulator view will be responsible
+  for managing any dynamic components of the simulator front end.
+  This includes manipulating the HTML DOM, updating styles, and updating SVG
+  elements. \\
 
   \subsubsection{Model}
   \textbf{Type:} Component \\
-  \textbf{Purpose:} Backend library in JavaScript used for
-  computing eclipse information which will be passed to the
-  controller. This entity utilizes the Meuus JavaScript
-  library for support.
+  \textbf{Purpose:} The model will perform complex computational tasks in the simulator.
+  This will include providing a wrapper around the MeuusJS library, and implementing
+  other computations based on the information returned by this library. \\
 
   \subsubsection{Controller}
   \textbf{Type:} Component \\
-  \textbf{Purpose:}  Controls the interaction between the
-  model and view. Information will be passed between these
-  entities.
+  \textbf{Purpose:} The controller will coordinate interaction between the view and
+  the model. The controller will also provide the entrypoint for the simulator. \\
 
   \subsubsection{Model-View-Controller Architecture}
   \textbf{Type:} Relationship \\
-  \textbf{Purpose:} This architecture is defined by the interactions of the model, view, and controller entities.
+  \textbf{Purpose:} This architecture is defined by the interactions of the model,
+  view, and controller entities. \\
 
 %% Section 5
 \section{Design Overlays}
@@ -519,16 +492,16 @@ will be basing part of the image processor off of this algorithm. \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{george_fig.eps}
+    \includegraphics[width=\textwidth]{imgproc.eps}
     \caption{Image processor basic dataflow}
 \end{figure}
 
-\subsection{Image Processor Manager}
+\subsection{Image Processor Developer Pipeline}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{bret_fig.eps}
-    \caption{Image processor manager system diagram [Associated with Viewpoint 2.2.1]}
+    \includegraphics[width=0.75\textwidth]{dev.eps}
+    \caption{Image processor developer pipeline basic dataflow}
 \end{figure}
 
 \subsection{Eclipse Simulator}
@@ -549,66 +522,44 @@ The design of this system is based on needs surrounding accuracy, speed, and
 ability to interface with other components in the larger system. As was detailed
 in the technology review, we made certain decisions about what tools and
 algorithms to use based on the specific requirements of our system. The use of
-these tools has necessarily shaped the design of this application.\\
+these tools has necessarily shaped the design of this application.
 
 Additional information regarding design rationale can be found in the 'Purpose'
-section of the design elements.
+section of the design elements. \\
 
-\subsection{Image Processor Manager}
+\subsection{Image Processor Developer Pipeline}
 
-    \subsubsection{High Level System Design}
-    From a high level the system is designed to be highly parallel with the aim of achieving as close to
-    100\% CPU utilization on all cores as possible. In order to achieve this it is necessary to ensure that
-    images to process are downloaded ahead of the time they're needed, this way the latency of their download
-    time is hidden by processing other images. It is also necessary to ensure that processed images do not back
-    up. The design elements outlined above fit together to form a system that naturally supports a very high
-    level of concurrency. Subsystems to handle individual tasks are built and then multiple instances of these
-    subsystems can be launched concurrently with different parameters. These subsystems are called by their
-    parent systems. \\
-
-    \subsubsection{Process Based Concurrency}
-    As outlined in detail in our technology review, to achieve true multi-core concurrency in Python, use of
-    process based concurrency such as that used in the built-in multiprocessing module is necessary. This is
-    because multi-thread execution in Python is severely throttled by the Global Interpreter Lock (GIL) which
-    essentially forces serialization of the execution of concurrent threads. \\
-
-    \subsubsection{Motivation for separation of Image List Downloader and Image Downloader}
-    Design element 4.2.1, the \textit{Image List Downloader} is separated from design element 4.2.2, the
-    \textit{Image Downloader} as lists of all the images that need to be downloaded at a given time form
-    relatively small collections of data. Therefore, it is more efficient to make a single Datastore query to
-    retrieve all the images that need to be downloaded, rather than retrieving these one at a time using
-    separate queries. As the image files themselves are quite large, these still need to be retrieved
-    individually. In fact, the Google Cloud Client Library for Python does not support the download of multiple
-    files from Cloud Storage using a single API call. On top of this constraint, downloading the actual image
-    files individually ensures that we are able to establish a large number of concurrent connections to Cloud
-    Storage to saturate the VM network interface as much as possible and achieve very high overall download
-    speeds. \\
+We chose to compose the various compose the various elements of the developer using
+a bash script for several reasons. First, it allowed us to use the gsutil command
+line utility to download/upload images from Google Cloud Storage. This was desirable
+as gsutil already implements error handling, authentication, and concurrent downloads,
+meaning that these were not things we had to worry about implementing. Using bash also
+allowed us to build the latest version of the image processor using make, and to
+then easily invoke it with the input images. Bash also allowed us to use command line
+utilities like find, grep, and cut to dynamically create a input images file for the image
+processor without having to write any code. \\
 
 \subsection{Eclipse Simulator}
 
-
 The goals for the simulator were to provide a fast and
 responsive experience to the user while providing
-scientifically accurate results. One main concern with this
-is that the time to compute information regarding the Sun
-and Moon must be quick enough to not pose any significant
-delay for the rest of the simulator. \\
+scientifically accurate results. The simulator is a rather
+complex application. One of our main goals was to design it
+such that iterative development was streamlined.
 
-We decided to utilize the MVC architecture since model and
-view components can be exchanged without compromising the
-whole system. System designer only need to account how the
-components interact with each other to update the system.
-In the technology review, we compared two libraries: Suncalc
-and Ephemeris. Initially, we chose SunCalc as the better
-library due to better documentation and ease of use. After
+We decided to utilize the MVC architecture to allow for increased
+separation of application logic. In the technology review,
+we compared two libraries: Suncalc and Ephemeris. Initially, we chose
+SunCalc as the better library due to better documentation and ease of use. After
 further testing, we determined that the results of both of these libraries were
-unsatisfactorily accurate and opted for another choice: meuus.js. The Meuus library
+unsatisfactorily accurate and opted for another choice: MeuusJS. The Meuus library
 provides us with Sun/Moon positions that meet the requirements for accuracy of
-this simulator.  \\
+this simulator. The separation of application logic afforded by the MVC architecture
+means that switching between these libraries would be very easy and touch only a very
+small portion of the codebase.
 
-Additionally, we chose to utilize a scalar vector graphics
-format due to sub-element event processing and being easily
-to move the Sun and Moon around as animations. \\
+We chose to utilize SVG for the Sun/Moon positioning as it implements a simply x, y
+coordinate system and is very fast. \\
 
 %% Section 7
 \section{Design Languages}
@@ -622,13 +573,14 @@ to move the Sun and Moon around as animations. \\
 \newpage
 \section{Appendices}
 
-\subsection{Appendix I- Change History}
+\subsection{Appendix I: Change History}
 
 \begin{enumerate}
-\item November 30th, 2016- Document Created \\
+\item November 30th, 2016 -- Document Created
+\item May 15th, 2017 -- Document revised based on updated requirements \\
 \end{enumerate}
 
-\subsection{Appendix II- Glossary of Terms}
+\subsection{Appendix II: Glossary of Terms}
 
 \textbf{Eclipse Megamovie Project:}
 The Eclipse Megamovie Project is a collaboration between Google
@@ -638,20 +590,9 @@ that will pass over the United States on August 21, 2017. The project
 will crowdsource photos of the eclipse from photographers at various
 points along the path of totality. \\
 
-\noindent \textbf{Metadata:} In this document when we refer to metadata we are
-referring to any data associated with a file that is not that file itself -
-e.g. for a photo, the GPS coordinates at which that photo was taken are
-considered metadata.\\
-
-\noindent \textbf{Image processor instance/process:} a single image processor
-process. \\
-
 \noindent \textbf{VM:}  A virtual machine - a hosted virtual server. In this
 document, when we refer to a VM we are specifically referring to a VM hosted in
 Google Cloud - this could be either a bare VM or a single node in a VM cluster.\\
-
-\noindent \textbf{Google Cloud Datastore:} A fully managed, scheme-less NoSQL
-database solution offered from Google.\\
 
 \noindent \textbf{Google Cloud Storage:}  A fully managed file storage solution
 offered from Google, optimized for storing/accessing large files.\\
@@ -675,10 +616,6 @@ compressed in this method with the .jpeg or .jpg file extension. \\
 PNG refers to the Portable Network Graphics image file format.
 Images in the PNG format are frequently referred to as "PNGs" and are
 saved with the .png file extension. \\
-
-\noindent \textbf{EXIF:} EXIF refers to the Exchangeable Image File Format, a
-standard  media file format. Within the scope of this document EXIF generally
-refers to metadata associated with images processed by the image processor. \\
 
 \noindent \textbf{SEISS:} Solar Eclipse Image Standardisation and Sequencing.
 This refers to an algorithm developed by Krista et al. \cite{imgKrista} that
