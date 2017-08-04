@@ -1782,7 +1782,7 @@ EclipseSimulator.Model.prototype.get_sun_moon_position = function()
 EclipseSimulator.Model.prototype.compute_eclipse_time_and_pos = function()
 {
     // Initial date/time to begin looking for eclipse time
-    var date = EclipseSimulator.ECLIPSE_DAY;
+    var date = new Date(EclipseSimulator.ECLIPSE_DAY);
     date.setUTCHours(EclipseSimulator.ECLIPSE_WCOAST_HOUR);
 
     // Sun/Moon angular separation
